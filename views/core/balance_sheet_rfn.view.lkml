@@ -28,6 +28,11 @@ view: +balance_sheet {
 
   }
 
+  dimension: fiscal_year_quarter {
+    type: string
+    sql: concat(${fiscal_year},'.Q',${fiscal_quarter}) ;;
+  }
+
   dimension: fiscal_year_number {
     type: number
     sql: parse_numeric(${fiscal_year}) ;;
@@ -46,20 +51,84 @@ view: +balance_sheet {
     value_format_name: id
   }
 
-  filter: select_fiscal_periods {
-    type: string
-    suggest_explore: fiscal_periods_sdt
-    suggest_dimension: fiscal_year_period
-    suggest_persist_for: "1 seconds"
-  }
+  # filter: select_fiscal_periods {
+  #   type: string
+  #   suggest_explore: fiscal_periods_sdt
+  #   suggest_dimension: fiscal_year_period
+  #   suggest_persist_for: "1 seconds"
+  # }
 
 
 
   measure: total_amount_in_global_currency {
     type: sum
     sql: ${amount_in_target_currency} ;;
-    value_format_name: decimal_2
+    value_format_name: millions_d1
+    # html: @{TEST_big} ;;
+    drill_fields: [fiscal_year, fiscal_period, total_amount_in_global_currency]
+    link: {url:"www.google.com"}
   }
+
+  parameter: display {
+    type: unquoted
+    allowed_value: {label: "Fiscal Year" value: "fiscal_year"}
+    allowed_value: {label: "Fiscal Quarter" value: "fiscal_year_quarter"}
+    allowed_value: {label: "Fiscal Period" value: "fiscal_year_period"}
+    default_value: "fiscal_year_period"
+  }
+
+  dimension: test_in_query {
+    type: string
+    # sql: {% assign level = display._parameter_value %}
+    #     {% if shared_parameters.pick_fiscal_periods._in_query %}
+    #           {% if level == 'fiscal_year'%}'year'
+    #           {% elsif level == 'fiscal_year_quarter' %}'quarter'
+    #           {% elsif level == 'fiscal_year_period' %}'period'
+    #           {% else %}'no match on level'
+    #           {% endif %}
+    #     {% else %} "not in query" {% endif %};;
+    sql: {% assign level = display._parameter_value %}
+    {% if shared_parameters.pick_fiscal_periods._in_query %}
+    {% if level == 'fiscal_year'%}${selected_periods_sdt.fiscal_year}
+    {% elsif level == 'fiscal_year_quarter' %}${selected_periods_sdt.fiscal_year_quarter}
+    {% elsif level == 'fiscal_year_period' %}${selected_periods_sdt.fiscal_year_period}
+    {% else %}'no match on level'
+    {% endif %}
+    {% else %} "not in query" {% endif %};;
+  }
+
+  dimension: selected_level {
+    type: string
+    label_from_parameter: display
+    sql: {% assign level = display._parameter_value %}
+      {% if level == 'fiscal_year'%}${fiscal_year}
+        {% elsif level == 'fiscal_year_quarter' %}${fiscal_year_quarter}
+        {% elsif level == 'fiscal_year_period' %}${fiscal_year_period}
+        {% else %}'no match on level'
+    {% endif %}
+    ;;
+  }
+
+  # sql: {% assign level = display._parameter_value %}
+  # {% if shared_parameters.pick_fiscal_periods._in_query %}
+  # {% if level == 'fiscal_year'%}${selected_periods_sdt.fiscal_year}
+  # {% elsif level == 'fiscal_year_quarter' %}${selected_periods_sdt.fiscal_year_quarter}
+  # {% elsif level == 'fiscal_year_period' %}${selected_periods_sdt.fiscal_year_period}
+  # {% else %}'no match on level'
+  # {% endif %}
+  # {% elsif shared_parameters.select_reporting_dates._in_query %}
+  # {% if level == 'fiscal_year'%}${selected_fiscal_date_dim_sdt.fiscal_year}
+  # {% elsif level == 'fiscal_year_quarter' %}${selected_fiscal_date_dim_sdt.fiscal_year_quarter}
+  # {% elsif level == 'fiscal_year_period' %}${selected_fiscal_date_dim_sdt.fiscal_year_period}
+  # {% else %}'no match on level'
+  # {% endif %}
+  # {% elsif select_fiscal_period_start._in_query %}
+  # {% if level == 'fiscal_year'%}${fiscal_year}
+  # {% elsif level == 'fiscal_year_quarter' %}${fiscal_year_quarter}
+  # {% elsif level == 'fiscal_year_period' %}${fiscal_year_period}
+  # {% else %}'no match on level'
+  # {% endif %}
+  # {% else %} "not in query" {% endif %};;
 
   #########################################################
   ## Reporting and Comparison Periods
@@ -68,21 +137,21 @@ view: +balance_sheet {
   #########################################################
 
   parameter: select_fiscal_period_start {
-    view_label: ". Test Stuff"
+    view_label: "🗓️ Pick Dates OPTION 1"
     type: unquoted
     suggest_explore: fiscal_periods_sdt
     suggest_dimension: fiscal_year_period
   }
 
   parameter: select_fiscal_period_end {
-    view_label: ". Test Stuff"
+    view_label: "🗓️ Pick Dates OPTION 1"
     type: unquoted
     suggest_explore: fiscal_periods_sdt
     suggest_dimension: fiscal_year_period
   }
 
   parameter: compare_to {
-    view_label: ". Test Stuff"
+    view_label: "🗓️ Pick Dates OPTION 1"
     type: unquoted
     allowed_value: {
       label: "Year over Year" value: "yoy"
@@ -94,7 +163,7 @@ view: +balance_sheet {
   }
 
   dimension: report_period_start_date {
-    view_label: ". Test Stuff"
+    view_label: "🗓️ Pick Dates OPTION 1"
     type: date
     sql:    {% assign combine = select_fiscal_period_start._parameter_value | append:',' | append:select_fiscal_period_end._parameter_value %}
             {% assign combine_array = combine | split: ',' | sort  %}
@@ -105,7 +174,7 @@ view: +balance_sheet {
   }
 
   dimension: report_period_end_date {
-    view_label: ". Test Stuff"
+    view_label: "🗓️ Pick Dates OPTION 1"
     type: date
     sql: {% assign combine = select_fiscal_period_start._parameter_value | append:',' | append:select_fiscal_period_end._parameter_value %}
             {% assign combine_array = combine | split: ',' | sort  %}
@@ -114,13 +183,13 @@ view: +balance_sheet {
   }
 
   dimension: selected_period_count {
-    view_label: ". Test Stuff"
+    view_label: "🗓️ Pick Dates OPTION 1"
     type: number
     sql: 1 + abs(date_diff(${report_period_end_date},${report_period_start_date},MONTH)) ;;
   }
 
   dimension: compare_period_start_date {
-    view_label: ". Test Stuff"
+    view_label: "🗓️ Pick Dates OPTION 1"
     type: date
     sql:    {% assign combine = select_fiscal_period_start._parameter_value | append:',' | append:select_fiscal_period_end._parameter_value %}
             {% assign combine_array = combine | split: ',' | sort  %}
@@ -145,7 +214,7 @@ view: +balance_sheet {
   # }
 
   dimension: compare_period_end_date {
-    view_label: ". Test Stuff"
+    view_label: "🗓️ Pick Dates OPTION 1"
     type: date
     sql:
             {% assign combine = select_fiscal_period_start._parameter_value | append:',' | append:select_fiscal_period_end._parameter_value %}
@@ -162,11 +231,19 @@ view: +balance_sheet {
   }
 
   dimension: period_group {
-    view_label: ". Test Stuff"
+    view_label: "🗓️ Pick Dates OPTION 1"
     type: string
     sql: case when PARSE_DATE('%Y.%m',${fiscal_year_period}) between ${report_period_start_date} and ${report_period_end_date} then 'Reporting Period'
               when PARSE_DATE('%Y.%m',${fiscal_year_period}) between ${compare_period_start_date} and ${compare_period_end_date} then 'Compare Period'
         end ;;
   }
+
+
+   #########################################################
+  ## Reporting and Comparison Periods
+  ## Option 3
+  ## 1 date filter: select_reporting_dates (that translate to finding the fiscal periods based on those dates), compare_to
+  ## prior period assumes consecutive periods
+  #########################################################
 
  }
