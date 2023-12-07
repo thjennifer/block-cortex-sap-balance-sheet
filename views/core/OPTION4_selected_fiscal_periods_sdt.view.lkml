@@ -5,8 +5,13 @@
 ### optional filter Comparison Period
 ###########
 include: "/views/core/fiscal_periods_sdt.view"
-
-explore: selected_fiscal_periods_sdt {hidden:yes}
+include: "/views/core/shared_parameters.view"
+# explore: selected_fiscal_periods_sdt {hidden:yes
+#   join: shared_parameters {
+#     relationship: one_to_one
+#     sql:  ;;
+#   }
+#   }
 view: selected_fiscal_periods_sdt {
   label: "🗓️ Pick Dates OPTION 4"
   extends: [fiscal_periods_sdt]
@@ -91,7 +96,7 @@ view: selected_fiscal_periods_sdt {
   }
 
   parameter: parameter_compare_to {
-    label: "Select Comparison"
+    label: "Select Comparison Type"
     type: unquoted
     allowed_value: {
       label: "None" value: "none"
@@ -102,9 +107,9 @@ view: selected_fiscal_periods_sdt {
     allowed_value: {
       label: "Previous Fiscal Period" value: "prior"
     }
-    allowed_value: {
-      label: "Equal # Periods Prior" value: "equal"
-    }
+    # allowed_value: {
+    #   label: "Equal # Periods Prior" value: "equal"
+    # }
     allowed_value: {
       label: "Custom Range" value: "custom"
     }
@@ -151,6 +156,45 @@ view: selected_fiscal_periods_sdt {
   dimension: alignment_group {
     type: number
     sql: ${TABLE}.alignment_group ;;
+  }
+
+  dimension: selected_display_level {
+    label: "Selected Display Level"
+    type: string
+    # label_from_parameter: shared_parameters.display
+    sql: {% assign level = shared_parameters.display._parameter_value %}
+      {% if level == 'fiscal_year'%}${fiscal_year}
+        {% elsif level == 'fiscal_year_quarter' %} ${fiscal_year_quarter}
+        {% elsif level == 'fiscal_year_period' %} ${fiscal_year_period}
+        {% elsif level == 'fiscal_period_group' %} ${fiscal_period_group}
+
+      {% else %}'no match on level'
+      {% endif %}
+      ;;
+  }
+
+
+measure: reporting_amount {
+    type: sum
+    sql: ${balance_sheet.amount_in_target_currency} ;;
+    filters: [fiscal_period_group: "Reporting"]
+  }
+
+  measure: comparison_amount {
+    type: sum
+    sql: ${balance_sheet.amount_in_target_currency} ;;
+    filters: [fiscal_period_group: "Comparison"]
+  }
+
+  measure: difference_value {
+    type: number
+    sql: ${reporting_amount} - ${comparison_amount} ;;
+  }
+
+  measure: percent_difference_value {
+    type: number
+    sql: safe_divide(${reporting_amount},${comparison_amount}) - 1 ;;
+    value_format_name: percent_1
   }
 
 

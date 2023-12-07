@@ -99,7 +99,7 @@ view: +balance_sheet {
     view_label: "🗓️ Pick Dates OPTION 1"
     label: "Selected Display Level"
     type: string
-    label_from_parameter: shared_parameters.display
+    # label_from_parameter: shared_parameters.display
     sql: {% assign level = shared_parameters.display._parameter_value %}
       {% if level == 'fiscal_year'%}${fiscal_year}
         {% elsif level == 'fiscal_year_quarter' %} ${fiscal_year_quarter}
@@ -240,11 +240,6 @@ view: +balance_sheet {
   }
 
 
-   #########################################################
-  ## Reporting and Comparison Periods
-  ## Option 3
-  ## 1 date filter: select_reporting_dates (that translate to finding the fiscal periods based on those dates), compare_to
-  ## prior period assumes consecutive periods
-  #########################################################
+
 
  }
