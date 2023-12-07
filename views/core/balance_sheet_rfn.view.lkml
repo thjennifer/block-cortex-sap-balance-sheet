@@ -66,44 +66,45 @@ view: +balance_sheet {
     value_format_name: millions_d1
     # html: @{TEST_big} ;;
     drill_fields: [fiscal_year, fiscal_period, total_amount_in_global_currency]
-    link: {url:"www.google.com"}
   }
 
-  parameter: display {
-    type: unquoted
-    allowed_value: {label: "Fiscal Year" value: "fiscal_year"}
-    allowed_value: {label: "Fiscal Quarter" value: "fiscal_year_quarter"}
-    allowed_value: {label: "Fiscal Period" value: "fiscal_year_period"}
-    default_value: "fiscal_year_period"
-  }
+  # measure: reporting_period_amount_in_global_currency {
+  #   type: sum
+  #   sql: ${amount_in_target_currency} ;;
+  #   filters: [period_group: "Reporting Period"]
+  # }
 
-  dimension: test_in_query {
+  # measure: comparison_period_amount_in_global_currency {
+  #   type: sum
+  #   sql: ${amount_in_target_currency} ;;
+  #   filters: [period_group: "Comparison Period"]
+  # }
+
+  # measure: difference_value {
+  #   type: number
+  #   sql: ${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency} ;;
+  # }
+
+  # measure: percent_difference_value {
+  #   type: number
+  #   sql: safe_divide(${reporting_period_amount_in_global_currency},${comparison_period_amount_in_global_currency}) - 1 ;;
+  #   value_format_name: percent_1
+  # }
+
+
+
+
+
+  dimension: selected_display_level {
+    view_label: "🗓️ Pick Dates OPTION 1"
+    label: "Selected Display Level"
     type: string
-    # sql: {% assign level = display._parameter_value %}
-    #     {% if shared_parameters.pick_fiscal_periods._in_query %}
-    #           {% if level == 'fiscal_year'%}'year'
-    #           {% elsif level == 'fiscal_year_quarter' %}'quarter'
-    #           {% elsif level == 'fiscal_year_period' %}'period'
-    #           {% else %}'no match on level'
-    #           {% endif %}
-    #     {% else %} "not in query" {% endif %};;
-    sql: {% assign level = display._parameter_value %}
-    {% if shared_parameters.pick_fiscal_periods._in_query %}
-    {% if level == 'fiscal_year'%}${selected_periods_sdt.fiscal_year}
-    {% elsif level == 'fiscal_year_quarter' %}${selected_periods_sdt.fiscal_year_quarter}
-    {% elsif level == 'fiscal_year_period' %}${selected_periods_sdt.fiscal_year_period}
-    {% else %}'no match on level'
-    {% endif %}
-    {% else %} "not in query" {% endif %};;
-  }
-
-  dimension: selected_level {
-    type: string
-    label_from_parameter: display
-    sql: {% assign level = display._parameter_value %}
+    label_from_parameter: shared_parameters.display
+    sql: {% assign level = shared_parameters.display._parameter_value %}
       {% if level == 'fiscal_year'%}${fiscal_year}
-        {% elsif level == 'fiscal_year_quarter' %}${fiscal_year_quarter}
-        {% elsif level == 'fiscal_year_period' %}${fiscal_year_period}
+        {% elsif level == 'fiscal_year_quarter' %} ${fiscal_year_quarter}
+        {% elsif level == 'fiscal_year_period' %} ${fiscal_year_period}
+        {% elsif level == 'fiscal_period_group' %} ${period_group}
         {% else %}'no match on level'
     {% endif %}
     ;;
@@ -234,7 +235,7 @@ view: +balance_sheet {
     view_label: "🗓️ Pick Dates OPTION 1"
     type: string
     sql: case when PARSE_DATE('%Y.%m',${fiscal_year_period}) between ${report_period_start_date} and ${report_period_end_date} then 'Reporting Period'
-              when PARSE_DATE('%Y.%m',${fiscal_year_period}) between ${compare_period_start_date} and ${compare_period_end_date} then 'Compare Period'
+              when PARSE_DATE('%Y.%m',${fiscal_year_period}) between ${compare_period_start_date} and ${compare_period_end_date} then 'Comparison Period'
         end ;;
   }
 
