@@ -102,7 +102,7 @@ view: selected_fiscal_periods_sdt {
       label: "None" value: "none"
     }
     allowed_value: {
-      label: "Year over Year" value: "yoy"
+      label: "Same Period Last Year" value: "yoy"
     }
     allowed_value: {
       label: "Previous Fiscal Period" value: "prior"

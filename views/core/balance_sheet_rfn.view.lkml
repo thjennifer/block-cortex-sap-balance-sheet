@@ -68,6 +68,8 @@ view: +balance_sheet {
     drill_fields: [fiscal_year, fiscal_period, total_amount_in_global_currency]
   }
 
+
+
   # measure: reporting_period_amount_in_global_currency {
   #   type: sum
   #   sql: ${amount_in_target_currency} ;;
@@ -90,10 +92,6 @@ view: +balance_sheet {
   #   sql: safe_divide(${reporting_period_amount_in_global_currency},${comparison_period_amount_in_global_currency}) - 1 ;;
   #   value_format_name: percent_1
   # }
-
-
-
-
 
   dimension: selected_display_level {
     view_label: "🗓️ Pick Dates OPTION 1"
