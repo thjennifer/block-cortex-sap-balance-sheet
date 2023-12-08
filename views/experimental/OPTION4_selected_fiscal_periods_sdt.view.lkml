@@ -81,14 +81,6 @@ view: selected_fiscal_periods_sdt {
       ;;
   }
 
-  # {% assign fp_array = fp | split: ',' | uniq | sort %}
-  #         {% asssign cp_list = '' %}
-  #         {% for p in fp_array %}
-  #             {% assign p_array = p | split: '.' %}
-  #             {% assign yr = p_array[0] | times: 1 | minus: 1 %}
-  #             {% assign cp_list = cp_list | append: "'" | append: yr | append: '.' | append p_array[1] | append: "'" %}
-  #             {{cp_list}}{% if forloop.last != true %} , {% endif %}
-  #         {% endfor %}
 
   filter: filter_fiscal_period {
     label: "Select Fiscal Periods"

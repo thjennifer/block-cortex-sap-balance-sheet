@@ -175,7 +175,7 @@ view: +balance_sheet {
             {% assign start_date = combine_array[0] %}
 
 
-    PARSE_DATE('%Y.%m','{{start_date}}') ;;
+      PARSE_DATE('%Y.%m','{{start_date}}') ;;
   }
 
   dimension: report_period_end_date {
@@ -203,10 +203,10 @@ view: +balance_sheet {
          date_sub(PARSE_DATE('%Y.%m','{{start_date}}'), INTERVAL 1 YEAR)
         {% elsif compare_to._parameter_value == 'previous' %}
 
-         date_sub(PARSE_DATE('%Y.%m','{{start_date}}'), INTERVAL ${selected_period_count} MONTH)
-        {% else %}
-         cast(null as date)
-        {% endif %};;
+      date_sub(PARSE_DATE('%Y.%m','{{start_date}}'), INTERVAL ${selected_period_count} MONTH)
+      {% else %}
+      cast(null as date)
+      {% endif %};;
   }
 
   # dimension: testing {
@@ -262,8 +262,4 @@ view: +balance_sheet {
   }
 
 
-
-
-
-
- }
+}

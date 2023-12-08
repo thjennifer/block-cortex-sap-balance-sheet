@@ -1,11 +1,12 @@
-include: "/views/core/balance_sheet_rfn.view"
+include: "/views/experimental/test_balance_sheet_rfn.view"
 include: "/views/core/language_map_sdt.view"
 include: "/views/core/shared_parameters.view"
-include: "/views/core/OPTION2_selected_periods_sdt.view"
-include: "/views/core/OPTION4_selected_fiscal_periods_sdt.view"
-include: "/views/core/OPTION3_selected_fiscal_date_dim_sdt.view"
+include: "/views/experimental/OPTION2_selected_periods_sdt.view"
+include: "/views/experimental/OPTION4_selected_fiscal_periods_sdt.view"
+include: "/views/experimental/OPTION3_selected_fiscal_date_dim_sdt.view"
 
-explore: balance_sheet {
+explore: test_balance_sheet {
+  view_name: balance_sheet
   always_join: [language_map_sdt]
   always_filter: {filters:[balance_sheet.target_currency_tcurr: "USD"]}
 
