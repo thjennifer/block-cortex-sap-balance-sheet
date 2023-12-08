@@ -27,6 +27,7 @@ view: selected_fiscal_periods_sdt {
       select fp.*
             ,'Reporting' as fiscal_period_group
             ,rank() over (order by fiscal_year_period desc) as alignment_group
+            ,'{{fp}}' as selected_period
 
       from ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
       where {% condition filter_fiscal_period %} fiscal_year_period {% endcondition %}
@@ -39,7 +40,7 @@ view: selected_fiscal_periods_sdt {
       select fp.*
             ,'Comparison' as fiscal_period_group
             ,rank() over (order by fiscal_year_period desc) as alignment_group
-
+            ,cast(null as string) as selected_period
 
       from ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
       where
@@ -123,10 +124,10 @@ view: selected_fiscal_periods_sdt {
     suggest_dimension: fiscal_periods_sdt.fiscal_year_period
   }
 
-  # dimension: what_was_picked {
-  #   type: string
-  #   sql:  ${TABLE}.what_was_picked;;
-  # }
+  dimension: selected_period {
+    type: string
+    sql:  ${TABLE}.selected_period;;
+  }
 
   # dimension: what_was_picked_sorted {
   #   type: string
@@ -173,8 +174,7 @@ view: selected_fiscal_periods_sdt {
       ;;
   }
 
-
-measure: reporting_amount {
+  measure: reporting_amount {
     type: sum
     sql: ${balance_sheet.amount_in_target_currency} ;;
     filters: [fiscal_period_group: "Reporting"]
@@ -197,5 +197,24 @@ measure: reporting_amount {
     value_format_name: percent_1
   }
 
+  measure: title_balance_sheet {
+    type: number
+    sql: 1 ;;
+    # html: Balance Sheet <br> Current Ratio {{ balance_sheet.current_ratio._rendered_value }} ;;
+
+    # html: <p style="color: black; background-color: #CFDBD5; font-size:100%; text-align:center">Balance Sheet</p>
+    html:
+    <div  style="font-size:100pct; background-color:rgb((207,219,213,.5); text-align:center;  line-height: .8; font-family:'Noto Sans SC'; font-color: #808080">
+
+    <a style="font-size:100%;font-family:'verdana';color: black"><b>Balance Sheet</b></a><br>
+    <a style= "font-size:80%;font-family:'verdana';color: black">{{balance_sheet.company_text._value}}</a><br>
+    <a style= "font-size:80%;font-family:'verdana';color: black">Reporting Period:   {{selected_period._value}}&nbsp;&nbsp;&nbsp; Current Ratio: {{balance_sheet.current_ratio._rendered_value}}</a>
+    <br>
+    <a style= "font-size: 70%; text-align:center;font-family:'verdana';color: black"> Amounts in Millions  {{balance_sheet.target_currency_tcurr}} </a>
+
+    </div>
+  ;;
+
 
    }
+}

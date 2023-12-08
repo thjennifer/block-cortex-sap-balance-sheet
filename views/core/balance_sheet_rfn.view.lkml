@@ -237,6 +237,26 @@ view: +balance_sheet {
         end ;;
   }
 
+  measure: current_assets {
+    type: sum
+    sql:  ${amount_in_target_currency};;
+    filters: [node_text: "Current Assets"]
+  }
+
+  measure: current_liabilities {
+    type: sum
+    sql:  ${amount_in_target_currency};;
+    filters: [node_text: "Current Liabilities"]
+  }
+
+  measure: current_ratio {
+    type: number
+    sql: safe_divide(${current_assets},${current_liabilities}) * -1;;
+    value_format_name: decimal_2
+  }
+
+
+
 
 
 

@@ -9,5 +9,9 @@ named_value_format: format_large_numbers_d2 {
 
 
 named_value_format: millions_d1 {
+  value_format: "#,##0.00,,;-#,##0.00,,"
+}
+
+named_value_format: millions_d1_m {
   value_format: "#,##0.00,,\"M\";-#,##0.00,,\"M\""
 }
