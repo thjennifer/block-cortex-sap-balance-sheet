@@ -69,8 +69,6 @@ view: +balance_sheet {
     type: sum
     sql: ${cumulative_amount_in_target_currency} ;;
     value_format_name: millions_d1
-    # must be shown at fiscal_year_period level
-    required_fields: [fiscal_year_period]
     drill_fields: [fiscal_year, fiscal_period, level, parent_text, node_text, total_amount_in_global_currency]
   }
 
