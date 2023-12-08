@@ -67,7 +67,7 @@ view: +balance_sheet {
 
   measure: total_amount_in_global_currency {
     type: sum
-    sql: ${amount_in_target_currency} ;;
+    sql: ${cumulative_amount_in_target_currency} ;;
     value_format_name: millions_d1
 
     # drill_fields: [fiscal_year, fiscal_period, level, parent_text, node_text, total_amount_in_global_currency]
