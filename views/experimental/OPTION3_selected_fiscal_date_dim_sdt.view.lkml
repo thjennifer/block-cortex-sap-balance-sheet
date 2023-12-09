@@ -7,7 +7,7 @@
 ###
 ###########
 
-include: "/views/core/shared_parameters.view"
+include: "/views/experimental/shared_parameters.view"
 
 explore: selected_fiscal_date_dim_sdt {
  join: shared_parameters {

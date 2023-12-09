@@ -1,6 +1,6 @@
 include: "/views/experimental/test_balance_sheet_rfn.view"
 include: "/views/core/language_map_sdt.view"
-include: "/views/core/shared_parameters.view"
+include: "/views/experimental/shared_parameters.view"
 include: "/views/experimental/OPTION2_selected_periods_sdt.view"
 include: "/views/experimental/OPTION4_selected_fiscal_periods_sdt.view"
 include: "/views/experimental/OPTION3_selected_fiscal_date_dim_sdt.view"

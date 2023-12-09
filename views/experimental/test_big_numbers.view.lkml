@@ -11,11 +11,6 @@ view: test_big_numbers {
     #html: @{BigNumbers_format} ;;
   }
 
-  dimension: nbr_format {
-    type: number
-    sql: ${TABLE}.nbr ;;
-    html: @{TEST_big} ;;
-  }
 
   measure: sum_nbr {
     type: sum

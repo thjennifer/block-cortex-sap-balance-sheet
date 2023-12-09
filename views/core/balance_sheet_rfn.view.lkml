@@ -19,10 +19,12 @@ view: +balance_sheet {
   }
 
   dimension: amount_in_target_currency {
+    hidden: yes
     label: "Amount in Global Currency"
   }
 
   dimension: cumulative_amount_in_target_currency {
+    hidden: yes
     label: "Cumulative Amount in Global Currency"
     description: "End of Period Net Amount in Target Currency"
   }
@@ -56,20 +58,23 @@ view: +balance_sheet {
     value_format_name: id
   }
 
-  # filter: select_fiscal_periods {
-  #   type: string
-  #   suggest_explore: fiscal_periods_sdt
-  #   suggest_dimension: fiscal_year_period
-  #   suggest_persist_for: "1 seconds"
-  # }
-
-
 
   measure: total_amount_in_global_currency {
     type: sum
+    label: "Total Amount (Global Currency)"
+    description: "Period in Target or Global Currency"
     sql: ${cumulative_amount_in_target_currency} ;;
     value_format_name: millions_d1
-    drill_fields: [fiscal_year, fiscal_period, level, parent_text, node_text, total_amount_in_global_currency]
+    drill_fields: [fiscal_year, fiscal_period, level, parent_text, node_text, total_cumulative_amount_in_global_currency]
+  }
+
+  measure: total_cumulative_amount_in_global_currency {
+    type: sum
+    label: "Total Cumulative Amount (Global Currency)"
+    description: "End of Period Cumulative Amount in Target or Global Currency"
+    sql: ${cumulative_amount_in_target_currency} ;;
+    value_format_name: millions_d1
+    drill_fields: [fiscal_year, fiscal_period, level, parent_text, node_text, total_cumulative_amount_in_global_currency]
   }
 
 
@@ -97,159 +102,96 @@ view: +balance_sheet {
   #   value_format_name: percent_1
   # }
 
-  dimension: selected_display_level {
-    view_label: "🗓️ Pick Dates OPTION 1"
-    label: "Selected Display Level"
-    type: string
-    # label_from_parameter: shared_parameters.display
-    sql: {% assign level = shared_parameters.display._parameter_value %}
-      {% if level == 'fiscal_year'%}${fiscal_year}
-        {% elsif level == 'fiscal_year_quarter' %} ${fiscal_year_quarter}
-        {% elsif level == 'fiscal_year_period' %} ${fiscal_year_period}
-        {% elsif level == 'fiscal_period_group' %} ${period_group}
-        {% else %}'no match on level'
-    {% endif %}
-    ;;
-  }
 
-  # sql: {% assign level = display._parameter_value %}
-  # {% if shared_parameters.pick_fiscal_periods._in_query %}
-  # {% if level == 'fiscal_year'%}${selected_periods_sdt.fiscal_year}
-  # {% elsif level == 'fiscal_year_quarter' %}${selected_periods_sdt.fiscal_year_quarter}
-  # {% elsif level == 'fiscal_year_period' %}${selected_periods_sdt.fiscal_year_period}
-  # {% else %}'no match on level'
-  # {% endif %}
-  # {% elsif shared_parameters.select_reporting_dates._in_query %}
-  # {% if level == 'fiscal_year'%}${selected_fiscal_date_dim_sdt.fiscal_year}
-  # {% elsif level == 'fiscal_year_quarter' %}${selected_fiscal_date_dim_sdt.fiscal_year_quarter}
-  # {% elsif level == 'fiscal_year_period' %}${selected_fiscal_date_dim_sdt.fiscal_year_period}
-  # {% else %}'no match on level'
-  # {% endif %}
-  # {% elsif select_fiscal_period_start._in_query %}
-  # {% if level == 'fiscal_year'%}${fiscal_year}
-  # {% elsif level == 'fiscal_year_quarter' %}${fiscal_year_quarter}
-  # {% elsif level == 'fiscal_year_period' %}${fiscal_year_period}
-  # {% else %}'no match on level'
-  # {% endif %}
-  # {% else %} "not in query" {% endif %};;
 
   #########################################################
-  ## Reporting and Comparison Periods
-  ## Option 1
-  ## 3 parameters: select_fiscal_period_start, select_fiscal_period_end, compare_to
+  ## Parameters for Balance Sheet Dashboard
+  ## 3 parameters:
+  ##   select_fiscal_period
+  ##   select_comparison_type
+  ##   select_custom_comparison_period
+  ##
+  ## use parameter selections to define fiscal_period_group values of 'Reporting' or 'Comparison'
+  ##
+  ## at explore level if select_fiscal_period in query then filter where fiscal_period_group is null
   #########################################################
 
-  parameter: select_fiscal_period_start {
-    view_label: "🗓️ Pick Dates OPTION 1"
+  parameter: select_fiscal_period {
+    view_label: "🗓 Pick Fiscal Periods"
     type: unquoted
     suggest_explore: fiscal_periods_sdt
     suggest_dimension: fiscal_year_period
   }
 
-  parameter: select_fiscal_period_end {
-    view_label: "🗓️ Pick Dates OPTION 1"
+  parameter: select_custom_comparison_period {
+    view_label: "🗓 Pick Fiscal Periods"
     type: unquoted
     suggest_explore: fiscal_periods_sdt
     suggest_dimension: fiscal_year_period
   }
 
-  parameter: compare_to {
-    view_label: "🗓️ Pick Dates OPTION 1"
+  parameter: select_comparison_type {
+    view_label: "🗓 Pick Fiscal Periods"
     type: unquoted
     allowed_value: {
-      label: "Year over Year" value: "yoy"
+      label: "None" value: "none"
     }
     allowed_value: {
-      label: "Previous Period" value: "previous"
+      label: "Same Period Last Year" value: "yoy"
+    }
+    allowed_value: {
+      label: "Previous Fiscal Period" value: "prior"
+    }
+    allowed_value: {
+      label: "Custom Range" value: "custom"
     }
     default_value: "yoy"
+
   }
 
-  dimension: report_period_start_date {
-    view_label: "🗓️ Pick Dates OPTION 1"
-    type: date
-    sql:    {% assign combine = select_fiscal_period_start._parameter_value | append:',' | append:select_fiscal_period_end._parameter_value %}
-            {% assign combine_array = combine | split: ',' | sort  %}
-            {% assign start_date = combine_array[0] %}
 
 
-    PARSE_DATE('%Y.%m','{{start_date}}') ;;
-  }
-
-  dimension: report_period_end_date {
-    view_label: "🗓️ Pick Dates OPTION 1"
-    type: date
-    sql: {% assign combine = select_fiscal_period_start._parameter_value | append:',' | append:select_fiscal_period_end._parameter_value %}
-            {% assign combine_array = combine | split: ',' | sort  %}
-            {% assign end_date = combine_array[1] %}
-      PARSE_DATE('%Y.%m','{{end_date}}') ;;
-  }
-
-  dimension: selected_period_count {
-    view_label: "🗓️ Pick Dates OPTION 1"
-    type: number
-    sql: 1 + abs(date_diff(${report_period_end_date},${report_period_start_date},MONTH)) ;;
-  }
-
-  dimension: compare_period_start_date {
-    view_label: "🗓️ Pick Dates OPTION 1"
-    type: date
-    sql:    {% assign combine = select_fiscal_period_start._parameter_value | append:',' | append:select_fiscal_period_end._parameter_value %}
-            {% assign combine_array = combine | split: ',' | sort  %}
-            {% assign start_date = combine_array[0] %}
-        {% if compare_to._parameter_value == 'yoy' %}
-         date_sub(PARSE_DATE('%Y.%m','{{start_date}}'), INTERVAL 1 YEAR)
-        {% elsif compare_to._parameter_value == 'previous' %}
-
-         date_sub(PARSE_DATE('%Y.%m','{{start_date}}'), INTERVAL ${selected_period_count} MONTH)
-        {% else %}
-         cast(null as date)
-        {% endif %};;
-  }
-
-  # dimension: testing {
-  #   view_label: ". Test Stuff"
-  #   type: string
-  #   sql: {% assign combine = select_fiscal_period_start._parameter_value | append: ',' | append: select_fiscal_period_end._parameter_value %}
-  #       {% assign combine_array = combine | split: ',' | sort %}
-  #           {% assign start_date = combine_array[0] %}
-  #   '{{combine_array[0]}}';;
-  # }
-
-  dimension: compare_period_end_date {
-    view_label: "🗓️ Pick Dates OPTION 1"
-    type: date
-    sql:
-            {% assign combine = select_fiscal_period_start._parameter_value | append:',' | append:select_fiscal_period_end._parameter_value %}
-            {% assign combine_array = combine | split: ',' | sort  %}
-            {% assign start_date = combine_array[0] %}
-            {% assign end_date = combine_array[1] %}
-        {% if compare_to._parameter_value == 'yoy' %}
-         date_sub(PARSE_DATE('%Y.%m','{{end_date}}'), INTERVAL 1 YEAR)
-        {% elsif compare_to._parameter_value == 'previous' %}
-         date_sub(PARSE_DATE('%Y.%m','{{start_date}}'), INTERVAL 1 MONTH)
-        {% else %}
-        cast(null as date)
-        {% endif %};;
-  }
-
-  dimension: period_group {
-    view_label: "🗓️ Pick Dates OPTION 1"
+  dimension: fiscal_period_group {
     type: string
-    sql: case when PARSE_DATE('%Y.%m',${fiscal_year_period}) between ${report_period_start_date} and ${report_period_end_date} then 'Reporting Period'
-              when PARSE_DATE('%Y.%m',${fiscal_year_period}) between ${compare_period_start_date} and ${compare_period_end_date} then 'Comparison Period'
-        end ;;
+    sql:    {% if select_fiscal_period._in_query %}
+                {% assign comparison_type = select_comparison_type._parameter_value %}
+                {% assign fp = select_fiscal_period._parameter_value %}
+                {% assign cp = select_custom_comparison_period._parameter_value %}
+                {% if comparison_type == 'custom' %}
+                    {% if fp == cp %}{% assign comparison_type = 'none' %}
+                    {% elsif cp == '' %}{% assign comparison_type = 'yoy' %}
+                    {% endif %}
+                {% endif %}
+
+                {% if comparison_type == 'yoy' %}{% assign sub = 'YEAR'%}
+                {% elsif comparison_type == 'prior' %}{% assign sub = 'MONTH' %}
+                {% endif %}
+
+        case  when ${fiscal_year_period} = '{{fp}}' then 'Reporting'
+            {% if comparison_type != 'none' %}
+              when PARSE_DATE('%Y.%m',${fiscal_year_period}) =
+                {% if comparison_type == 'custom' %}
+                    PARSE_DATE('%Y.%m','{{cp}}')
+                {% else %}
+                    DATE_SUB(PARSE_DATE('%Y.%m','{{fp}}'), INTERVAL 1 {{sub}})
+                {% endif %}
+              then 'Comparison'
+            {% endif %}
+        end
+        {% else %} 'No Reporting Periods have been selected. Add Select Fiscal Period parameter.'
+        {% endif %};;
+
   }
 
   measure: current_assets {
     type: sum
-    sql:  ${amount_in_target_currency};;
+    sql:  ${cumulative_amount_in_target_currency};;
     filters: [node_text: "Current Assets"]
   }
 
   measure: current_liabilities {
     type: sum
-    sql:  ${amount_in_target_currency};;
+    sql:  ${cumulative_amount_in_target_currency};;
     filters: [node_text: "Current Liabilities"]
   }
 

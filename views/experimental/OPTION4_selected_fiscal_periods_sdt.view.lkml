@@ -5,7 +5,7 @@
 ### optional filter Comparison Period
 ###########
 include: "/views/core/fiscal_periods_sdt.view"
-include: "/views/core/shared_parameters.view"
+include: "/views/experimental/shared_parameters.view"
 # explore: selected_fiscal_periods_sdt {hidden:yes
 #   join: shared_parameters {
 #     relationship: one_to_one

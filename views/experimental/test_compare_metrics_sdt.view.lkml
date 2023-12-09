@@ -1,4 +1,4 @@
-include: "/views/core/shared_parameters.view"
+include: "/views/experimental/shared_parameters.view"
 include: "/views/core/balance_sheet_rfn.view"
 
 explore: test_compare_metrics {hidden: yes
