@@ -244,13 +244,13 @@ view: +balance_sheet {
 
   measure: current_assets {
     type: sum
-    sql:  ${amount_in_target_currency};;
+    sql:  ${cumulative_amount_in_target_currency};;
     filters: [node_text: "Current Assets"]
   }
 
   measure: current_liabilities {
     type: sum
-    sql:  ${amount_in_target_currency};;
+    sql:  ${cumulative_amount_in_target_currency};;
     filters: [node_text: "Current Liabilities"]
   }
 
