@@ -1,5 +1,5 @@
 view: balance_sheet {
-  sql_table_name: `zeeshanqayyum1.SAP_REPORTING_ECC.BalanceSheet` ;;
+  sql_table_name: `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.BalanceSheet` ;;
 
   dimension: amount_in_local_currency {
     type: number

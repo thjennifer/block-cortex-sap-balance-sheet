@@ -19,7 +19,7 @@ view: fiscal_periods_sdt {
               concat(b.FiscalYear,'.Q',b.FiscalQuarter) as fiscal_year_quarter,
               concat(b.FiscalYear,'.',{{fp}})  AS fiscal_year_period,
               parse_numeric(concat(b.FiscalYear,{{fp}})) * -1 as negative_fiscal_year_period_number
-      FROM `zeeshanqayyum1.SAP_REPORTING_ECC.BalanceSheet`  AS b
+      FROM `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.BalanceSheet`  AS b
       group by 1,2,3,4,5
       order by 1 desc ;;
   }

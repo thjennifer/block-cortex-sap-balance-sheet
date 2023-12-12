@@ -165,6 +165,13 @@ view: +balance_sheet {
     description: "Shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 02 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 03 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
   }
 
+  dimension: level_number {
+    type: number
+    description: "Level as a numeric. Level shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 2 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 3 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
+
+    sql: parse_numeric(${level}) ;;
+  }
+
   dimension: is_leaf_node {
     description: "Yes if GL Account Number and indicates lowest level of hierarchy."
   }

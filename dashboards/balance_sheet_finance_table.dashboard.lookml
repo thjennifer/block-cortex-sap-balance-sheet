@@ -14,7 +14,7 @@
       balance_sheet.node_text, balance_sheet.total_cumulative_amount_in_global_currency, balance_sheet.fiscal_year_period]
     pivots: [balance_sheet.fiscal_year_period]
     filters:
-      balance_sheet.level: '03,04,02'
+      balance_sheet.level_number: '2,3,4'
     sorts: [balance_sheet.fiscal_year_period, balance_sheet.parent,balance_sheet.node]
     limit: 5000
     total: true
@@ -105,7 +105,7 @@
     type: single_value
     fields: [balance_sheet.title_balance_sheet]
     filters:
-      balance_sheet.level: '02,03,04'
+      balance_sheet.level_number: '2,3,4'
     custom_color_enabled: true
     show_single_value_title: false
     show_comparison: false
@@ -142,6 +142,7 @@
   - name: Fiscal Period
     title: Fiscal Period
     type: field_filter
+    # default_value: '2023.11'
     default_value: '2023.10'
     allow_multiple_values: false
     required: true
@@ -190,6 +191,7 @@
   - name: Hierarchy
     title: Hierarchy
     type: field_filter
+    # default_value: ''
     default_value: FPA1
     allow_multiple_values: false
     required: true
@@ -203,6 +205,7 @@
     title: Chart of Accounts
     type: field_filter
     default_value: CA01
+    # default_value: ''
     allow_multiple_values: false
     required: true
     ui_config:
@@ -214,6 +217,7 @@
   - name: Company
     title: Company
     type: field_filter
+    # default_value: ''
     default_value: CYMBAL US06 US CENTRAL
     allow_multiple_values: false
     required: true
