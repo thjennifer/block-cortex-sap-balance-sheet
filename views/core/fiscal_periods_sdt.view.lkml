@@ -9,12 +9,16 @@
 
 view: fiscal_periods_sdt {
   derived_table: {
-    sql: select
+    sql:
+      {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
+      {% if max_fp_size == 2 %}{% assign fp = 'right(b.FiscalPeriod,2)'%}
+      {% else %}{%assign fp = 'b.FiscalPeriod' %}{%endif%}
+      select
               FiscalYear as fiscal_year,
               FiscalPeriod as fiscal_period,
               concat(b.FiscalYear,'.Q',b.FiscalQuarter) as fiscal_year_quarter,
-              concat(b.FiscalYear,'.',right(b.FiscalPeriod,2))  AS fiscal_year_period,
-              parse_numeric(concat(b.FiscalYear,right(b.FiscalPeriod,2))) * -1 as negative_fiscal_year_period_number
+              concat(b.FiscalYear,'.',{{fp}})  AS fiscal_year_period,
+              parse_numeric(concat(b.FiscalYear,{{fp}})) * -1 as negative_fiscal_year_period_number
       FROM `zeeshanqayyum1.SAP_REPORTING_ECC.BalanceSheet`  AS b
       group by 1,2,3,4,5
       order by 1 desc ;;

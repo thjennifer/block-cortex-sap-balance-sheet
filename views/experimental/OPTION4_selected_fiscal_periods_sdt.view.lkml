@@ -146,6 +146,39 @@ view: selected_fiscal_periods_sdt {
     sql:  ${TABLE}.fiscal_period_group;;
   }
 
+  # dimension: fiscal_period_group {
+  #   group_label: "Fiscal Dates"
+  #   type: string
+  #   sql:    {% if select_fiscal_period._in_query %}
+  #               {% assign comparison_type = select_comparison_type._parameter_value %}
+  #               {% assign fp = select_fiscal_period._parameter_value %}
+  #               {% assign cp = select_custom_comparison_period._parameter_value %}
+  #               {% if comparison_type == 'custom' %}
+  #                   {% if fp == cp %}{% assign comparison_type = 'none' %}
+  #                   {% elsif cp == '' %}{% assign comparison_type = 'yoy' %}
+  #                   {% endif %}
+  #               {% endif %}
+
+  #     {% if comparison_type == 'yoy' %}{% assign sub = 'YEAR'%}
+  #     {% elsif comparison_type == 'prior' %}{% assign sub = 'MONTH' %}
+  #     {% endif %}
+
+
+  #     case  when ${fiscal_year_period} = '{{fp}}' then 'Reporting'
+  #     {% if comparison_type != 'none' %}
+  #     when PARSE_DATE('%Y.%m',${fiscal_year_period}) =
+  #     {% if comparison_type == 'custom' %}
+  #     PARSE_DATE('%Y.%m','{{cp}}')
+  #     {% else %}
+  #     DATE_SUB(PARSE_DATE('%Y.%m','{{fp}}'), INTERVAL 1 {{sub}})
+  #     {% endif %}
+  #     then 'Comparison'
+  #     {% endif %}
+  #     end
+  #     {% else %} 'No Fiscal Reporting Period has been selected. Add Select Fiscal Period parameter.'
+  #     {% endif %};;
+  # }
+
   dimension: alignment_group {
     type: number
     sql: ${TABLE}.alignment_group ;;

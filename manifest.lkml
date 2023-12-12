@@ -24,6 +24,12 @@ constant: USE_DEMO_DATA {
   export: override_required
 }
 
+# enter the max number of fiscal periods in a fiscal year.
+# used to derive previous previous period when 1st period is selected
+constant: max_fiscal_period {
+  value: "12"
+}
+
 
 constant: big_numbers_format {
   value: "
