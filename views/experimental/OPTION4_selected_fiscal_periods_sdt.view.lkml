@@ -242,4 +242,18 @@ view: selected_fiscal_periods_sdt {
 
 
    }
+
+  dimension: test_liquid_dates {
+    sql: {% assign date1 = "today" | date: '%Y.%m' %}
+         {% assign current_month = '2023-01-01' | date: '%m' %}
+        {% assign current_year = '2023-01-01' | date: '%Y' %}
+          {% if current_month == '01' %}{% assign last_month = '12' %}{% assign last_month_year = current_year | times: 1 | minus: 1 %}
+            {% else %}{% assign last_month = current_month | times: 1 | minus: 1 | prepend: '00' | slice: -2, 2 %}{% assign last_month_year = current_year %}
+            {% endif %}
+          {% assign last_period = last_month_year | append: "." | append: last_month  %}
+
+
+          'Date1: {{ date1 }}   LastPeriod: {{ last_period }} Current Month: {{current_month}}  Current Year: {{ current_year }}' ;;
+
+  }
 }

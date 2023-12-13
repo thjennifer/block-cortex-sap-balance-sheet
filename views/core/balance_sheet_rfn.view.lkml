@@ -292,6 +292,13 @@ view: +balance_sheet {
       ;;
   }
 
+  dimension: selected_fiscal_reporting_period {
+    type: string
+    group_label: "Fiscal Dates"
+    description: "Fiscal Period chosen with parameter Select Fiscal Period"
+    sql: '{% parameter select_fiscal_period %}';;
+  }
+
   #} end Fiscal Dates
 
 # Hidden dimensions that are restated as measures; Amounts and Exchange Rates
@@ -393,17 +400,52 @@ view: +balance_sheet {
   measure: reporting_period_amount_in_global_currency {
     type: sum
     group_label: "Reporting v Comparison Period Metrics"
+    label_from_parameter: select_fiscal_period
     description: "Cumulative Amount in Global Currency for the selected Fiscal Reporting Period"
     sql: ${cumulative_amount_in_target_currency} ;;
     filters: [fiscal_period_group: "Reporting"]
+    value_format_name: millions_d1
   }
 
   measure: comparison_period_amount_in_global_currency {
     type: sum
     group_label: "Reporting v Comparison Period Metrics"
+    label: "{% if select_fiscal_period._in_query %}
+                {% assign comparison_type = select_comparison_type._parameter_value %}
+                {% assign fp = select_fiscal_period._parameter_value %}
+                {% assign cp = select_custom_comparison_period._parameter_value %}
+                {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
+                {% assign max_fp_size_neg = max_fp_size | times: -1 %}
+                {% assign pad = '' %}
+                    {% for i in (1..max_fp_size) %}
+                        {% assign pad = pad | append: '0' %}
+                    {% endfor %}
+                {% if comparison_type == 'custom' %}
+                    {% if fp == cp %}{% assign comparison_type = 'none' %}
+                    {% elsif cp == '' %}{% assign comparison_type = 'yoy' %}
+                    {% endif %}
+                {% endif %}
+
+                {% if comparison_type == 'prior' or comparison_type == 'yoy' %}
+                  {% assign p_array = fp | split: '.' %}
+                       {% if comparison_type == 'prior' %}
+                            {% if p_array[1] == '001' or p_array[1] == '01' %}
+                              {% assign m = '@{max_fiscal_period}' %}{% assign sub_yr = 1 %}
+                            {% else %}
+                              {% assign m = p_array[1] | times: 1 | minus: 1 | prepend: pad | slice: max_fp_size_neg, max_fp_size %}{% assign sub_yr = 0 %}
+                            {% endif %}
+                      {% else %}
+                          {% assign m = p_array[1] %}{% assign sub_yr = 1 %}
+                      {% endif %}
+                  {% assign yr = p_array[0] | times: 1 | minus: sub_yr %}
+                  {% assign cp =  yr | append: '.'| append: m %}
+                {% endif %}{{cp}}
+              {% endif %}"
+
     description: "Cumulative Amount in Global Currency for the selected Fiscal Comparison Period"
     sql: ${cumulative_amount_in_target_currency}  ;;
     filters: [fiscal_period_group: "Comparison"]
+    value_format_name: millions_d1
   }
 
   measure: difference_value {
@@ -411,6 +453,7 @@ view: +balance_sheet {
     group_label: "Reporting v Comparison Period Metrics"
     description: "Reporting Period Amount - Comparison Period Amount"
     sql: ${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency} ;;
+    value_format_name: millions_d1
   }
 
   measure: percent_difference_value {

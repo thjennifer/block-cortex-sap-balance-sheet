@@ -1,9 +1,9 @@
-- dashboard: balance_sheet_finance_table
+- dashboard: balance_sheet_default_table
   title: Balance Sheet
   layout: newspaper
   preferred_viewer: dashboards-next
   filters_location_top: false
-  description: "Reports Fiscal Period Cumulative Amount in Global Currency for Levels 2, 3, and 4 of the selected hierarchy, chart of accounts, company, fiscal period and comparison period (if any)."
+  description: "Using standard table with subtotals, reports Fiscal Period Cumulative Amount in Global Currency for Levels 2, 3, and 4 of the selected hierarchy, chart of accounts, company, fiscal period and comparison period (if any)."
 
   elements:
   - title: Summary Title

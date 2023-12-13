@@ -6,11 +6,13 @@ constant: CONNECTION_NAME {
 
 constant: GCP_PROJECT_ID {
   value: "zeeshanqayyum1"
+  # value: "kittycorn-dev-infy"
   export: override_required
 }
 
 constant: REPORTING_DATASET {
   value: "SAP_REPORTING_ECC"
+  # value: "SAP_REPORTING_S4"
   export: override_required
 }
 
@@ -28,6 +30,11 @@ constant: USE_DEMO_DATA {
 # used to derive previous previous period when 1st period is selected
 constant: max_fiscal_period {
   value: "12"
+  export: override_optional
+}
+
+constant: negative_format {
+  value: "{% if value < 0 %}<p style='color:red;'>({{rendered_value}})</p>{% else %} {{rendered_value}} {% endif %}"
 }
 
 
