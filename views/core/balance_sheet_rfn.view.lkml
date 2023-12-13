@@ -147,6 +147,12 @@ view: +balance_sheet {
     label: "Parent (text)"
     description: "Parent (as text) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
     sql: coalesce(${TABLE}.ParentText,${TABLE}.Parent) ;;
+    order_by_field: parent_sort_order
+  }
+  dimension: parent_sort_order {
+    type: string
+    hidden: yes
+    sql: concat(${level_number},${parent}) ;;
   }
 
   dimension: node {
@@ -159,6 +165,13 @@ view: +balance_sheet {
     label: "Node (text)"
     description: "Child Node (as text) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
     sql: coalesce(${TABLE}.NodeText,${TABLE}.Node) ;;
+    order_by_field: node_sort_order
+  }
+
+  dimension: node_sort_order {
+    type: string
+    hidden: yes
+    sql: concat(${level_number},${parent},${node}) ;;
   }
 
   dimension: level {
@@ -405,6 +418,7 @@ view: +balance_sheet {
     sql: ${cumulative_amount_in_target_currency} ;;
     filters: [fiscal_period_group: "Reporting"]
     value_format_name: millions_d1
+    html: @{negative_format} ;;
   }
 
   measure: comparison_period_amount_in_global_currency {
@@ -440,28 +454,34 @@ view: +balance_sheet {
                   {% assign yr = p_array[0] | times: 1 | minus: sub_yr %}
                   {% assign cp =  yr | append: '.'| append: m %}
                 {% endif %}{{cp}}
+              {% else %} Comparison Period Amount in Global Currency
               {% endif %}"
 
     description: "Cumulative Amount in Global Currency for the selected Fiscal Comparison Period"
     sql: ${cumulative_amount_in_target_currency}  ;;
     filters: [fiscal_period_group: "Comparison"]
     value_format_name: millions_d1
+    html: @{negative_format} ;;
   }
 
   measure: difference_value {
     type: number
     group_label: "Reporting v Comparison Period Metrics"
+    label: "Var"
     description: "Reporting Period Amount - Comparison Period Amount"
     sql: ${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency} ;;
     value_format_name: millions_d1
+    html: @{negative_format} ;;
   }
 
-  measure: percent_difference_value {
+  measure: difference_percent {
     type: number
     group_label: "Reporting v Comparison Period Metrics"
+    label: "Var %"
     description: "Percentage Change between Reporting and Comparison Periods"
     sql: safe_divide(${reporting_period_amount_in_global_currency},${comparison_period_amount_in_global_currency}) - 1 ;;
     value_format_name: percent_1
+    html: @{negative_format} ;;
   }
 
   # used in Balance Sheet dashboard, added to a single-value visualization

@@ -34,7 +34,7 @@ constant: max_fiscal_period {
 }
 
 constant: negative_format {
-  value: "{% if value < 0 %}<p style='color:red;'>({{rendered_value}})</p>{% else %} {{rendered_value}} {% endif %}"
+  value: "{% if value < 0 %}<p style='color:red;'>{{rendered_value}}</p>{% else %} {{rendered_value}} {% endif %}"
 }
 
 
