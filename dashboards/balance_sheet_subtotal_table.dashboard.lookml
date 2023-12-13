@@ -31,9 +31,8 @@
     name: Balance Sheet
     explore: balance_sheet
     type: looker_grid
-    fields: [balance_sheet.parent_text, balance_sheet.node_text, balance_sheet.reporting_period_amount_in_global_currency,
-      balance_sheet.comparison_period_amount_in_global_currency, balance_sheet.difference_value,
-      balance_sheet.difference_percent]
+    fields: [balance_sheet.parent_text, balance_sheet.node_text,balance_sheet.comparison_period_amount_in_global_currency, balance_sheet.reporting_period_amount_in_global_currency,
+       balance_sheet.difference_value,balance_sheet.difference_percent]
     filters:
       balance_sheet.level_number: '2,3,4'
     sorts: [balance_sheet.parent_text, balance_sheet.reporting_period_amount_in_global_currency

@@ -265,35 +265,7 @@ view: +balance_sheet {
     group_label: "Fiscal Dates"
     description: "Fiscal Period is labeled either Reporting or Comparison depending on the values user picks for Fiscal Period and Comparison Type."
     sql:    {% if select_fiscal_period._in_query %}
-                {% assign comparison_type = select_comparison_type._parameter_value %}
-                {% assign fp = select_fiscal_period._parameter_value %}
-                {% assign cp = select_custom_comparison_period._parameter_value %}
-                {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
-                {% assign max_fp_size_neg = max_fp_size | times: -1 %}
-                {% assign pad = '' %}
-                    {% for i in (1..max_fp_size) %}
-                        {% assign pad = pad | append: '0' %}
-                    {% endfor %}
-                {% if comparison_type == 'custom' %}
-                    {% if fp == cp %}{% assign comparison_type = 'none' %}
-                    {% elsif cp == '' %}{% assign comparison_type = 'yoy' %}
-                    {% endif %}
-                {% endif %}
-
-                {% if comparison_type == 'prior' or comparison_type == 'yoy' %}
-                  {% assign p_array = fp | split: '.' %}
-                       {% if comparison_type == 'prior' %}
-                            {% if p_array[1] == '001' or p_array[1] == '01' %}
-                              {% assign m = '@{max_fiscal_period}' %}{% assign sub_yr = 1 %}
-                            {% else %}
-                              {% assign m = p_array[1] | times: 1 | minus: 1 | prepend: pad | slice: max_fp_size_neg, max_fp_size %}{% assign sub_yr = 0 %}
-                            {% endif %}
-                      {% else %}
-                          {% assign m = p_array[1] %}{% assign sub_yr = 1 %}
-                      {% endif %}
-                  {% assign yr = p_array[0] | times: 1 | minus: sub_yr %}
-                  {% assign cp =  yr | append: '.'| append: m %}
-                {% endif %}
+                @{derive_comparison_period}
 
              case  when ${fiscal_year_period} = '{{fp}}' then 'Reporting'
                 {% if comparison_type != 'none' %}
@@ -359,7 +331,6 @@ view: +balance_sheet {
     description: "Period Amount in Local Currency"
     sql: ${amount_in_local_currency} ;;
     value_format_name: millions_d1
-    drill_fields: [fiscal_year, fiscal_period, level, parent_text, node_text, total_cumulative_amount_in_global_currency]
   }
 
   measure: total_cumulative_amount_in_local_currency {
@@ -368,7 +339,6 @@ view: +balance_sheet {
     description: "End of Period Cumulative Amount in Local Currency"
     sql: ${cumulative_amount_in_local_currency} ;;
     value_format_name: millions_d1
-    drill_fields: [fiscal_year, fiscal_period, level, parent_text, node_text, total_cumulative_amount_in_global_currency]
   }
 
   measure: total_amount_in_global_currency {
@@ -377,7 +347,6 @@ view: +balance_sheet {
     description: "Period Amount in Target or Global Currency"
     sql: ${amount_in_target_currency} ;;
     value_format_name: millions_d1
-    drill_fields: [fiscal_year, fiscal_period, level, parent_text, node_text, total_cumulative_amount_in_global_currency]
   }
 
   measure: total_cumulative_amount_in_global_currency {
@@ -386,7 +355,6 @@ view: +balance_sheet {
     description: "End of Period Cumulative Amount in Target or Global Currency"
     sql: ${cumulative_amount_in_target_currency} ;;
     value_format_name: millions_d1
-    drill_fields: [fiscal_year, fiscal_period, level, parent_text, node_text, total_cumulative_amount_in_global_currency]
   }
 
   measure: current_assets {
@@ -421,48 +389,23 @@ view: +balance_sheet {
     html: @{negative_format} ;;
   }
 
+  # use sum(case ... when Comparison...) instead of type: sum with filter to allow nulls with Comparison is set to None
   measure: comparison_period_amount_in_global_currency {
-    type: sum
+    type: number
     group_label: "Reporting v Comparison Period Metrics"
     label: "{% if select_fiscal_period._in_query %}
-                {% assign comparison_type = select_comparison_type._parameter_value %}
-                {% assign fp = select_fiscal_period._parameter_value %}
-                {% assign cp = select_custom_comparison_period._parameter_value %}
-                {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
-                {% assign max_fp_size_neg = max_fp_size | times: -1 %}
-                {% assign pad = '' %}
-                    {% for i in (1..max_fp_size) %}
-                        {% assign pad = pad | append: '0' %}
-                    {% endfor %}
-                {% if comparison_type == 'custom' %}
-                    {% if fp == cp %}{% assign comparison_type = 'none' %}
-                    {% elsif cp == '' %}{% assign comparison_type = 'yoy' %}
-                    {% endif %}
-                {% endif %}
-
-                {% if comparison_type == 'prior' or comparison_type == 'yoy' %}
-                  {% assign p_array = fp | split: '.' %}
-                       {% if comparison_type == 'prior' %}
-                            {% if p_array[1] == '001' or p_array[1] == '01' %}
-                              {% assign m = '@{max_fiscal_period}' %}{% assign sub_yr = 1 %}
-                            {% else %}
-                              {% assign m = p_array[1] | times: 1 | minus: 1 | prepend: pad | slice: max_fp_size_neg, max_fp_size %}{% assign sub_yr = 0 %}
-                            {% endif %}
-                      {% else %}
-                          {% assign m = p_array[1] %}{% assign sub_yr = 1 %}
-                      {% endif %}
-                  {% assign yr = p_array[0] | times: 1 | minus: sub_yr %}
-                  {% assign cp =  yr | append: '.'| append: m %}
-                {% endif %}{{cp}}
+                @{derive_comparison_period}{{cp}}
               {% else %} Comparison Period Amount in Global Currency
               {% endif %}"
 
     description: "Cumulative Amount in Global Currency for the selected Fiscal Comparison Period"
-    sql: ${cumulative_amount_in_target_currency}  ;;
-    filters: [fiscal_period_group: "Comparison"]
+    # sql: ${cumulative_amount_in_target_currency}  ;;
+    sql: sum(case ${fiscal_period_group} when "Comparison" then ${cumulative_amount_in_target_currency} else null end) ;;
+    # filters: [fiscal_period_group: "Comparison"]
     value_format_name: millions_d1
     html: @{negative_format} ;;
   }
+
 
   measure: difference_value {
     type: number

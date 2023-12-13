@@ -1,9 +1,11 @@
+# This dashboard requires the Report Table visualization (available for free on Looker Marketplace) to be installed.
+
 - dashboard: balance_sheet_finance_table
   title: Balance Sheet
   layout: newspaper
   preferred_viewer: dashboards-next
   filters_location_top: false
-  description: "Reports Fiscal Period Cumulative Amount in Global Currency for Levels 2, 3, and 4 of the selected hierarchy, chart of accounts, company, fiscal period and comparison period (if any)."
+  description: "Reports Fiscal Period Cumulative Amount in Global Currency for Levels 2, 3, and 4 of the selected hierarchy, chart of accounts, company, fiscal period and comparison period (if any). Requires Report Table visualization to be downloaded from Looker Marketplace."
 
   elements:
   - title: Summary Title
