@@ -2,6 +2,7 @@
 # Finds the Fiscal Years and Periods available in Balance Sheet
 #
 # Used as source for Fiscal Period parameter or filter selections
+# Depending on max_fp_size, fiscal_year_period will display either YYYY.PP or YYYY.PPP
 # includes dimension negative_fiscal_year_period_number which:
 #   - is used as an order_by_field for fiscal_year_period
 #   - allows the fiscal_year_period to be displayed in descending order in paramter/filter drop-down selectors
@@ -14,14 +15,18 @@ view: fiscal_periods_sdt {
       {% if max_fp_size == 2 %}{% assign fp = 'right(b.FiscalPeriod,2)'%}
       {% else %}{%assign fp = 'b.FiscalPeriod' %}{%endif%}
       select
-              FiscalYear as fiscal_year,
-              FiscalPeriod as fiscal_period,
-              concat(b.FiscalYear,'.Q',b.FiscalQuarter) as fiscal_year_quarter,
-              concat(b.FiscalYear,'.',{{fp}})  AS fiscal_year_period,
-              parse_numeric(concat(b.FiscalYear,{{fp}})) * -1 as negative_fiscal_year_period_number
+        FiscalYear as fiscal_year,
+        FiscalPeriod as fiscal_period,
+        concat(b.FiscalYear,'.Q',b.FiscalQuarter) as fiscal_year_quarter,
+        concat(b.FiscalYear,'.',{{fp}})  AS fiscal_year_period,
+        parse_numeric(concat(b.FiscalYear,{{fp}})) * -1 as negative_fiscal_year_period_number
       FROM `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.BalanceSheet`  AS b
-      group by 1,2,3,4,5
-      order by 1 desc ;;
+      GROUP BY
+        fiscal_year,
+        fiscal_period,
+        fiscal_year_quarter,
+        fiscal_year_period,
+        negative_fiscal_year_period_number ;;
   }
 
   dimension: fiscal_year {
