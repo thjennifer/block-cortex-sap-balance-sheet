@@ -432,8 +432,9 @@ view: +balance_sheet {
     type: number
     description: "Used in Balance Sheet dashboard as Summary visualization with Company, Global Currency, Fiscal Period and Current Ratio."
     sql: 1 ;;
+    # (207,219,213,.5)
     html:
-      <div  style="font-size:100pct; background-color:rgb((207,219,213,.5); text-align:center;  line-height: .8; font-family:'Noto Sans SC'; font-color: #808080">
+      <div  style="font-size:100pct; background-color:rgb((169,169,169,.5); text-align:center;  line-height: .8; font-family:'Noto Sans SC'; font-color: #808080">
           <a style="font-size:100%;font-family:'verdana';color: black"><b>Balance Sheet</b></a><br>
           <a style= "font-size:80%;font-family:'verdana';color: black">{{company_text._value}}</a><br>
           <a style= "font-size:80%;font-family:'verdana';color: black">Reporting Period:   {{select_fiscal_period._parameter_value}}&nbsp;&nbsp;&nbsp; Current Ratio: {{current_ratio._rendered_value}}</a>
