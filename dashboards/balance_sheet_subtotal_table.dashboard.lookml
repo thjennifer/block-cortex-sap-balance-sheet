@@ -1,9 +1,9 @@
 - dashboard: balance_sheet_subtotal_table
-  title: Balance Sheet Subtotal Report
+  title: Balance Sheet Subtotals Report
   layout: newspaper
   preferred_viewer: dashboards-next
   filters_location_top: false
-  description: "Using standard table with subtotals, reports Fiscal Period Cumulative Amount in Global Currency for Levels 2, 3, and 4 of the selected hierarchy, chart of accounts, company, fiscal period and comparison period (if any)."
+  description: "Using standard table with subtotals, reports Fiscal Period Cumulative Amount in Global Currency for Levels 3 and 4 of the selected hierarchy, chart of accounts, company, fiscal period and comparison period (if any)."
 
   elements:
   - title: Summary Title
@@ -17,25 +17,25 @@
     show_single_value_title: false
     show_comparison: false
     listen:
-      Global Currency: balance_sheet.target_currency_tcurr
+      Currency: balance_sheet.target_currency_tcurr
       Chart of Accounts: balance_sheet.chart_of_accounts
       Company: balance_sheet.company_text
       Fiscal Period: balance_sheet.select_fiscal_period
       Hierarchy: balance_sheet.hierarchy_name
     row: 0
     col: 0
-    width: 22
+    width: 26
     height: 2
 
   - title: Balance Sheet
     name: Balance Sheet
     explore: balance_sheet
     type: looker_grid
-    fields: [balance_sheet.parent_text, balance_sheet.node_text,balance_sheet.comparison_period_amount_in_global_currency, balance_sheet.reporting_period_amount_in_global_currency,
+    fields: [balance_sheet.parent_text, balance_sheet.node_text,balance_sheet.reporting_period_amount_in_global_currency,balance_sheet.comparison_period_amount_in_global_currency,
        balance_sheet.difference_value,balance_sheet.difference_percent]
     filters:
-      balance_sheet.level_number: '2,3,4'
-    sorts: [balance_sheet.parent_text, balance_sheet.reporting_period_amount_in_global_currency
+      balance_sheet.level_number: '3,4'
+    sorts: [balance_sheet.parent_text, balance_sheet.node_text
       desc]
     subtotals: [balance_sheet.parent_text]
     limit: 500
@@ -96,15 +96,15 @@
     listen:
       Fiscal Period: balance_sheet.select_fiscal_period
       Comparison Type: balance_sheet.select_comparison_type
-      Custom Comparison (Optional): balance_sheet.select_custom_comparison_period
+      Custom Comparison Period: balance_sheet.select_custom_comparison_period
       Hierarchy: balance_sheet.hierarchy_name
       Chart of Accounts: balance_sheet.chart_of_accounts
       Company: balance_sheet.company_text
-      Global Currency: balance_sheet.target_currency_tcurr
+      Currency: balance_sheet.target_currency_tcurr
 
     row: 2
     col: 0
-    width: 22
+    width: 26
     height: 13
 
 
@@ -136,8 +136,8 @@
     explore: balance_sheet
     field: balance_sheet.select_comparison_type
 
-  - name: Custom Comparison (Optional)
-    title: Custom Comparison (Optional)
+  - name: Custom Comparison Period
+    title: Custom Comparison Period
     type: field_filter
     default_value: ''
     allow_multiple_values: false
@@ -148,8 +148,8 @@
     explore: balance_sheet
     field: balance_sheet.select_custom_comparison_period
 
-  - name: Global Currency
-    title: Global Currency
+  - name: Currency
+    title: Currency
     type: field_filter
     default_value: USD
     # default_value: "{% assign dc = _user_attributes['sap_default_global_currency %}{{dc}}"

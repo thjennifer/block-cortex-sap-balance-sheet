@@ -5,7 +5,7 @@
   layout: newspaper
   preferred_viewer: dashboards-next
   filters_location_top: false
-  description: "Reports Fiscal Period Cumulative Amount in Global Currency for Levels 2, 3, and 4 of the selected hierarchy, chart of accounts, company, fiscal period and comparison period (if any). Requires Report Table visualization to be downloaded from Looker Marketplace."
+  description: "Reports Fiscal Period Cumulative Amount in Global Currency for Levels 3 and 4 of the selected hierarchy, chart of accounts, company, fiscal period and comparison period (if any). Requires Report Table visualization to be downloaded from Looker Marketplace."
 
   elements:
   - title: Summary Title
@@ -19,7 +19,7 @@
     show_single_value_title: false
     show_comparison: false
     listen:
-      Global Currency: balance_sheet.target_currency_tcurr
+      Currency: balance_sheet.target_currency_tcurr
       Chart of Accounts: balance_sheet.chart_of_accounts
       Company: balance_sheet.company_text
       Fiscal Period: balance_sheet.select_fiscal_period
@@ -37,8 +37,8 @@
       balance_sheet.node_text, balance_sheet.total_cumulative_amount_in_global_currency, balance_sheet.fiscal_year_period]
     pivots: [balance_sheet.fiscal_year_period]
     filters:
-      balance_sheet.level_number: '2,3,4'
-    sorts: [balance_sheet.fiscal_year_period, balance_sheet.level_number, balance_sheet.parent,balance_sheet.node]
+      balance_sheet.level_number: '3,4'
+    sorts: [balance_sheet.fiscal_year_period desc, balance_sheet.parent,balance_sheet.node]
     limit: 5000
     total: true
     hidden_fields: [balance_sheet.level_number, balance_sheet.parent, balance_sheet.node]
@@ -113,11 +113,11 @@
     listen:
       Fiscal Period: balance_sheet.select_fiscal_period
       Comparison Type: balance_sheet.select_comparison_type
-      Custom Comparison (Optional): balance_sheet.select_custom_comparison_period
+      Custom Comparison Period: balance_sheet.select_custom_comparison_period
       Hierarchy: balance_sheet.hierarchy_name
       Chart of Accounts: balance_sheet.chart_of_accounts
       Company: balance_sheet.company_text
-      Global Currency: balance_sheet.target_currency_tcurr
+      Currency: balance_sheet.target_currency_tcurr
 
     row: 2
     col: 0
@@ -153,8 +153,8 @@
     explore: balance_sheet
     field: balance_sheet.select_comparison_type
 
-  - name: Custom Comparison (Optional)
-    title: Custom Comparison (Optional)
+  - name: Custom Comparison Period
+    title: Custom Comparison Period
     type: field_filter
     default_value: ''
     allow_multiple_values: false
@@ -165,8 +165,8 @@
     explore: balance_sheet
     field: balance_sheet.select_custom_comparison_period
 
-  - name: Global Currency
-    title: Global Currency
+  - name: Currency
+    title: Currency
     type: field_filter
     default_value: USD
     # default_value: "{% assign dc = _user_attributes['sap_default_global_currency %}{{dc}}"

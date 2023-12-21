@@ -37,7 +37,7 @@ constant: USE_DEMO_DATA {
 #         }
 
 constant: negative_format {
-  value: "{% if value < 0 %}<p style='color:red;'>{{rendered_value}}</p>{% else %} {{rendered_value}} {% endif %}"
+  value: "{% if value < 0 %}<p style='color:red;'>({{rendered_value | remove: '-'}})</p>{% else %} {{rendered_value}} {% endif %}"
 }
 
 # enter the max number of fiscal periods in a fiscal year.

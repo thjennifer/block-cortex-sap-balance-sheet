@@ -76,7 +76,7 @@ view: +balance_sheet {
       label: "Previous Fiscal Period" value: "prior"
     }
     allowed_value: {
-      label: "Custom Range" value: "custom"
+      label: "Custom Comparison Period" value: "custom"
     }
     default_value: "yoy"
 
@@ -147,7 +147,8 @@ view: +balance_sheet {
     label: "Parent (text)"
     description: "Parent (as text) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
     sql: coalesce(${TABLE}.ParentText,${TABLE}.Parent) ;;
-    order_by_field: parent_sort_order
+    # order_by_field: parent_sort_order
+    order_by_field: parent
   }
   dimension: parent_sort_order {
     type: string
@@ -165,7 +166,8 @@ view: +balance_sheet {
     label: "Node (text)"
     description: "Child Node (as text) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
     sql: coalesce(${TABLE}.NodeText,${TABLE}.Node) ;;
-    order_by_field: node_sort_order
+    # order_by_field: node_sort_order
+    order_by_field: node
   }
 
   dimension: node_sort_order {
@@ -229,6 +231,12 @@ view: +balance_sheet {
     value_format_name: id
   }
 
+  dimension: fiscal_year_period_negative_number {
+    hidden: yes
+    type: number
+    sql: -1 * ${fiscal_year_period_number} ;;
+  }
+
   dimension: fiscal_year_period {
     type: string
     group_label: "Fiscal Dates"
@@ -236,6 +244,7 @@ view: +balance_sheet {
     sql: {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
          {% if max_fp_size == 2 %} {% assign fp = 'right(${fiscal_period},2)'%}{%else%}{%assign fp = '${fiscal_period}' %}{%endif%}
           concat(${fiscal_year},'.',{{fp}});;
+    order_by_field: fiscal_year_period_negative_number
   }
 
   dimension: fiscal_year_quarter {
@@ -410,7 +419,7 @@ view: +balance_sheet {
   measure: difference_value {
     type: number
     group_label: "Reporting v Comparison Period Metrics"
-    label: "Var"
+    label: "Gain (Loss)"
     description: "Reporting Period Amount - Comparison Period Amount"
     sql: ${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency} ;;
     value_format_name: millions_d1
@@ -437,7 +446,7 @@ view: +balance_sheet {
       <div  style="font-size:100pct; background-color:rgb((169,169,169,.5); text-align:center;  line-height: .8; font-family:'Noto Sans SC'; font-color: #808080">
           <a style="font-size:100%;font-family:'verdana';color: black"><b>Balance Sheet</b></a><br>
           <a style= "font-size:80%;font-family:'verdana';color: black">{{company_text._value}}</a><br>
-          <a style= "font-size:80%;font-family:'verdana';color: black">Reporting Period:   {{select_fiscal_period._parameter_value}}&nbsp;&nbsp;&nbsp; Current Ratio: {{current_ratio._rendered_value}}</a>
+          <a style= "font-size:80%;font-family:'verdana';color: black">Fiscal Period:   {{select_fiscal_period._parameter_value}}&nbsp;&nbsp;&nbsp; Current Ratio: {{current_ratio._rendered_value}}</a>
           <br>
           <a style= "font-size: 70%; text-align:center;font-family:'verdana';color: black"> Amounts in Millions  {{target_currency_tcurr}} </a>
        </div>
