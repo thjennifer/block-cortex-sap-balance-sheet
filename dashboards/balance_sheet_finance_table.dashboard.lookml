@@ -1,7 +1,7 @@
 # This dashboard requires the Report Table visualization (available for free on Looker Marketplace) to be installed.
 
 - dashboard: balance_sheet_finance_table
-  title: Balance Sheet Finance Report
+  title: Financial Statement - Balance Sheet
   layout: newspaper
   preferred_viewer: dashboards-next
   filters_location_top: false

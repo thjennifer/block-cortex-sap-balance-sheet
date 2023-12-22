@@ -165,15 +165,15 @@ view: +balance_sheet {
     type: string
     label: "Node (text)"
     description: "Child Node (as text) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
-    sql: coalesce(${TABLE}.NodeText,${TABLE}.Node) ;;
+    sql: coalesce(regexp_replace(${TABLE}.NodeText,'Non[- ]Current','Noncurrent'),${TABLE}.Node) ;;
     # order_by_field: node_sort_order
     order_by_field: node
   }
 
   dimension: node_sort_order {
-    type: string
+    type: number
     hidden: yes
-    sql: concat(${level_number},${parent},${node}) ;;
+    sql: parse_bignumeric(${node})*-1 ;;
   }
 
   dimension: level {

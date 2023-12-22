@@ -1,5 +1,5 @@
 - dashboard: balance_sheet_subtotal_table
-  title: Balance Sheet Subtotals Report
+  title: Financial Statement - Balance Sheet
   layout: newspaper
   preferred_viewer: dashboards-next
   filters_location_top: false
