@@ -5,13 +5,15 @@ constant: CONNECTION_NAME {
 
 
 constant: GCP_PROJECT_ID {
-  value: "zeeshanqayyum1"
+  value: "thjennifer3"
+  # value: "zeeshanqayyum1"
   # value: "kittycorn-dev-infy"
   export: override_required
 }
 
 constant: REPORTING_DATASET {
-  value: "SAP_REPORTING_ECC"
+  value: "CORTEX_SAP_REPORTING"
+  # value: "SAP_REPORTING_ECC"
   # value: "SAP_REPORTING_S4"
   export: override_required
 }

@@ -146,7 +146,9 @@ view: +balance_sheet {
     type: string
     label: "Parent (text)"
     description: "Parent (as text) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
-    sql: coalesce(${TABLE}.ParentText,${TABLE}.Parent) ;;
+    # sql: coalesce(${TABLE}.ParentText,${TABLE}.Parent) ;;
+    sql: coalesce(regexp_replace(${TABLE}.ParentText,'Non[- ]Current','Noncurrent'),${TABLE}.Parent) ;;
+
     # order_by_field: parent_sort_order
     order_by_field: parent
   }
