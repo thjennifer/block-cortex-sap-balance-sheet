@@ -7,7 +7,8 @@ view: +profit_and_loss {
     primary_key: yes
     hidden: yes
     sql: concat(${client},${company_code}, ${chart_of_accounts}, ${glhierarchy},
-          coalesce(${business_area},'is null') ,coalesce(${ledger_in_general_ledger_accounting},'is null')
+          coalesce(${business_area},'is null') ,coalesce(${ledger_in_general_ledger_accounting},'is null'),
+          coalesce(${profit_center},'is null'),coalesce(${cost_center},'is null')
           ,${glnode},${fiscal_year},${fiscal_period},${language_key_spras},${target_currency_tcurr});;
   }
 
@@ -181,6 +182,11 @@ view: +profit_and_loss {
   }
   #} end fiscal period
 
+# derived dimensions
+# {
+
+#} end derived dimensions
+
 # Hidden dimensions that are restated as measures; Amounts and Exchange Rates
 # {
   # hide client and define as client_mandt to match other SAP tables
@@ -227,6 +233,7 @@ view: +profit_and_loss {
   }
 
   measure: total_cumulative_amount_in_local_currency {
+    hidden: yes
     type: sum
     label: "Total Cumulative Amount (Local Currency)"
     description: "End of Period Cumulative Amount in Local Currency"
@@ -245,6 +252,7 @@ view: +profit_and_loss {
   }
 
   measure: total_cumulative_amount_in_global_currency {
+    hidden: yes
     type: sum
     label: "Total Cumulative Amount (Global Currency)"
     description: "End of Period Cumulative Amount in Target or Global Currency"
@@ -252,6 +260,50 @@ view: +profit_and_loss {
     value_format_name: decimal_0
     # value_format_name: millions_d1
   }
+
+  measure: reporting_period_current_year_amount_in_global_currency {
+    type: sum
+    group_label: "Reporting v Comparison Period Metrics"
+    label: "Current Year"
+    sql: ${amount_in_target_currency} ;;
+    filters: [fiscal_reporting_period: "Current Year"]
+    value_format_name: decimal_0
+    html: @{negative_format} ;;
+  }
+
+  measure: comparison_period_last_year_amount_in_global_currency {
+    type: sum
+    group_label: "Reporting v Comparison Period Metrics"
+    label: "Last Year"
+    sql: ${amount_in_target_currency} ;;
+    filters: [fiscal_reporting_period: "Last Year"]
+    value_format_name: decimal_0
+    html: @{negative_format} ;;
+  }
+
+  measure: difference_value {
+    type: number
+    group_label: "Reporting v Comparison Period Metrics"
+    label: "Gain (Loss)"
+    description: "Reporting Period Amount - Comparison Period Amount"
+    sql: ${reporting_period_current_year_amount_in_global_currency} - ${comparison_period_last_year_amount_in_global_currency} ;;
+    value_format_name: decimal_0
+    html: @{negative_format} ;;
+  }
+
+  measure: difference_percent {
+    type: number
+    group_label: "Reporting v Comparison Period Metrics"
+    label: "Var %"
+    description: "Percentage Change between Reporting and Comparison Periods"
+    sql: safe_divide(${reporting_period_current_year_amount_in_global_currency},${comparison_period_last_year_amount_in_global_currency}) - 1 ;;
+    value_format_name: percent_1
+    html: @{negative_format} ;;
+  }
+
+
+
+
   #} end measures
 
    }
