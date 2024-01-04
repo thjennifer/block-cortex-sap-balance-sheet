@@ -82,6 +82,13 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
 
   }
 
+  measure: gross_margin {
+    type: sum_distinct
+    sql_distinct_key:  ${profit_and_loss.key};;
+    sql: ${profit_and_loss.amount_in_target_currency} ;;
+    filters: [kpi_name: "Gross Margin"]
+  }
+
   dimension: is_income {
     type: yesno
     sql: ${kpi_name} in ('Gross Revenue' , 'Net Revenue', 'Gross Margin', 'Net Income (P&L)') ;;

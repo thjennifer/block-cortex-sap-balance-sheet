@@ -24,7 +24,7 @@
       Hierarchy: balance_sheet.hierarchy_name
     row: 0
     col: 0
-    width: 26
+    width: 20
     height: 2
 
   - title: Balance Sheet
@@ -35,8 +35,7 @@
        balance_sheet.difference_value,balance_sheet.difference_percent]
     filters:
       balance_sheet.level_number: '3,4'
-    sorts: [balance_sheet.parent_text, balance_sheet.node_text
-      desc]
+    sorts: [balance_sheet.parent,balance_sheet.node]
     subtotals: [balance_sheet.parent_text]
     limit: 500
     column_limit: 50
@@ -104,7 +103,7 @@
 
     row: 2
     col: 0
-    width: 26
+    width: 20
     height: 13
 
 
