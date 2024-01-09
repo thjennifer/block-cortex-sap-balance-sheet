@@ -483,6 +483,12 @@ view: +balance_sheet {
     value_format_name: decimal_4
   }
 
+  measure: max_fiscal_year_period {
+    type: max
+    sql: ${fiscal_year_period_number} ;;
+    value_format_name: id
+  }
+
 
   #} end measures
 

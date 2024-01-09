@@ -24,6 +24,7 @@
       Company: balance_sheet.company_text
       Fiscal Period: balance_sheet.select_fiscal_period
       Hierarchy: balance_sheet.hierarchy_name
+      Ledger: balance_sheet.ledger_in_general_ledger_accounting
     row: 0
     col: 0
     width: 18
@@ -118,6 +119,7 @@
       Chart of Accounts: balance_sheet.chart_of_accounts
       Company: balance_sheet.company_text
       Currency: balance_sheet.target_currency_tcurr
+      Ledger: balance_sheet.ledger_in_general_ledger_accounting
 
     row: 2
     col: 0
