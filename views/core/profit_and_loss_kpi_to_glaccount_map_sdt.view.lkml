@@ -15,7 +15,7 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
         struct("Advertising and Third Party Expenses" as kpi_name,[610010,610020,650000,650005,650010,650020,650030,650040,650050,650060,650085,650500,651000,652000,653000,654000,655000] as gl_accounts),
         struct("Building Expense" as kpi_name,[630000,630005,630010,630020,630030,630040,630050,630060] as gl_accounts),
         struct("Cost of Goods Sold" as kpi_name,[500000,500010,500020,510000,510005,510006,510010,510020,520000,520060,520065,520100,530000] as gl_accounts),
-        struct("Depreciation and Amortization" as kpi_name,[640200] as gl_accounts),
+        struct("Depreciation and Amortization" as kpi_name,[640010, 640040, 640050, 640060, 640070, 640080, 640200] as gl_accounts),
         struct("Employee Expense" as kpi_name,[610060,610070,610080,610100,610200,610210,610220,610230,610510,610600,610610,611000,611030,612000] as gl_accounts),
         struct("Foreign Currency Expense" as kpi_name,[720100,720200,720400] as gl_accounts),
         struct("Foreign Currency Income" as kpi_name,[725100,725200,725300,725400] as gl_accounts),

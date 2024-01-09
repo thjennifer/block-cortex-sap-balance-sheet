@@ -1,11 +1,11 @@
 constant: CONNECTION_NAME {
-  value: "qa-thjennifer3"
+  value: "qa-thjennifer1"
   export: override_required
 }
 
 
 constant: GCP_PROJECT_ID {
-  value: "thjennifer3"
+  value: "thjennifer1"
   # value: "zeeshanqayyum1"
   # value: "kittycorn-dev-infy"
   export: override_required
@@ -30,7 +30,7 @@ constant: USE_DEMO_DATA {
 
 # specify either ECC or S4
 constant: SQL_FLAVOR {
-  value: "ECC"
+  value: "S4"
   export: override_required
 }
 

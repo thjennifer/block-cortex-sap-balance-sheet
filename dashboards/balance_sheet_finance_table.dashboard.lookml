@@ -194,8 +194,8 @@
   - name: Chart of Accounts
     title: Chart of Accounts
     type: field_filter
-    default_value: CA01
-    # default_value: "{% assign dca = _user_attributes['sap_balance_sheet_default_chart_of_accounts']%}{{dca}}"
+    # default_value: CA01
+    default_value: "{% if _user_attributes['sap_sql_flavor']=='S4' %}{% assign coa = 'YCOA'%}{%else%}{% assign coa = 'CA01' %}{% endif %}{{coa}}"
     allow_multiple_values: false
     required: true
     ui_config:
@@ -216,3 +216,16 @@
       display: popover
     explore: balance_sheet
     field: balance_sheet.company_text
+
+  - name: Ledger
+    title: Ledger
+    type: field_filter
+    # default_value: "%CENTRAL%"
+    default_value: "{% if _user_attributes['sap_sql_flavor']=='S4' %}{% assign ledger = '0L'%}{%else%}{% assign ledger = 'Default Ledger' %}{% endif %}{{ledger}}"
+    allow_multiple_values: true
+    required: false
+    ui_config:
+      type: tag_list
+      display: inline
+    explore: balance_sheet
+    field: balance_sheet.ledger_in_general_ledger_accounting

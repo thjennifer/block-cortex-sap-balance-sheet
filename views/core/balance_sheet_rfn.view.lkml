@@ -37,7 +37,7 @@ view: +balance_sheet {
     primary_key: yes
     hidden: yes
     sql: concat(${client},${company_code}, ${chart_of_accounts}, ${hierarchy_name},
-          coalesce(${business_area},'is null') ,coalesce(${ledger_in_general_ledger_accounting},'is null')
+          coalesce(${business_area},'is null') ,coalesce(${ledger_in_general_ledger_accounting},'Default Ledger')
           ,${node},${fiscal_year},${fiscal_period},${language_key_spras},${target_currency_tcurr});;
   }
 
@@ -125,6 +125,7 @@ view: +balance_sheet {
   dimension: ledger_in_general_ledger_accounting {
     label: "Ledger"
     description: "Ledger in General Ledger Accounting"
+    sql: coalesce(${TABLE}.LedgerInGeneralLedgerAccounting,'Default Ledger') ;;
   }
 
   dimension: company_code {
