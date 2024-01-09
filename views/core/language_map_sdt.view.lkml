@@ -31,7 +31,7 @@ view: language_map_sdt {
   derived_table: {
     sql: select LanguageKey_SPRAS as Language_SPRAS
                 ,TwoCharacterSapLanguageCode_LAISO
-         from `thjennifer3.CORTEX_SAP_REPORTING.Languages_T002`
+         from `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.Languages_T002`
          where TwoCharacterSapLanguageCode_LAISO =
           {% assign locale_key = _user_attributes['locale'] | split:'_' %}
           {% if locale_key[0] == 'nb' %}{%assign locale = 'NO' %}{%else%}{%assign locale = locale_key[0] | upcase %}{% endif %}

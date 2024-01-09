@@ -24,6 +24,24 @@ view: +profit_and_loss {
         ;;
   }
 
+
+
+  parameter: pick_period_or_quarter {
+    type: unquoted
+    allowed_value: {label: "Quarter" value: "qtr"}
+    allowed_value: {label: "Fiscal Period" value: "fp"}
+    default_value: "qtr"
+  }
+
+  dimension: selected_time_dimension {
+    label_from_parameter: pick_period_or_quarter
+    sql: {% if pick_period_or_quarter._parameter_value == 'qtr' %}${fiscal_quarter_label}
+         {% else %}${fiscal_period}
+         {% endif %};;
+  }
+
+
+
   dimension: client_mandt {
     type: string
     label: "Client"
@@ -69,6 +87,11 @@ view: +profit_and_loss {
     label: "GL Level"
   }
 
+  dimension: gllevel_number {
+    label: "GL Level (number)"
+    sql: parse_numeric(${gllevel}) ;;
+  }
+
   dimension: glnode {
     label: "GL Node (code)"
   }
@@ -104,8 +127,16 @@ view: +profit_and_loss {
   }
 
   dimension: fiscal_quarter {
+    hidden: yes
     group_label: "Fiscal Dates"
     description: "Fiscal Quarter value of 1, 2, 3, or 4"
+  }
+
+  dimension: fiscal_quarter_label {
+    group_label: "Fiscal Dates"
+    label: "Fiscal Quarter"
+    description: "Fiscal Quarter value of Q1, Q2, Q3, or Q4"
+    sql: concat('Q',${fiscal_quarter});;
   }
 
   dimension: fiscal_year {
