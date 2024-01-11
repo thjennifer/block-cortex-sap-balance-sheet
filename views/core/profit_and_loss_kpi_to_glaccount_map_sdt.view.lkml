@@ -7,7 +7,17 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
           {% endif %}
           --{{lpad_setting}}
        SELECT kpi_name,
-              lpad(cast(gl_account as string),{{lpad_setting}}) as gl_account
+              lpad(cast(gl_account as string),{{lpad_setting}}) as gl_account,
+              case when kpi_name in ('Net Revenue','Cost of Goods Sold') then kpi_name end as component_of_gross_profit,
+              case when kpi_name in ('Net Revenue','Cost of Goods Sold') then kpi_name
+                   when kpi_name in ('Operating Expense', 'Non-Operating Expense', 'Interest Expense', 'Foreign Currency Expense') then 'Expenses'
+                   when kpi_name in ('Non-Operating Revenue', 'Interest Income', 'Foreign Currency Income') then 'Other Income'
+              end as component_of_net_profit,
+              case when kpi_name = 'Net Revenue' then 1
+                   when kpi_name = 'Cost of Goods Sold' then 2
+                   when kpi_name in ('Operating Expense', 'Non-Operating Expense', 'Interest Expense', 'Foreign Currency Expense') then 3
+                   when kpi_name in ('Non-Operating Revenue', 'Interest Income', 'Foreign Currency Income') then 4
+              end as component_of_net_profit_sort_order
        FROM
        (
         select[
@@ -110,33 +120,56 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
     filters: [kpi_name: "Cost of Goods Sold"]
   }
 
+  # cogs is negative so add
+  # measure: gross_profit {
+  #   type: number
+  #   sql: ${net_revenue} + ${cost_of_goods_sold} ;;
+  # }
+
   measure: gross_profit {
-    type: number
-    # net revenue is negative and cogs is positive so use + instead of -
-    sql: ${net_revenue} + ${cost_of_goods_sold} ;;
+    type: sum_distinct
+    sql_distinct_key: ${profit_and_loss.key} ;;
+    sql: ${profit_and_loss.amount_in_target_currency} ;;
+    filters: [component_of_gross_profit: "-NULL"]
+    drill_fields: [drill_profit*]
   }
 
   measure: expenses {
     type: sum_distinct
     sql_distinct_key: ${profit_and_loss.key} ;;
     sql: ${profit_and_loss.amount_in_target_currency} ;;
-    filters: [kpi_name: "Operating Expense, Non-Operating Expense, Interest Expense, Foreign Currency Expense"]
+    filters: [component_of_net_profit: "Expenses"]
+    # filters: [kpi_name: "Operating Expense, Non-Operating Expense, Interest Expense, Foreign Currency Expense"]
   }
 
   measure: other_income {
     type: sum_distinct
     sql_distinct_key: ${profit_and_loss.key} ;;
     sql: ${profit_and_loss.amount_in_target_currency} ;;
-    filters: [kpi_name: "Non-Operating Revenue, Interest Income, Foreign Currency Income"]
+    filters: [component_of_net_profit: "Other Income"]
+    # filters: [kpi_name: "Non-Operating Revenue, Interest Income, Foreign Currency Income"]
   }
 
 
 # Gross Profit - Expenses+Other Income
-  measure: net_profit {
-    type: number
-    # normally gross - expenses + other income but reversing as income is negative and expenses positive
-    sql: ${gross_profit} + ${expenses} - ${other_income} ;;
+  # measure: net_profit {
+  #   type: number
+  #   # normally gross - expenses + other income but reversing as income is negative and expenses positive
+  #   sql: ${gross_profit} + ${expenses} + ${other_income} ;;
+  #   drill_fields: [drill_profit*]
 
+  # }
+
+  measure: net_profit {
+    type: sum_distinct
+    sql_distinct_key: ${profit_and_loss.key} ;;
+    sql: ${profit_and_loss.amount_in_target_currency} ;;
+    filters: [component_of_net_profit: "-NULL"]
+    drill_fields: [drill_profit*]
+    link: {
+      label: "Drill"
+      url: "{{ link }}&sorts=profit_and_loss.total_amount_in_global_currency+desc"
+    }
   }
 
   measure: selected_measure_to_display {
@@ -176,6 +209,21 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
        ;;
   }
 
+  dimension: component_of_net_profit {
+    sql: ${TABLE}.component_of_net_profit;;
+    order_by_field: component_of_net_profit_sort_order
+  }
+
+  dimension: component_of_net_profit_sort_order {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.component_of_net_profit_sort_order;;
+  }
+
+  dimension: component_of_gross_profit {
+    sql: ${TABLE}.component_of_gross_profit;;
+  }
+
   measure: count_gl_account {
     type: count
   }
@@ -183,6 +231,10 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
   measure: count_distinct_gl_account {
     type: count_distinct
     sql: ${gl_account} ;;
+  }
+
+  set: drill_profit {
+    fields: [component_of_net_profit,kpi_name,profit_and_loss.glparent_text,profit_and_loss.total_amount_in_global_currency]
   }
 
   }

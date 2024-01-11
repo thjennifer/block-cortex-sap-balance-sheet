@@ -24,7 +24,7 @@
       Company: balance_sheet.company_text
       Fiscal Period: balance_sheet.select_fiscal_period
       Hierarchy: balance_sheet.hierarchy_name
-      Ledger: balance_sheet.ledger_in_general_ledger_accounting
+      Ledger: balance_sheet.ledger_name
     row: 0
     col: 0
     width: 18
@@ -119,7 +119,7 @@
       Chart of Accounts: balance_sheet.chart_of_accounts
       Company: balance_sheet.company_text
       Currency: balance_sheet.target_currency_tcurr
-      Ledger: balance_sheet.ledger_in_general_ledger_accounting
+      Ledger: balance_sheet.ledger_name
 
     row: 2
     col: 0
@@ -222,12 +222,11 @@
   - name: Ledger
     title: Ledger
     type: field_filter
-    # default_value: "%CENTRAL%"
-    default_value: "{% if _user_attributes['sap_sql_flavor']=='S4' %}{% assign ledger = '0L'%}{%else%}{% assign ledger = 'Default Ledger' %}{% endif %}{{ledger}}"
+    default_value: "Leading Ledger"
     allow_multiple_values: true
     required: false
     ui_config:
       type: tag_list
       display: inline
     explore: balance_sheet
-    field: balance_sheet.ledger_in_general_ledger_accounting
+    field: balance_sheet.ledger_name

@@ -2,12 +2,13 @@ include: "/views/base/profit_and_loss.view"
 
 view: +profit_and_loss {
 
-#### NEED TO VALIDATE
+label: "Income Statement"
+
   dimension: key {
     primary_key: yes
     hidden: yes
     sql: concat(${client},${company_code}, ${chart_of_accounts}, ${glhierarchy},
-          coalesce(${business_area},'is null') ,coalesce(${ledger_in_general_ledger_accounting},'is null'),
+          coalesce(${business_area},'is null') ,coalesce(${ledger_in_general_ledger_accounting},'0L'),
           coalesce(${profit_center},'is null'),coalesce(${cost_center},'is null')
           ,${glnode},${fiscal_year},${fiscal_period},${language_key_spras},${target_currency_tcurr});;
   }
@@ -71,6 +72,13 @@ view: +profit_and_loss {
   dimension: ledger_in_general_ledger_accounting {
     label: "Ledger"
     description: "Ledger in General Ledger Accounting"
+    sql: coalesce(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
+  }
+
+  dimension: ledger_name {
+    description: "Ledger in General Ledger Accounting"
+    sql: if(${ledger_in_general_ledger_accounting} = '0L','Leading Ledger', ${ledger_in_general_ledger_accounting} );;
+    order_by_field: ledger_in_general_ledger_accounting
   }
 
   dimension: company_code {
@@ -225,13 +233,17 @@ view: +profit_and_loss {
     hidden: yes
   }
 
+  # flip the signs so Income is positive and Expenses negative
   dimension: amount_in_local_currency {
     hidden: yes
+    sql: ${TABLE}.AmountInLocalCurrency * -1 ;;
   }
 
+  # flip the signs so Income is positive and Expenses negative
   dimension: amount_in_target_currency {
     hidden: yes
     label: "Amount in Global Currency"
+    sql: ${TABLE}.AmountInTargetCurrency * -1 ;;
   }
 
   dimension: cumulative_amount_in_local_currency {
