@@ -1,23 +1,44 @@
+# include: "/views/core/common_sets.view"
 view: profit_and_loss_kpi_to_glaccount_map_sdt {
-
+  # extends: [common_sets]
   derived_table: {
     sql: {% assign sql_flavor = '@{SQL_FLAVOR}' %}
           {% if sql_flavor == 'ECC' %}{% assign lpad_setting = "10,'0'" %}
           {% else %}{% assign lpad_setting = "11,'100'" %}
           {% endif %}
-          --{{lpad_setting}}
+          {% assign profit_type = pick_profit_type._parameter_value %}
        SELECT kpi_name,
               lpad(cast(gl_account as string),{{lpad_setting}}) as gl_account,
+
+              case when kpi_name in ('Net Revenue','Cost of Goods Sold') then kpi_name
+              {% if profit_type == "'np'" %}
+                   when kpi_name in ('Operating Expense', 'Non-Operating Expense', 'Interest Expense', 'Foreign Currency Expense') then 'Expenses'
+                   when kpi_name in ('Non-Operating Revenue', 'Interest Income', 'Foreign Currency Income') then 'Other Income'
+              {% endif %} end as component_of_profit,
+
+              case when kpi_name = 'Net Revenue' then 1
+                   when kpi_name = 'Cost of Goods Sold' then 2
+              {% if profit_type == "'np'" %}
+                   when kpi_name in ('Operating Expense', 'Non-Operating Expense', 'Interest Expense', 'Foreign Currency Expense') then 3
+                   when kpi_name in ('Non-Operating Revenue', 'Interest Income', 'Foreign Currency Income') then 4
+              {% endif %} end as component_of_profit_sort_order,
+
               case when kpi_name in ('Net Revenue','Cost of Goods Sold') then kpi_name end as component_of_gross_profit,
+
               case when kpi_name in ('Net Revenue','Cost of Goods Sold') then kpi_name
                    when kpi_name in ('Operating Expense', 'Non-Operating Expense', 'Interest Expense', 'Foreign Currency Expense') then 'Expenses'
                    when kpi_name in ('Non-Operating Revenue', 'Interest Income', 'Foreign Currency Income') then 'Other Income'
               end as component_of_net_profit,
+
               case when kpi_name = 'Net Revenue' then 1
                    when kpi_name = 'Cost of Goods Sold' then 2
                    when kpi_name in ('Operating Expense', 'Non-Operating Expense', 'Interest Expense', 'Foreign Currency Expense') then 3
                    when kpi_name in ('Non-Operating Revenue', 'Interest Income', 'Foreign Currency Income') then 4
-              end as component_of_net_profit_sort_order
+              end as component_of_net_profit_sort_order,
+
+              case when kpi_name = 'Net Revenue' then 1
+                   when kpi_name = 'Cost of Goods Sold' then 2
+              end as component_of_gross_profit_sort_order
        FROM
        (
         select[
@@ -87,7 +108,7 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
     sql: concat(${kpi_name},${gl_account}) ;;
   }
 
-  parameter: pick_metric {
+  parameter: pick_profit_type {
     type: string
     allowed_value: {label: "Gross Profit" value: "gp"}
     allowed_value: {label: "Net Profit" value: "np" }
@@ -126,29 +147,29 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
   #   sql: ${net_revenue} + ${cost_of_goods_sold} ;;
   # }
 
-  measure: gross_profit {
-    type: sum_distinct
-    sql_distinct_key: ${profit_and_loss.key} ;;
-    sql: ${profit_and_loss.amount_in_target_currency} ;;
-    filters: [component_of_gross_profit: "-NULL"]
-    drill_fields: [drill_profit*]
-  }
+  # measure: gross_profit {
+  #   type: sum_distinct
+  #   sql_distinct_key: ${profit_and_loss.key} ;;
+  #   sql: ${profit_and_loss.amount_in_target_currency} ;;
+  #   filters: [component_of_gross_profit: "-NULL"]
+  #   drill_fields: [drill_profit*]
+  # }
 
-  measure: expenses {
-    type: sum_distinct
-    sql_distinct_key: ${profit_and_loss.key} ;;
-    sql: ${profit_and_loss.amount_in_target_currency} ;;
-    filters: [component_of_net_profit: "Expenses"]
-    # filters: [kpi_name: "Operating Expense, Non-Operating Expense, Interest Expense, Foreign Currency Expense"]
-  }
+  # measure: expenses {
+  #   type: sum_distinct
+  #   sql_distinct_key: ${profit_and_loss.key} ;;
+  #   sql: ${profit_and_loss.amount_in_target_currency} ;;
+  #   filters: [component_of_net_profit: "Expenses"]
+  #   # filters: [kpi_name: "Operating Expense, Non-Operating Expense, Interest Expense, Foreign Currency Expense"]
+  # }
 
-  measure: other_income {
-    type: sum_distinct
-    sql_distinct_key: ${profit_and_loss.key} ;;
-    sql: ${profit_and_loss.amount_in_target_currency} ;;
-    filters: [component_of_net_profit: "Other Income"]
-    # filters: [kpi_name: "Non-Operating Revenue, Interest Income, Foreign Currency Income"]
-  }
+  # measure: other_income {
+  #   type: sum_distinct
+  #   sql_distinct_key: ${profit_and_loss.key} ;;
+  #   sql: ${profit_and_loss.amount_in_target_currency} ;;
+  #   filters: [component_of_net_profit: "Other Income"]
+  #   # filters: [kpi_name: "Non-Operating Revenue, Interest Income, Foreign Currency Income"]
+  # }
 
 
 # Gross Profit - Expenses+Other Income
@@ -160,30 +181,46 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
 
   # }
 
-  measure: net_profit {
-    type: sum_distinct
-    sql_distinct_key: ${profit_and_loss.key} ;;
-    sql: ${profit_and_loss.amount_in_target_currency} ;;
-    filters: [component_of_net_profit: "-NULL"]
-    drill_fields: [drill_profit*]
-    link: {
-      label: "Drill"
-      url: "{{ link }}&sorts=profit_and_loss.total_amount_in_global_currency+desc"
-    }
+  # measure: net_profit {
+  #   type: sum_distinct
+  #   sql_distinct_key: ${profit_and_loss.key} ;;
+  #   sql: ${profit_and_loss.amount_in_target_currency} ;;
+  #   filters: [component_of_net_profit: "-NULL"]
+  #   drill_fields: [drill_profit*]
+  #   link: {
+  #     label: "Drill"
+  #     url: "{{ link }}&sorts=profit_and_loss.total_amount_in_global_currency+desc"
+  #   }
+  # }
+
+  # measure: selected_measure_to_display {
+  #   # label_from_parameter: pick_profit_type
+  #   label: "{% if pick_profit_type._in_query %}
+  #           {% if pick_profit_type._parameter_value == 'gp' %}Gross Profit{%else%}Net Profit{%endif%}
+  #           {% else %}Selected Measure to Display{%endif%}"
+  #   type: number
+  #   sql: {% if pick_profit_type._parameter_value == "'gp'" %}${gross_profit}
+  #       {% elsif pick_profit_type._parameter_value == "'np'" %} ${net_profit}
+  #       {% else %}max(null)
+  #       {% endif %};;
+  #   drill_fields: [drill_profit*]
+  #   link: {
+  #     label: "Show components of profit"
+  #     url: "{{ link }}&sorts=component_of_net_profit,profit_and_loss.total_amount_in_global_currency+desc"
+  #   }
+  # }
+
+  dimension: component_of_profit {
+    type: string
+    label: "Component of {% if component_of_profit._in_query %}{% if pick_profit_type == \"'gp'\"%}Gross {% else %}Net {%endif%}{%endif%}Profit"
+    sql: ${TABLE}.component_of_profit ;;
+    order_by_field: component_of_profit_sort_order
   }
 
-  measure: selected_measure_to_display {
-    # label_from_parameter: pick_metric
-    label: "{% if pick_metric._in_query %}
-            {% if pick_metric._parameter_value == 'gp' %}Gross Profit{%else%}Net Profit{%endif%}
-            {% else %}Selected Measure to Display{%endif%}"
-    type: number
-    sql: {% if pick_metric._parameter_value == "'gp'" %}${gross_profit}
-         {% elsif pick_metric._parameter_value == "'np'" %} ${net_profit}
-         {% else %}max(null)
-         {% endif %};;
+  dimension: component_of_profit_sort_order {
+    type: string
+    sql: ${TABLE}.component_of_profit_sort_order ;;
   }
-
 
   measure: gross_margin {
     type: sum_distinct
@@ -209,20 +246,26 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
        ;;
   }
 
-  dimension: component_of_net_profit {
-    sql: ${TABLE}.component_of_net_profit;;
-    order_by_field: component_of_net_profit_sort_order
-  }
+  # dimension: component_of_net_profit {
+  #   sql: ${TABLE}.component_of_net_profit;;
+  #   order_by_field: component_of_net_profit_sort_order
+  # }
 
-  dimension: component_of_net_profit_sort_order {
-    hidden: yes
-    type: number
-    sql: ${TABLE}.component_of_net_profit_sort_order;;
-  }
+  # dimension: component_of_net_profit_sort_order {
+  #   hidden: yes
+  #   type: number
+  #   sql: ${TABLE}.component_of_net_profit_sort_order;;
+  # }
 
-  dimension: component_of_gross_profit {
-    sql: ${TABLE}.component_of_gross_profit;;
-  }
+  # dimension: component_of_gross_profit_sort_order {
+  #   hidden: yes
+  #   type: number
+  #   sql: ${TABLE}.component_of_net_profit_sort_order;;
+  # }
+
+  # dimension: component_of_gross_profit {
+  #   sql: ${TABLE}.component_of_gross_profit;;
+  # }
 
   measure: count_gl_account {
     type: count
@@ -234,7 +277,7 @@ view: profit_and_loss_kpi_to_glaccount_map_sdt {
   }
 
   set: drill_profit {
-    fields: [component_of_net_profit,kpi_name,profit_and_loss.glparent_text,profit_and_loss.total_amount_in_global_currency]
+    fields: [component_of_profit,kpi_name,profit_and_loss.glparent_text,profit_and_loss.total_amount_in_global_currency]
   }
 
   }

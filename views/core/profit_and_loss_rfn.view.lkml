@@ -241,7 +241,7 @@ label: "Income Statement"
 
   # flip the signs so Income is positive and Expenses negative
   dimension: amount_in_target_currency {
-    hidden: yes
+    hidden: no
     label: "Amount in Global Currency"
     sql: ${TABLE}.AmountInTargetCurrency * -1 ;;
   }
@@ -291,6 +291,16 @@ label: "Income Statement"
     description: "Period Amount in Target or Global Currency"
     sql: ${amount_in_target_currency} ;;
     value_format_name: decimal_0
+    # drill_fields: [drill_profit_to_parent*]
+    link: {
+      label: "Show Components of Profit at Parent Level"
+      url: "{{ drill_profit_to_parent._link }}&sorts=profit_and_loss_kpi_to_glaccount_map_sdt.component_of_profit,profit_and_loss_kpi_to_glaccount_map_sdt.kpi_name,profit_and_loss.glparent_text"
+    }
+
+    link: {
+      label: "Show Components of Profit at Parent & Child Level"
+      url: "{{ drill_profit_to_child._link }}&sorts=profit_and_loss_kpi_to_glaccount_map_sdt.component_of_profit,profit_and_loss_kpi_to_glaccount_map_sdt.kpi_name,profit_and_loss.glparent_text,profit_and_loss.glnode_text"
+    }
     # value_format_name: millions_d1
   }
 
@@ -348,5 +358,35 @@ label: "Income Statement"
 
 
   #} end measures
+
+
+  set: set_drill_profit_to_parent {
+    fields: [profit_and_loss_kpi_to_glaccount_map_sdt.component_of_profit,
+      profit_and_loss_kpi_to_glaccount_map_sdt.component_of_profit.kpi_name,
+      profit_and_loss.glparent_text,
+      profit_and_loss.total_amount_in_global_currency]
+  }
+
+  set: set_drill_profit_to_child {
+    fields: [profit_and_loss_kpi_to_glaccount_map_sdt.component_of_profit,
+      profit_and_loss_kpi_to_glaccount_map_sdt.component_of_profit.kpi_name,
+      profit_and_loss.glparent_text,
+      profit_and_loss.glnode_text,
+      profit_and_loss.total_amount_in_global_currency]
+  }
+
+  measure: drill_profit_to_child {
+    hidden: yes
+    type: number
+    sql: 1 ;;
+    drill_fields: [set_drill_profit_to_child*]
+  }
+
+  measure: drill_profit_to_parent {
+    hidden: yes
+    type: number
+    sql: 1 ;;
+    drill_fields: [set_drill_profit_to_parent*]
+  }
 
    }
