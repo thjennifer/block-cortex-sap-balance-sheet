@@ -19,14 +19,16 @@ view: fiscal_periods_sdt {
         FiscalPeriod as fiscal_period,
         concat(b.FiscalYear,'.Q',b.FiscalQuarter) as fiscal_year_quarter,
         concat(b.FiscalYear,'.',{{fp}})  AS fiscal_year_period,
-        parse_numeric(concat(b.FiscalYear,{{fp}})) * -1 as negative_fiscal_year_period_number
+        parse_numeric(concat(b.FiscalYear,{{fp}})) * -1 as negative_fiscal_year_period_number,
+        parse_numeric(concat(b.FiscalYear,b.FiscalQuarter)) * -1 as negative_fiscal_year_quarter_number
       FROM `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.BalanceSheet`  AS b
       GROUP BY
         fiscal_year,
         fiscal_period,
         fiscal_year_quarter,
         fiscal_year_period,
-        negative_fiscal_year_period_number ;;
+        negative_fiscal_year_period_number,
+        negative_fiscal_year_quarter_number;;
   }
 
   dimension: fiscal_year {
@@ -55,6 +57,12 @@ view: fiscal_periods_sdt {
     hidden: yes
     type: number
     sql: ${TABLE}.negative_fiscal_year_period_number ;;
+  }
+
+  dimension: negative_fiscal_year_quarter_number {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.negative_fiscal_year_quarter_number ;;
   }
 
 

@@ -1,9 +1,12 @@
 include: "/views/core/profit_and_loss_rfn.view"
 include: "/views/core/language_map_sdt.view"
 include: "/views/core/profit_and_loss_kpi_to_glaccount_map_sdt.view"
+include: "/views/core/profit_and_loss_fiscal_periods_selected_sdt.view"
 
 explore: profit_and_loss {
   always_join: [language_map_sdt]
+
+  label: "Income Statement"
 
   # always_filter: {filters:[balance_sheet.hierarchy_name: "FPA1",balance_sheet.chart_of_accounts: "CA01",balance_sheet.company_text: "",balance_sheet.target_currency_tcurr: "USD"]}
 
@@ -23,6 +26,13 @@ explore: profit_and_loss {
     relationship: many_to_many
     sql_on: ${profit_and_loss.glnode} = ${profit_and_loss_kpi_to_glaccount_map_sdt.gl_account};;
   }
+
+  join: profit_and_loss_fiscal_periods_selected_sdt  {
+    type: inner
+    relationship: many_to_many
+    sql_on: ${profit_and_loss.fiscal_year_period} = ${profit_and_loss_fiscal_periods_selected_sdt.fiscal_year_period};;
+  }
+
 }
 
 # {% if balance_sheet.select_fiscal_period._in_query %}

@@ -13,12 +13,95 @@ label: "Income Statement"
           ,${glnode},${fiscal_year},${fiscal_period},${language_key_spras},${target_currency_tcurr});;
   }
 
+  parameter: parameter_display_period_or_quarter {
+    type: unquoted
+    label: "Display Period or Quarter"
+    allowed_value: {label: "Quarter" value: "qtr"}
+    allowed_value: {label: "Fiscal Period" value: "fp"}
+    default_value: "qtr"
+  }
+
+
+
+
+  filter: filter_fiscal_timeframe {
+    type: string
+    view_label: "🗓 Pick Fiscal Periods"
+    description: "Choose fiscal periods or quarters for Income Statement Reporting. To ensure the correct timeframes are listed, add this filter to a dashboard. Add the parameter \'Display Fiscal Period or Quarter\' and select this filter to update when the display parameter changes."
+    label: "Select Fiscal Timeframe"
+    suggest_dimension: timeframes_to_select
+    suggest_persist_for: "0 seconds"
+    # keep the periods selected plus the same period last year (by adding a year to last year's period to match the selection
+    # sql:  {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
+    #                       {% else %}${fiscal_year_quarter_label}
+    #                       {% endif %}
+    #       {%endcondition%} or
+    #       {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period_add_one_year}
+    #                       {% else %}${fiscal_year_quarter_label_add_one_year}
+    #                       {% endif %}{%endcondition%}
+    #     ;;
+  }
+
+  filter: filter_comparison_timeframe {
+    type: string
+    view_label: "🗓 Pick Fiscal Periods"
+    description: "Choose fiscal periods or quarters for Income Statement Reporting. To ensure the correct timeframes are listed, add this filter to a dashboard. Add the parameter \'Display Fiscal Period or Quarter\' and select this filter to update when the display parameter changes."
+    label: "Select Custom Comparison"
+    suggest_dimension: timeframes_to_select
+    suggest_persist_for: "0 seconds"
+    # keep the periods selected plus the same period last year (by adding a year to last year's period to match the selection
+    # sql:  {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
+    #                       {% else %}${fiscal_year_quarter_label}
+    #                       {% endif %}
+    #       {%endcondition%} or
+    #       {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period_add_one_year}
+    #                       {% else %}${fiscal_year_quarter_label_add_one_year}
+    #                       {% endif %}{%endcondition%}
+    #     ;;
+  }
+
+
+  parameter: parameter_compare_to {
+    label: "Select Comparison Type"
+    type: unquoted
+    allowed_value: {
+      label: "None" value: "none"
+    }
+    allowed_value: {
+      label: "Same Period Last Year" value: "yoy"
+    }
+    allowed_value: {
+      label: "Previous Fiscal Period" value: "prior"
+    }
+   allowed_value: {
+      label: "Custom Range" value: "custom"
+    }
+    default_value: "none"
+
+  }
+
+
+
+  dimension: timeframes_to_select {
+    hidden: no
+    view_label: "🗓 Pick Fiscal Periods"
+    label: "Timeframe"
+    description: "Used to populate filter named Select Fiscal Timeframe. Timeframes shown depend on whether displaying Fiscal Periods or Quarter in the Income Statement dashboards."
+    sql: {% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
+         {% else %}${fiscal_year_quarter_label}
+         {% endif %}
+        ;;
+    suggest_persist_for: "0 seconds"
+    order_by_field: selected_timeframe_level_as_negative_number
+  }
+
   filter: filter_fiscal_period {
     type: string
     view_label: "🗓 Pick Fiscal Periods"
-    description: "Select fiscal periods for Profit and Loss Reporting. Each period selected will be compared to same period last year."
+    description: "Select fiscal periods for Income Statement Reporting. Each period selected will be compared to same period last year."
     label: "Select Fiscal Period"
     suggest_dimension: fiscal_year_period
+    suggest_persist_for: "1 seconds"
     # keep the periods selected plus the same period last year (by adding a year to last year's period to match the selection
     sql: {% condition %}${fiscal_year_period}{%endcondition%} or
          {% condition %}${fiscal_year_period_add_one_year}{%endcondition%}
@@ -26,21 +109,12 @@ label: "Income Statement"
   }
 
 
-
-  parameter: pick_period_or_quarter {
-    type: unquoted
-    allowed_value: {label: "Quarter" value: "qtr"}
-    allowed_value: {label: "Fiscal Period" value: "fp"}
-    default_value: "qtr"
-  }
-
   dimension: selected_time_dimension {
-    label_from_parameter: pick_period_or_quarter
-    sql: {% if pick_period_or_quarter._parameter_value == 'qtr' %}${fiscal_quarter_label}
+    label_from_parameter: parameter_display_period_or_quarter
+    sql: {% if parameter_display_period_or_quarter._parameter_value == 'qtr' %}${fiscal_quarter_label}
          {% else %}${fiscal_period}
          {% endif %};;
   }
-
 
 
   dimension: client_mandt {
@@ -147,6 +221,13 @@ label: "Income Statement"
     sql: concat('Q',${fiscal_quarter});;
   }
 
+  dimension: fiscal_year_quarter_label {
+    group_label: "Fiscal Dates"
+    label: "Fiscal Year Quarter"
+    description: "Fiscal Quarter value with year in format YYYY.QN"
+    sql: concat(${fiscal_year},'.Q',${fiscal_quarter}) ;;
+  }
+
   dimension: fiscal_year {
     group_label: "Fiscal Dates"
     description: "Fiscal Year as YYYY"
@@ -169,6 +250,20 @@ label: "Income Statement"
     sql: -1 * ${fiscal_year_period_number} ;;
   }
 
+  dimension: fiscal_year_quarter_negative_number {
+    hidden: yes
+    type: number
+    sql: -1 * parse_numeric(concat(${fiscal_year},${fiscal_quarter})) ;;
+  }
+
+  dimension: selected_timeframe_level_as_negative_number {
+    hidden: yes
+    description: "Used to sort timeframes shown (fiscal periods or quarters) in descending order."
+    sql: {% if parameter_display_period_or_quarter._parameter_value == 'qtr' %}${fiscal_year_quarter_negative_number}
+         {% else %}${fiscal_year_period_negative_number}
+         {% endif %};;
+  }
+
   dimension: fiscal_year_period {
     type: string
     group_label: "Fiscal Dates"
@@ -187,11 +282,19 @@ label: "Income Statement"
   }
 
   dimension: fiscal_year_period_add_one_year {
+    hidden: yes
     type: string
     group_label: "Fiscal Dates"
     sql: {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
          {% if max_fp_size == 2 %} {% assign fp = 'right(${fiscal_period},2)'%}{%else%}{%assign fp = '${fiscal_period}' %}{%endif%}
          concat(${fiscal_year_number} + 1,'.',{{fp}}) ;;
+  }
+
+  dimension: fiscal_year_quarter_label_add_one_year {
+    hidden: yes
+    type: string
+    group_label: "Fiscal Dates"
+    sql: concat(${fiscal_year_number} + 1,'.',${fiscal_quarter_label}) ;;
   }
 
   dimension: fiscal_year_number {
@@ -215,10 +318,26 @@ label: "Income Statement"
     group_label: "Fiscal Dates"
     description: "Both Current Year and Last Year will display the selected fiscal period"
     sql: case when {% condition filter_fiscal_period %}${fiscal_year_period}{%endcondition%} then ${fiscal_year_period}
-    when {% condition filter_fiscal_period %}${fiscal_year_period_add_one_year}{%endcondition%} then ${fiscal_year_period_add_one_year}
-    end;;
-
+          when {% condition filter_fiscal_period %}${fiscal_year_period_add_one_year}{%endcondition%} then ${fiscal_year_period_add_one_year}
+          end;;
   }
+
+  dimension: reporting_period {
+    group_label: "Fiscal Dates"
+    description: "Reporting Period of Current Year or Last Year"
+    sql: case when {% condition filter_fiscal_timeframe %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
+                          {% else %}${fiscal_year_quarter_label}
+                          {% endif %}{%endcondition%} then 'Current Year'
+              when {% condition filter_fiscal_timeframe %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period_add_one_year}
+                          {% else %}${fiscal_year_quarter_label_add_one_year}
+                          {% endif %}{%endcondition%} then 'Last Year'
+         end;;
+  }
+
+
+
+
+
   #} end fiscal period
 
 # derived dimensions
