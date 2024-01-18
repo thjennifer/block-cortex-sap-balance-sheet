@@ -5,12 +5,14 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
     extends: [fiscal_periods_sdt]
 
     derived_table: {
-      sql: --reporting and YoY/Previous Comparison Periods
 
-              {% assign comparison_type = profit_and_loss.parameter_compare_to._parameter_value %}
+      sql:    {% assign comparison_type = profit_and_loss.parameter_compare_to._parameter_value %}
               {% assign tp = _filters['profit_and_loss.filter_fiscal_timeframe'] | sql_quote | remove: '"' | remove: "'" %}
               {% assign tp_array = tp | split: ',' | uniq | sort %}
               {% assign time_level = profit_and_loss.parameter_display_period_or_quarter._parameter_value %}
+              {% if comparison_type == 'custom' and profit_and_loss.filter_comparison_timeframe._is_filtered == false %}
+                  {% assign comparison_type = 'yoy' %}
+              {% endif %}
               {% if time_level == 'fp' %}
                   {% assign anchor_time = 'fiscal_year_period' %}
                   {% assign max_fp = '@{max_fiscal_period}' %}
@@ -23,40 +25,55 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
 
               {% else %}
                   {% assign anchor_time = 'fiscal_year_quarter' %}
-                  {% assign max_fp = 'Q4' %}
-                  {% assign max_fp_size = 0 %}
-                  {% assign max_fp_size_neg = 0 %}
-                  {% assign pad = 'Q' %}
+                  {% assign max_fp = 'Q4' %}{% assign max_fp_size = 2 %}{% assign max_fp_size_neg = -2 %}{% assign pad = 'Q' %}
               {% endif %}
+  {% if profit_and_loss.filter_fiscal_timeframe._is_filtered %}
 
-
-
-
-
-        select fp.*
-        ,'Current' as fiscal_period_group
-        , rank() over (order by {{anchor_time}} desc) as alignment_group
-        ,'{{tp}}' as selected_period
-        ,'{{time_level}}' as selected_time_level
-
+  select fiscal_year,
+          fiscal_period,
+          fiscal_year_quarter,
+          fiscal_year_period,
+          negative_fiscal_year_period_number,
+          negative_fiscal_year_quarter_number,
+          fiscal_period_group,
+          alignment_group,
+          selected_timeframe,
+          max(selected_timeframe) over (partition by alignment_group) as focus_timeframe,
+          comparison_type
+    from (
+       select
+          fiscal_year,
+          fiscal_period,
+          fiscal_year_quarter,
+          fiscal_year_period,
+          negative_fiscal_year_period_number,
+          negative_fiscal_year_quarter_number,
+          'Current' as fiscal_period_group,
+          rank() over (order by {{anchor_time}} desc) as alignment_group,
+          {{anchor_time}} as selected_timeframe,
+          '{{comparison_type}}' as comparison_type
         from ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
         where {% condition profit_and_loss.filter_fiscal_timeframe %}
-                {% if time_level == 'fp' %}fiscal_year_period
-                {% else %} fiscal_year_quarter {% endif %}{% endcondition %}
+                {% if time_level == 'fp' %}fiscal_year_period{% else %} fiscal_year_quarter {% endif %}
+              {% endcondition %}
 
       {% if comparison_type != 'none'  %}
          UNION ALL
-         select fp.*
-           ,'Comparison' as fiscal_period_group
-           ,rank() over (order by {{anchor_time}} desc) as alignment_group
-           ,cast(null as string) as selected_period
-           ,cast(null as string) as selected_time_level
-
-       from ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
-        where
+         select
+            fiscal_year,
+            fiscal_period,
+            fiscal_year_quarter,
+            fiscal_year_period,
+            negative_fiscal_year_period_number,
+            negative_fiscal_year_quarter_number,
+            'Comparison' as fiscal_period_group,
+            rank() over (order by {{anchor_time}} desc) as alignment_group,
+            {{anchor_time}} as selected_timeframe,
+            '{{comparison_type}}' as comparison_type
+         from ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
+          where
         {% if comparison_type == 'custom' %}
-
-          {% condition profit_and_loss.filter_comparison_timeframe %} {% if time_level == 'fp' %}fiscal_year_period
+              {% condition profit_and_loss.filter_comparison_timeframe %} {% if time_level == 'fp' %}fiscal_year_period
                   {% else %} fiscal_year_quarter {% endif %} {% endcondition %}
 
         {% elsif comparison_type == 'yoy' or comparison_type == 'prior' %}
@@ -71,11 +88,8 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
                 {% elsif comparison_type == 'prior' %}
                            {% if p_array[1] == '001' or p_array[1] == '01' or p_array[1] == 'Q1' %}
                               {% assign m = max_fp %}{% assign sub_yr = 1 %}
-
                             {% else %}
                               {% assign m = p_array[1] | remove: 'Q' | times: 1 | minus: 1 | prepend: pad | slice: max_fp_size_neg, max_fp_size %}{% assign sub_yr = 0 %}
-                             -- {% assign m = p_array[1] | remove: 'Q' | times: 1 | minus: 1 | prepend: pad %}{% assign sub_yr = 0 %}
-
                             {% endif %}
                 {% endif %}
 
@@ -86,54 +100,34 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
         {{anchor_time}} in ( {{cp_list}} )
       {% endif %}
       {% endif %}
+      ) t0
+
+      {% else %}
+      select
+            fiscal_year,
+            fiscal_period,
+            fiscal_year_quarter,
+            fiscal_year_period,
+            negative_fiscal_year_period_number,
+            negative_fiscal_year_quarter_number,
+            'Current' as fiscal_period_group,
+            1 as alignment_group,
+            {{anchor_time}} as selected_timeframe,
+            cast(null as string) as focus_timeframe
+        from ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
+        {% endif %}
         ;;
     }
 
-# {% if comparison_type != 'none'  %}
-#         UNION ALL
+  dimension: key {
+    hidden: yes
+    primary_key: yes
+    sql: concat(${fiscal_period_group},${fiscal_year_period}) ;;
+  }
 
-#         --comparison periods
-        # select fp.*
-        # ,'Comparison' as fiscal_period_group
-        # ,rank() over (order by fiscal_year_period desc) as alignment_group
-        # ,cast(null as string) as selected_period
-
-        # from ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
-        # where
-        # {% if comparison_type == 'custom' %}
-        # {% condition filter_comparison_period %} fiscal_year_period {% endcondition %}
-
-        # {% elsif comparison_type == 'prior' or comparison_type == 'yoy' %}
-        # {% for p in fp_array %}
-        # {% assign p_array = p | split: '.' %}
-        # {% if forloop.last != true %}{%assign d = ','%}{%else%}{%assign d = ''%}{%endif%}
-        # {% if comparison_type == 'prior' %}
-        # {% if p_array[1] == '01' %}
-        # {% assign m = '12' %}
-        # {% assign sub_yr = 1 %}
-        # {% else %}
-        # {% assign m = p_array[1] | times: 1 | minus: 1 | prepend: '00' | slice: -2, 2 %}
-        # {% assign sub_yr = 0 %}
-        # {% endif %}
-        # {% else %}
-        # {% assign m = p_array[1]  %}
-        # {% assign sub_yr = 1 %}
-        # {% endif %}
-
-        # {% assign yr = p_array[0] | times: 1 | minus: sub_yr %}
-        # {% assign cp_list = cp_list | append: "'" | append: yr | append: '.'| append: m | append: "'" | append: d %}
-        # {% endfor%}
-
-        # fiscal_year_period in ( {{cp_list}} )
-
-#         {% elsif comparison_type == 'equal' %}
-#         {% assign fp_sorted = fp_array | sort  %}
-
-#         PARSE_DATE('%Y.%m',fiscal_year_period)  >=
-#         date_sub(PARSE_DATE('%Y.%m','{{fp_sorted[0]}}'), INTERVAL {{fp_sorted | size}} MONTH)
-#         and PARSE_DATE('%Y.%m',fiscal_year_period) < PARSE_DATE('%Y.%m','{{fp_sorted[0]}}')
-#         {% endif %}
-#         {% endif %}
+  dimension: fiscal_year_period {
+    primary_key: no
+  }
 
     # filter: filter_fiscal_period {
     #   label: "Select Fiscal Periods"
@@ -169,15 +163,15 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
     #   suggest_dimension: fiscal_periods_sdt.fiscal_year_period
     # }
 
-    dimension: selected_period {
+    dimension: selected_timeframe {
       type: string
-      sql:  ${TABLE}.selected_period;;
+      sql:  ${TABLE}.selected_timeframe;;
     }
 
-    # dimension: what_was_picked_sorted {
-    #   type: string
-    #   sql:  ${TABLE}.what_was_picked_sorted ;;
-    # }
+    dimension: comparison_type {
+      type: string
+      sql:  ${TABLE}.comparison_type ;;
+    }
 
     # dimension: how_many_picked {
     #   type: string
@@ -199,53 +193,18 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
     sql:  ${TABLE}.fiscal_period_group;;
   }
 
-  # dimension: anchor_time_period {
-  #   type: string
-  #   sql:  ${TABLE}.anchor_time_period;;
-  # }
 
-  dimension: selected_time_level {
-    type: string
-    sql: ${TABLE}.selected_time_level ;;
+
+
+  dimension: alignment_group {
+    type: number
+    sql: ${TABLE}.alignment_group ;;
   }
 
-    # dimension: fiscal_period_group {
-    #   group_label: "Fiscal Dates"
-    #   type: string
-    #   sql:    {% if select_fiscal_period._in_query %}
-    #               {% assign comparison_type = select_comparison_type._parameter_value %}
-    #               {% assign fp = select_fiscal_period._parameter_value %}
-    #               {% assign cp = select_custom_comparison_period._parameter_value %}
-    #               {% if comparison_type == 'custom' %}
-    #                   {% if fp == cp %}{% assign comparison_type = 'none' %}
-    #                   {% elsif cp == '' %}{% assign comparison_type = 'yoy' %}
-    #                   {% endif %}
-    #               {% endif %}
-
-    #     {% if comparison_type == 'yoy' %}{% assign sub = 'YEAR'%}
-    #     {% elsif comparison_type == 'prior' %}{% assign sub = 'MONTH' %}
-    #     {% endif %}
-
-
-    #     case  when ${fiscal_year_period} = '{{fp}}' then 'Reporting'
-    #     {% if comparison_type != 'none' %}
-    #     when PARSE_DATE('%Y.%m',${fiscal_year_period}) =
-    #     {% if comparison_type == 'custom' %}
-    #     PARSE_DATE('%Y.%m','{{cp}}')
-    #     {% else %}
-    #     DATE_SUB(PARSE_DATE('%Y.%m','{{fp}}'), INTERVAL 1 {{sub}})
-    #     {% endif %}
-    #     then 'Comparison'
-    #     {% endif %}
-    #     end
-    #     {% else %} 'No Fiscal Reporting Period has been selected. Add Select Fiscal Period parameter.'
-    #     {% endif %};;
-    # }
-
-    dimension: alignment_group {
-      type: number
-      sql: ${TABLE}.alignment_group ;;
-    }
+  dimension: focus_timeframe {
+    type: string
+    sql: ${TABLE}.focus_timeframe ;;
+  }
 
     # dimension: selected_display_level {
     #   label: "Selected Display Level"
@@ -262,26 +221,43 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
     #     ;;
     # }
 
-    # measure: reporting_amount {
-    #   type: sum
-    #   sql: ${balance_sheet.amount_in_target_currency} ;;
-    #   filters: [fiscal_period_group: "Reporting"]
-    # }
+    measure: current_amount {
+      type: sum_distinct
+      group_label: "Current v Comparison Period Metrics"
+      label: "{% assign timelevel = profit_and_loss.parameter_display_period_or_quarter._parameter_value %}Current {% if timelevel == 'qtr' %}Quarter{%else%}Period{%endif%}"
+      sql_distinct_key: ${profit_and_loss.key} ;;
+      sql: ${profit_and_loss.amount_in_target_currency} ;;
+      filters: [fiscal_period_group: "Current"]
+      value_format_name: decimal_0
+    }
 
-    # measure: comparison_amount {
-    #   type: sum
-    #   sql: ${balance_sheet.amount_in_target_currency} ;;
-    #   filters: [fiscal_period_group: "Comparison"]
-    # }
+    measure: comparison_amount {
+      type: sum_distinct
+      group_label: "Current v Comparison Period Metrics"
+      label: "{% assign compare = profit_and_loss.parameter_compare_to._parameter_value %}
+              {% assign timelevel = profit_and_loss.parameter_display_period_or_quarter._parameter_value %}{% if compare == 'yoy' %}Last Year
+              {%elsif compare == 'prior'%}Prior {% if timelevel == 'qtr' %}Quarter{%else%}Period{%endif%}
+              {%else%}Comparison{%endif%}"
+      sql_distinct_key: ${profit_and_loss.key} ;;
+      sql: ${profit_and_loss.amount_in_target_currency} ;;
+      filters: [fiscal_period_group: "Comparison"]
+      value_format_name: decimal_0
+    }
 
-    # measure: difference_value {
-    #   type: number
-    #   sql: ${reporting_amount} - ${comparison_amount} ;;
-    # }
+    measure: difference_value {
+      type: number
+      group_label: "Current v Comparison Period Metrics"
+      label: "Gain (Loss)"
+      sql: ${current_amount} - ${comparison_amount} ;;
+      html: @{negative_format} ;;
+    }
 
-    # measure: percent_difference_value {
-    #   type: number
-    #   sql: safe_divide(${reporting_amount},${comparison_amount}) - 1 ;;
-    #   value_format_name: percent_1
-    # }
+    measure: difference_percent {
+      type: number
+      group_label: "Current v Comparison Period Metrics"
+      label: "Var %"
+      sql: safe_divide(${current_amount},${comparison_amount}) - 1 ;;
+      value_format_name: percent_1
+      html: @{negative_format} ;;
+    }
     }

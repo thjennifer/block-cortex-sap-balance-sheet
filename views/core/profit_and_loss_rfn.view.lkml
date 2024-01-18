@@ -73,9 +73,9 @@ label: "Income Statement"
     allowed_value: {
       label: "Previous Fiscal Period" value: "prior"
     }
-   allowed_value: {
-      label: "Custom Range" value: "custom"
-    }
+  # allowed_value: {
+  #     label: "Custom Range" value: "custom"
+  #   }
     default_value: "none"
 
   }
@@ -95,6 +95,11 @@ label: "Income Statement"
     order_by_field: selected_timeframe_level_as_negative_number
   }
 
+  measure: max_timeframe {
+    type: string
+    sql: (select max(${timeframes_to_select}) ) ;;
+  }
+
   filter: filter_fiscal_period {
     type: string
     view_label: "🗓 Pick Fiscal Periods"
@@ -112,7 +117,7 @@ label: "Income Statement"
   dimension: selected_time_dimension {
     label_from_parameter: parameter_display_period_or_quarter
     sql: {% if parameter_display_period_or_quarter._parameter_value == 'qtr' %}${fiscal_quarter_label}
-         {% else %}${fiscal_period}
+         {% else %}${fiscal_period_label}
          {% endif %};;
   }
 
@@ -170,6 +175,7 @@ label: "Income Statement"
   }
 
   dimension: gllevel_number {
+    type: number
     label: "GL Level (number)"
     sql: parse_numeric(${gllevel}) ;;
   }
@@ -197,6 +203,15 @@ label: "Income Statement"
   dimension: fiscal_period {
     group_label: "Fiscal Dates"
     description: "Fiscal Period as 3-character string (e.g., 001)"
+  }
+
+  dimension: fiscal_period_label {
+    type: string
+    hidden: yes
+    description: "Fiscal Period as either 2- or 3-character string"
+    sql: {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
+         {% if max_fp_size == 2 %} {% assign fp = 'right(${fiscal_period},2)'%}{%else%}{%assign fp = '${fiscal_period}' %}{%endif%}
+         {{fp}};;
   }
 
   dimension: fiscal_period_number {
@@ -417,9 +432,16 @@ label: "Income Statement"
     }
 
     link: {
-      label: "Show Components of Profit at Parent & Child Level"
+      label: "Show Components of Profit at Parent & Node Level"
       url: "{{ drill_profit_to_child._link }}&sorts=profit_and_loss_kpi_to_glaccount_map_sdt.component_of_profit,profit_and_loss_kpi_to_glaccount_map_sdt.kpi_name,profit_and_loss.glparent_text,profit_and_loss.glnode_text"
     }
+
+    link: {
+      label: "Show Income Statement"
+      url: "//cortexdev.cloud.looker.com/dashboards/99?Display+Period+or+Quarter={{ _filters['profit_and_loss.parameter_display_period_or_quarter'] | url_encode }}&Select+Fiscal+Timeframe={{ profit_and_loss.fiscal_year._value | append: '.'| append: profit_and_loss.selected_time_dimension._value }}&Currency={{ _filters['profit_and_loss.target_currency_tcurr'] | url_encode }}&Company={{ _filters['profit_and_loss.company_text'] | url_encode }}"
+    }
+    # profit_and_loss.parameter_display_period_or_quarter
+    # https://cortexdev.cloud.looker.com/dashboards/99?Currency=USD&Select+Fiscal+Timeframe=2023.Q4%2C2023.Q3&Company+%28text%29=C006-CYMBAL+US-CENTRAL&Display+Period+or+Quarter=qtr&Select+Comparison+Type=prior&GL+Level=3&Ledger+Name=Leading+Ledger
     # value_format_name: millions_d1
   }
 
