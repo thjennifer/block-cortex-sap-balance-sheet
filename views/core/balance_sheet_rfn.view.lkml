@@ -200,6 +200,13 @@ view: +balance_sheet {
     sql: parse_numeric(${level}) ;;
   }
 
+  # used as filter suggestion for selecting level depth to display
+  dimension: level_depth {
+    hidden: yes
+    type: string
+    sql: cast((${level_number} - 1) as string) ;;
+  }
+
   dimension: is_leaf_node {
     description: "Yes if GL Account Number and indicates lowest level of hierarchy."
   }

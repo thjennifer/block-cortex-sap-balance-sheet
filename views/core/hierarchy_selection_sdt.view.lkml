@@ -3,36 +3,35 @@ include: "/views/core/hierarchy_path_to_node_pdt.view"
 view: hierarchy_selection_sdt {
   derived_table: {
     sql:
-    {% assign start = parameter_pick_start_level._parameter_value | times: 1 %}
+    {% assign start = parameter_pick_start_level._parameter_value | times: 1 | minus: 2 %}
     {% assign depth = parameter_pick_depth_level._parameter_value | times: 1 | minus: 1 %}
-    select h.client,
+    select
+      --{{start}}
+      --{{start | plus: 1}}
+       h.Client,
        h.ChartOfAccounts,
        h.HierarchyName,
-       CompanyCode,
-       BusinessArea,
-       LedgerInGeneralLedgerAccounting,
        LanguageKey_SPRAS,
-       level_number,
-       min(level_number) over (partition by client,ChartOfAccounts,HierarchyName,CompanyCode,BusinessArea,LedgerInGeneralLedgerAccounting,LanguageKey_SPRAS) as first_level_number,
-       level_count,
+       LevelNumber,
+       LevelSequenceNumber,
        Node,
        NodeText,
-       node_text_path,
-       node_path,
-       split(node_text_path,'/') ntp,
-       array_length(split(node_text_path,'/')) as path_size
-      ,
-       split(node_text_path,'/')[SAFE_OFFSET({{start}} - (level_number - level_count))] AS hier0_node_text, -- start - (level_number - level_count) size - 2
-       split(node_text_path,'/')[SAFE_OFFSET({{start | plus: 1}} - (level_number - level_count))] AS hier1_node_text, -- start + 1 - (level_number - level_count) size - 1
-       split(node_text_path,'/')[SAFE_OFFSET({{start | plus: 2}} - (level_number - level_count))] AS hier2_node_text, -- start + 2 - (level_number - level_count) or size_of_array
-       split(node_text_path,'/')[SAFE_OFFSET({{start | plus: 3}} - (level_number - level_count))] AS hier3_node_text,
-       split(node_text_path,'/')[SAFE_OFFSET({{start | plus: 4}} - (level_number - level_count))] AS hier4_node_text,
+       NodeTextPath_String,
+       NodePath_String,
+       --split(node_text_path,'/') ntp,
+      -- array_length(split(node_text_path,'/')) as path_size
 
-       split(node_path,'/')[SAFE_OFFSET({{start}} - (level_number - level_count))] AS hier0_node, -- start - (level_number - level_count) size - 2
-       split(node_path,'/')[SAFE_OFFSET({{start | plus: 1}} - (level_number - level_count))] AS hier1_node, -- start + 1 - (level_number - level_count) size - 1
-       split(node_path,'/')[SAFE_OFFSET({{start | plus: 2}} - (level_number - level_count))] AS hier2_node, -- start + 2 - (level_number - level_count) or size_of_array
-       split(node_path,'/')[SAFE_OFFSET({{start | plus: 3}} - (level_number - level_count))] AS hier3_node,
-       split(node_path,'/')[SAFE_OFFSET({{start | plus: 4}} - (level_number - level_count))] AS hier4_node
+       NodeTextPath[SAFE_OFFSET({{start}})] AS hier1_node_text,
+       NodeTextPath[SAFE_OFFSET({{start | plus: 1}})] AS hier2_node_text,
+       NodeTextPath[SAFE_OFFSET({{start | plus: 2}})] AS hier3_node_text,
+       NodeTextPath[SAFE_OFFSET({{start | plus: 3}})] AS hier4_node_text,
+       NodeTextPath[SAFE_OFFSET({{start | plus: 4}})] AS hier5_node_text,
+
+       NodePath[SAFE_OFFSET({{start}})] AS hier1_node,
+       NodePath[SAFE_OFFSET({{start | plus: 1}})] AS hier2_node,
+       NodePath[SAFE_OFFSET({{start | plus: 2}})] AS hier3_node,
+       NodePath[SAFE_OFFSET({{start | plus: 3}})] AS hier4_node,
+       NodePath[SAFE_OFFSET({{start | plus: 4}})] AS hier5_node
 
 
 
@@ -40,12 +39,11 @@ from ${hierarchy_path_to_node_pdt.SQL_TABLE_NAME} h
 --,unnest(split(node_text_path,'/')) ntp with offset
 
 where
---level_number = 4 -- start plus depth - 1 e.g., start at 2 show 3 levels
-level_number = {{start}} + {{depth}}
---and Client = '100'
---and BusinessArea = '0001'
---and LedgerInGeneralLedgerAccounting = '0L'
-
+--filter to ending level as start + depth + 2 (add 2 as minimum level in hierarchy is 2)
+LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
+--greatest({{start}} + {{depth}} + 2,MaxLevelNumber)
+ --{% assign test_val = '4' %}
+--{{5 | at_most: 3}}
     ;;
   }
 
@@ -70,12 +68,13 @@ level_number = {{start}} + {{depth}}
     type: unquoted
     label: "Select number of hierarchy levels to display"
     description: "Select number of hierarchy levels (1 to 5) to display"
-    # suggest_dimension: level_number
-    allowed_value: {value: "1"}
-    allowed_value: {value: "2"}
-    allowed_value: {value: "3"}
-    allowed_value: {value: "4"}
-    allowed_value: {value: "5"}
+    suggest_explore: balance_sheet
+    suggest_dimension: balance_sheet.level_depth
+    # allowed_value: {value: "1"}
+    # allowed_value: {value: "2"}
+    # allowed_value: {value: "3"}
+    # allowed_value: {value: "4"}
+    # allowed_value: {value: "5"}
     default_value: "3"
   }
 
@@ -126,12 +125,12 @@ level_number = {{start}} + {{depth}}
 
   dimension: level_number {
     type: number
-    sql: ${TABLE}.level_number ;;
+    sql: ${TABLE}.LevelNumber ;;
   }
 
   dimension: level_string {
     type: string
-    sql: cast(${TABLE}.level_number as string) ;;
+    sql: cast(${TABLE}.LevelNumber as string) ;;
   }
 
   dimension: node {
@@ -141,27 +140,22 @@ level_number = {{start}} + {{depth}}
 
   dimension: node_text {
     type: string
-    sql: ${TABLE}.node_text ;;
+    sql: ${TABLE}.NodeText ;;
   }
 
-  dimension: node_text_path {
+  dimension: node_text_path_string {
     hidden: no
     type: string
-    sql: ${TABLE}.node_text_path ;;
+    sql: ${TABLE}.NodeTextPath_String ;;
   }
 
-  dimension: node_path {
+  dimension: node_path_string {
     hidden: no
     type: string
-    sql: ${TABLE}.node_text_path ;;
+    sql: ${TABLE}.NodePath_String ;;
   }
 
-  dimension: hier0_node_text {
-    hidden: no
-    type: string
-    sql: ${TABLE}.hier0_node_text ;;
-    order_by_field: hier0_node
-  }
+
 
   dimension: hier1_node_text {
     hidden: no
@@ -191,11 +185,14 @@ level_number = {{start}} + {{depth}}
     order_by_field: hier4_node
   }
 
-  dimension: hier0_node {
+  dimension: hier5_node_text {
     hidden: no
     type: string
-    sql: ${TABLE}.hier0_node ;;
+    sql: ${TABLE}.hier5_node_text ;;
+    order_by_field: hier5_node
   }
+
+
 
   dimension: hier1_node {
     hidden: no
@@ -219,6 +216,12 @@ level_number = {{start}} + {{depth}}
     hidden: no
     type: string
     sql: ${TABLE}.hier4_node ;;
+  }
+
+  dimension: hier5_node {
+    hidden: no
+    type: string
+    sql: ${TABLE}.hier5_node ;;
   }
 
 

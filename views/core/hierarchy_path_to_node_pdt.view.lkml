@@ -1,6 +1,6 @@
 view: hierarchy_path_to_node_pdt {
   derived_table: {
-    persist_for: "24 hours"
+    datagroup_trigger: balance_sheet_node_count
     create_process: {
       sql_step:
 
@@ -11,58 +11,48 @@ WITH
     Client,
     ChartOfAccounts,
     HierarchyName,
-    CompanyCode,
-    COALESCE(BusinessArea,'N/A') AS BusinessArea,
-    COALESCE(LedgerInGeneralLedgerAccounting,'0L') AS LedgerInGeneralLedgerAccounting,
     LanguageKey_SPRAS,
-    CAST(Level AS INT64) AS level_number,
+    CAST(Level AS INT64) AS LevelNumber,
     Parent,
     COALESCE(ParentText,Parent) AS ParentText,
     Node,
     COALESCE(NodeText,Node) AS NodeText
-    --FROM `kittycorn-dev-infy.SAP_REPORTING_ECC.BalanceSheet`
   FROM
     `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.BalanceSheet`
   GROUP BY
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ),
+    1, 2, 3, 4, 5, 6, 7, 8, 9 ),
   iterations AS (
   SELECT
     Client,
     ChartOfAccounts,
     HierarchyName,
-    CompanyCode,
-    BusinessArea,
-    LedgerInGeneralLedgerAccounting,
     LanguageKey_SPRAS,
-    level_number,
+    LevelNumber,
     Node,
     NodeText,
     Parent,
     ParentText,
-    0 AS level_count,
-    nodeText AS node_text_path,
-    Node AS node_path
+    0 AS LevelSequenceNumber,
+    nodeText AS NodeTextPath_String,
+    Node AS NodePath_String
   FROM
     n
   WHERE
-    level_number = 2
+    LevelNumber = 2
   UNION ALL
   SELECT
     n.Client,
     n.ChartOfAccounts,
     n.HierarchyName,
-    n.CompanyCode,
-    n.BusinessArea,
-    n.LedgerInGeneralLedgerAccounting,
     n.LanguageKey_SPRAS,
-    n.level_number,
-    n.node,
+    n.LevelNumber,
+    n.Node,
     n.NodeText,
     n.Parent,
     n.ParentText,
-    level_count+1 AS level_count,
-    CONCAT(node_text_path, '/',n.nodeText) AS node_text_path,
-    CONCAT(node_path, '/',n.node) AS node_path
+    LevelSequenceNumber+1 AS LevelSequenceNumber,
+    CONCAT(NodeTextPath_String, '/',n.NodeText) AS NodeTextPath_String,
+    CONCAT(NodePath_String, '/',n.Node) AS NodePath_String
   FROM
     n
   JOIN
@@ -72,11 +62,23 @@ WITH
     AND i.Client = n.Client
     AND i.ChartOfAccounts = n.ChartOfAccounts
     AND i.HierarchyName = n.HierarchyName
-    AND i.CompanyCode = n.CompanyCode
     AND i.LanguageKey_SPRAS = n.LanguageKey_SPRAS
-    AND i.BusinessArea = n.BusinessArea
-    AND i.LedgerInGeneralLedgerAccounting = n.LedgerInGeneralLedgerAccounting )
-select * from iterations
+    )
+select Client,
+       ChartOfAccounts,
+       HierarchyName,
+       LanguageKey_SPRAS,
+       Node,
+       NodeText,
+       ParentText,
+       LevelNumber,
+       LevelSequenceNumber,
+       max(LevelNumber) over (partition by Client,ChartOfAccounts,HierarchyName) as MaxLevelNumber,
+       NodeTextPath_String,
+       NodePath_String,
+       split(NodeTextPath_String,'/') as NodeTextPath,
+       split(NodePath_String,'/') as NodePath
+from iterations
 
       ;;
     }
