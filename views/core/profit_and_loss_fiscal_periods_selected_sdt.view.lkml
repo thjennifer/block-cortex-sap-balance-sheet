@@ -229,6 +229,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
       sql: ${profit_and_loss.amount_in_target_currency} ;;
       filters: [fiscal_period_group: "Current"]
       value_format_name: decimal_0
+      html: @{negative_format} ;;
     }
 
     measure: comparison_amount {
@@ -242,6 +243,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
       sql: ${profit_and_loss.amount_in_target_currency} ;;
       filters: [fiscal_period_group: "Comparison"]
       value_format_name: decimal_0
+      html: @{negative_format} ;;
     }
 
     measure: difference_value {

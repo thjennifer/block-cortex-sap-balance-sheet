@@ -134,6 +134,10 @@ view: +balance_sheet {
     order_by_field: ledger_in_general_ledger_accounting
   }
 
+  dimension: business_area {
+    sql: coalesce(${TABLE}.BusinessArea,'N/A') ;;
+  }
+
   dimension: company_code {
     label: "Company (code)"
     description: "Company Code"

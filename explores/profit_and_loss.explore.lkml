@@ -2,6 +2,7 @@ include: "/views/core/profit_and_loss_rfn.view"
 include: "/views/core/language_map_sdt.view"
 include: "/views/core/profit_and_loss_kpi_to_glaccount_map_sdt.view"
 include: "/views/core/profit_and_loss_fiscal_periods_selected_sdt.view"
+include: "/views/core/hierarchy_selection_sdt.view"
 
 explore: profit_and_loss {
   always_join: [language_map_sdt]
@@ -32,6 +33,9 @@ explore: profit_and_loss {
     relationship: many_to_many
     sql_on: ${profit_and_loss.fiscal_year_period} = ${profit_and_loss_fiscal_periods_selected_sdt.fiscal_year_period};;
   }
+
+
+
 
 }
 

@@ -3,6 +3,14 @@ include: "/views/base/balance_sheet.view"
 view: +balance_sheet {
   dimension: client {hidden: yes}
 
+  dimension: key {
+    primary_key: yes
+    hidden: yes
+    sql: concat(${client},${company_code}, ${chart_of_accounts}, ${hierarchy_name},
+          coalesce(${business_area},'is null') ,coalesce(${ledger_in_general_ledger_accounting},'0L')
+          ,${node},${fiscal_year},${fiscal_period},${language_key_spras},${target_currency_tcurr});;
+  }
+
   dimension: client_mandt {
     type: string
     label: "Client"
@@ -19,6 +27,7 @@ view: +balance_sheet {
   }
 
   dimension: amount_in_target_currency {
+    hidden: no
     label: "Amount in Global Currency"
   }
 
@@ -68,7 +77,7 @@ view: +balance_sheet {
   measure: total_amount_in_global_currency {
     type: sum
     sql: ${cumulative_amount_in_target_currency} ;;
-    value_format_name: millions_d1
+    # value_format_name: millions_d1
 
     # drill_fields: [fiscal_year, fiscal_period, level, parent_text, node_text, total_amount_in_global_currency]
   }
