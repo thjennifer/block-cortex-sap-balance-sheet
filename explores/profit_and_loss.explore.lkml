@@ -2,7 +2,7 @@ include: "/views/core/profit_and_loss_rfn.view"
 include: "/views/core/language_map_sdt.view"
 include: "/views/core/profit_and_loss_kpi_to_glaccount_map_sdt.view"
 include: "/views/core/profit_and_loss_fiscal_periods_selected_sdt.view"
-include: "/views/core/hierarchy_selection_sdt.view"
+include: "/views/core/profit_and_loss_hierarchy_selection_sdt.view"
 
 explore: profit_and_loss {
   always_join: [language_map_sdt]
@@ -34,11 +34,15 @@ explore: profit_and_loss {
     sql_on: ${profit_and_loss.fiscal_year_period} = ${profit_and_loss_fiscal_periods_selected_sdt.fiscal_year_period};;
   }
 
+  join: profit_and_loss_hierarchy_selection_sdt {
+    type: inner
+    relationship: many_to_one
+    sql_on: ${profit_and_loss.client_mandt} = ${profit_and_loss_hierarchy_selection_sdt.client_mandt} and
+            ${profit_and_loss.glhierarchy} = ${profit_and_loss_hierarchy_selection_sdt.glhierarchy} and
+            ${profit_and_loss.chart_of_accounts} = ${profit_and_loss_hierarchy_selection_sdt.chart_of_accounts} and
+            ${profit_and_loss.language_key_spras} = ${profit_and_loss_hierarchy_selection_sdt.language_key_spras} and
+            ${profit_and_loss.glnode} = ${profit_and_loss_hierarchy_selection_sdt.glnode};;
 
-
+  }
 
 }
-
-# {% if balance_sheet.select_fiscal_period._in_query %}
-      #   and ${balance_sheet.fiscal_period_group} is not null
-      # {% endif %}

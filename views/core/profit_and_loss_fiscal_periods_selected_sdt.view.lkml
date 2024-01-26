@@ -251,6 +251,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
       group_label: "Current v Comparison Period Metrics"
       label: "Gain (Loss)"
       sql: ${current_amount} - ${comparison_amount} ;;
+      value_format_name: decimal_0
       html: @{negative_format} ;;
     }
 

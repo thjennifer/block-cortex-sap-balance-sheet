@@ -156,7 +156,13 @@ label: "Income Statement"
 
   dimension: ledger_name {
     description: "Ledger in General Ledger Accounting"
-    sql: if(${ledger_in_general_ledger_accounting} = '0L','Leading Ledger', ${ledger_in_general_ledger_accounting} );;
+    # sql: if(${ledger_in_general_ledger_accounting} = '0L','Leading Ledger', ${ledger_in_general_ledger_accounting} );;
+    sql: case when ${ledger_in_general_ledger_accounting} = '0L' then 'Leading Ledger'
+              when right(${ledger_in_general_ledger_accounting},1)='E' then concat(${ledger_in_general_ledger_accounting},' (Extending Ledger)')
+         else ${ledger_in_general_ledger_accounting} end;;
+    # html: {% assign l = ledger_in_general_ledger_accounting._value | slice: -1,1 %}
+          # {% if l == 'E' %}{% assign addon = ' (Extending Ledger)' %}{% assign assign addon = '' %}{%endif%}
+          # {{value | append: addon}};;
     order_by_field: ledger_in_general_ledger_accounting
   }
 
@@ -178,6 +184,13 @@ label: "Income Statement"
     type: number
     label: "GL Level (number)"
     sql: parse_numeric(${gllevel}) ;;
+  }
+
+  # used as filter suggestion for selecting level depth to display
+  dimension: gllevel_depth {
+    hidden: yes
+    type: string
+    sql: cast((${gllevel_number} - 1) as string) ;;
   }
 
   dimension: glnode {
@@ -462,7 +475,7 @@ label: "Income Statement"
     sql: ${amount_in_target_currency} ;;
     filters: [fiscal_reporting_period: "Current Year"]
     value_format_name: decimal_0
-    html: @{negative_format} ;;
+    # html: @{negative_format} ;;
   }
 
   measure: comparison_period_last_year_amount_in_global_currency {
@@ -472,7 +485,7 @@ label: "Income Statement"
     sql: ${amount_in_target_currency} ;;
     filters: [fiscal_reporting_period: "Last Year"]
     value_format_name: decimal_0
-    html: @{negative_format} ;;
+    # html: @{negative_format} ;;
   }
 
   measure: difference_value {
@@ -482,7 +495,7 @@ label: "Income Statement"
     description: "Reporting Period Amount - Comparison Period Amount"
     sql: ${reporting_period_current_year_amount_in_global_currency} - ${comparison_period_last_year_amount_in_global_currency} ;;
     value_format_name: decimal_0
-    html: @{negative_format} ;;
+    # html: @{negative_format} ;;
   }
 
   measure: difference_percent {
@@ -492,7 +505,7 @@ label: "Income Statement"
     description: "Percentage Change between Reporting and Comparison Periods"
     sql: safe_divide(${reporting_period_current_year_amount_in_global_currency},${comparison_period_last_year_amount_in_global_currency}) - 1 ;;
     value_format_name: percent_1
-    html: @{negative_format} ;;
+    # html: @{negative_format} ;;
   }
 
 

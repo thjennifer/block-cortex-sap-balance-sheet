@@ -32,21 +32,15 @@ view: hierarchy_selection_sdt {
        NodePath[SAFE_OFFSET({{start | plus: 2}})] AS hier3_node,
        NodePath[SAFE_OFFSET({{start | plus: 3}})] AS hier4_node,
        NodePath[SAFE_OFFSET({{start | plus: 4}})] AS hier5_node
-
-
-
 from ${hierarchy_path_to_node_pdt.SQL_TABLE_NAME} h
---,unnest(split(node_text_path,'/')) ntp with offset
-
 where
 --filter to ending level as start + depth + 2 (add 2 as minimum level in hierarchy is 2)
+--cap at Max Number of Levels if requested depth exceeds
 LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
---greatest({{start}} + {{depth}} + 2,MaxLevelNumber)
- --{% assign test_val = '4' %}
---{{5 | at_most: 3}}
     ;;
   }
 
+  label: "Balance Sheet"
   fields_hidden_by_default: yes
 
   parameter: parameter_pick_start_level {
@@ -84,8 +78,7 @@ LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
     hidden: yes
     type: string
     primary_key: yes
-    sql: concat(${client_mandt},${hierarchy_name},${chart_of_accounts},${business_area},${ledger_in_general_ledger_accounting},
-      ${company_code},${language_key_spras},${node}) ;;
+    sql: concat(${client_mandt},${hierarchy_name},${chart_of_accounts},${language_key_spras},${node}) ;;
   }
 
   dimension: client_mandt {
@@ -103,21 +96,6 @@ LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
     sql: ${TABLE}.HierarchyName ;;
   }
 
-  dimension: company_code {
-    type: string
-    sql: ${TABLE}.CompanyCode ;;
-  }
-
-  dimension: business_area {
-    type: string
-    sql: ${TABLE}.BusinessArea ;;
-  }
-
-  dimension: ledger_in_general_ledger_accounting {
-    type: string
-    sql: ${TABLE}.LedgerInGeneralLedgerAccounting ;;
-  }
-
   dimension: language_key_spras {
     type: string
     sql: ${TABLE}.LanguageKey_SPRAS ;;
@@ -126,11 +104,6 @@ LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
   dimension: level_number {
     type: number
     sql: ${TABLE}.LevelNumber ;;
-  }
-
-  dimension: level_string {
-    type: string
-    sql: cast(${TABLE}.LevelNumber as string) ;;
   }
 
   dimension: node {
