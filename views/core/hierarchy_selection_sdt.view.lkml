@@ -48,7 +48,7 @@ LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
     type: unquoted
     label: "Select first level of hierarchy to display"
     suggest_explore: balance_sheet
-    suggest_dimension: balance_sheet.level
+    suggest_dimension: balance_sheet.level_string
     # allowed_value: {value: "1"}
     # allowed_value: {value: "2"}
     # allowed_value: {value: "3"}
@@ -62,13 +62,14 @@ LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
     type: unquoted
     label: "Select number of hierarchy levels to display"
     description: "Select number of hierarchy levels (1 to 5) to display"
-    suggest_explore: balance_sheet
-    suggest_dimension: balance_sheet.level_depth
-    # allowed_value: {value: "1"}
-    # allowed_value: {value: "2"}
-    # allowed_value: {value: "3"}
-    # allowed_value: {value: "4"}
-    # allowed_value: {value: "5"}
+    # suggest_explore: balance_sheet
+    # suggest_dimension: balance_sheet.level_depth
+    #
+    allowed_value: {value: "1"}
+    allowed_value: {value: "2"}
+    allowed_value: {value: "3"}
+    allowed_value: {value: "4"}
+    allowed_value: {value: "5"}
     default_value: "3"
   }
 

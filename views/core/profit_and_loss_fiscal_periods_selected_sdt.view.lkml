@@ -16,20 +16,14 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
               {% if time_level == 'fp' %}
                   {% assign anchor_time = 'fiscal_year_period' %}
                   {% assign max_fp = '@{max_fiscal_period}' %}
-                  {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
-                  {% assign max_fp_size_neg = max_fp_size | times: -1 %}
-                  {% assign pad = '' %}
-                    {% for i in (1..max_fp_size) %}
-                        {% assign pad = pad | append: '0' %}
-                    {% endfor %}
-
+                  {% assign pad = '00' %}{% assign max_fp_size = 3 %}{% assign max_fp_size_neg = -3 %}
               {% else %}
                   {% assign anchor_time = 'fiscal_year_quarter' %}
-                  {% assign max_fp = 'Q4' %}{% assign max_fp_size = 2 %}{% assign max_fp_size_neg = -2 %}{% assign pad = 'Q' %}
+                  {% assign max_fp = 'Q4' %}{% assign pad = 'Q' %}{% assign max_fp_size = 2 %}{% assign max_fp_size_neg = -2 %}
               {% endif %}
   {% if profit_and_loss.filter_fiscal_timeframe._is_filtered %}
 
-  select fiscal_year,
+  select  fiscal_year,
           fiscal_period,
           fiscal_year_quarter,
           fiscal_year_period,
@@ -71,7 +65,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
             {{anchor_time}} as selected_timeframe,
             '{{comparison_type}}' as comparison_type
          from ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
-          where
+         where
         {% if comparison_type == 'custom' %}
               {% condition profit_and_loss.filter_comparison_timeframe %} {% if time_level == 'fp' %}fiscal_year_period
                   {% else %} fiscal_year_quarter {% endif %} {% endcondition %}
@@ -86,8 +80,8 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
                       {% assign sub_yr = 1 %}
 
                 {% elsif comparison_type == 'prior' %}
-                           {% if p_array[1] == '001' or p_array[1] == '01' or p_array[1] == 'Q1' %}
-                              {% assign m = max_fp %}{% assign sub_yr = 1 %}
+                           {% if p_array[1] == '001' or p_array[1] == 'Q1' %}
+                              {% assign m = max_fp | prepend: pad | slice: max_fp_size_neg, max_fp_size%}{% assign sub_yr = 1 %}
                             {% else %}
                               {% assign m = p_array[1] | remove: 'Q' | times: 1 | minus: 1 | prepend: pad | slice: max_fp_size_neg, max_fp_size %}{% assign sub_yr = 0 %}
                             {% endif %}

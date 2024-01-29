@@ -11,15 +11,12 @@
 view: fiscal_periods_sdt {
   derived_table: {
     sql:
-      {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
-      {% if max_fp_size == 2 %}{% assign fp = 'right(b.FiscalPeriod,2)'%}
-      {% else %}{%assign fp = 'b.FiscalPeriod' %}{%endif%}
       select
         FiscalYear as fiscal_year,
         FiscalPeriod as fiscal_period,
         concat(b.FiscalYear,'.Q',b.FiscalQuarter) as fiscal_year_quarter,
-        concat(b.FiscalYear,'.',{{fp}})  AS fiscal_year_period,
-        parse_numeric(concat(b.FiscalYear,{{fp}})) * -1 as negative_fiscal_year_period_number,
+        concat(b.FiscalYear,'.',b.FiscalPeriod)  AS fiscal_year_period,
+        parse_numeric(concat(b.FiscalYear,b.FiscalPeriod)) * -1 as negative_fiscal_year_period_number,
         parse_numeric(concat(b.FiscalYear,b.FiscalQuarter)) * -1 as negative_fiscal_year_quarter_number
       FROM `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.BalanceSheet`  AS b
       GROUP BY

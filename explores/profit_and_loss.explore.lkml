@@ -31,7 +31,8 @@ explore: profit_and_loss {
   join: profit_and_loss_fiscal_periods_selected_sdt  {
     type: inner
     relationship: many_to_many
-    sql_on: ${profit_and_loss.fiscal_year_period} = ${profit_and_loss_fiscal_periods_selected_sdt.fiscal_year_period};;
+    sql_on: ${profit_and_loss.fiscal_year} = ${profit_and_loss_fiscal_periods_selected_sdt.fiscal_year}
+            and ${profit_and_loss.fiscal_period} = ${profit_and_loss_fiscal_periods_selected_sdt.fiscal_period};;
   }
 
   join: profit_and_loss_hierarchy_selection_sdt {

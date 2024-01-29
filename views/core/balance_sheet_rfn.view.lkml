@@ -190,14 +190,21 @@ view: +balance_sheet {
   }
 
   dimension: level {
+    hidden: yes
     description: "Shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 02 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 03 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
   }
 
   dimension: level_number {
     type: number
     description: "Level as a numeric. Level shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 2 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 3 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
-
     sql: parse_numeric(${level}) ;;
+  }
+
+  dimension: level_string {
+    type: string
+    label: "Level"
+    description: "Level as a numeric. Level shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 2 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 3 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
+    sql: ltrim(${level},'0') ;;
   }
 
   # used as filter suggestion for selecting level depth to display
@@ -245,9 +252,7 @@ view: +balance_sheet {
     type: number
     group_label: "Fiscal Dates"
     description: "Fiscal Year and Period as a Numeric Value in form of YYYYPP or YYYYPPP"
-    sql: {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
-         {% if max_fp_size == 2 %} {% assign fp = 'right(${fiscal_period},2)'%}{%else%}{%assign fp = '${fiscal_period}' %}{%endif%}
-        parse_numeric(concat(${fiscal_year},{{fp}})) ;;
+    sql: parse_numeric(concat(${fiscal_year},${fiscal_period})) ;;
     value_format_name: id
   }
 
@@ -261,9 +266,7 @@ view: +balance_sheet {
     type: string
     group_label: "Fiscal Dates"
     description: "Fiscal Year and Period as String in form of YYYY.PP or YYYY.PPP"
-    sql: {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
-         {% if max_fp_size == 2 %} {% assign fp = 'right(${fiscal_period},2)'%}{%else%}{%assign fp = '${fiscal_period}' %}{%endif%}
-          concat(${fiscal_year},'.',{{fp}});;
+    sql: concat(${fiscal_year},'.',${fiscal_period});;
     order_by_field: fiscal_year_period_negative_number
   }
 

@@ -132,9 +132,8 @@
   - name: Fiscal Period
     title: Fiscal Period
     type: field_filter
-    # default_value: '2023.11'
     # assumes as 12 month fiscal period that aligns with calendar. Will find last month and select period with same value
-    default_value: "{% if _user_attributes['sap_use_demo_data']=='Yes'%}{% assign last_period = '2023.11'%}{%else%}{% assign current_month = \"today\" | date: '%m' %}{% assign current_year = \"today\" | date: '%Y' %}{% if current_month == '01' %}{% assign last_month = '12' %}{% assign last_month_year = current_year | times: 1 | minus: 1 %}{% else %}{% assign last_month = current_month | times: 1 | minus: 1 | prepend: '00' | slice: -2, 2 %}{% assign last_month_year = current_year %}{% endif %}{% assign last_period = last_month_year | append: '.' | append: last_month  %}{%endif%}{{last_period | strip}}"
+    default_value: "{% if _user_attributes['sap_use_demo_data']=='Yes'%}{% assign ym = '2023.011'%}{%else%}{% assign intervalDays = 31 %}{% assign intervalSeconds = intervalDays | times: 86400 %}{% assign daysMinus31 = 'now' | date: '%s' | minus: intervalSeconds %}{% assign m = daysMinus31 | date: '%m' | prepend: '00' | slice: -3,3 %}{% assign ym = daysMinus31 | date: '%Y' | append: '.' | append: m %}{%endif%}{{ym}}"
     allow_multiple_values: false
     required: true
     ui_config:

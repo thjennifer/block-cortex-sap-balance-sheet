@@ -1,9 +1,11 @@
-- dashboard: balance_sheet_subtotal_table
+# This dashboard requires the Report Table visualization (available for free on Looker Marketplace) to be installed.
+
+- dashboard: balance_sheet_mktplace_report_table
   title: Financial Statement - Balance Sheet
   layout: newspaper
   preferred_viewer: dashboards-next
   filters_location_top: false
-  description: "Using standard table with subtotals, reports Fiscal Period Cumulative Amount in Global Currency for Levels 3 and 4 of the selected hierarchy, chart of accounts, company, fiscal period and comparison period (if any)."
+  description: "Reports Fiscal Period Cumulative Amount in Global Currency for Levels 3 and 4 of the selected hierarchy, chart of accounts, company, fiscal period and comparison period (if any). Requires Report Table visualization to be downloaded from Looker Marketplace."
 
   elements:
   - title: Summary Title
@@ -25,33 +27,89 @@
       Ledger: balance_sheet.ledger_name
     row: 0
     col: 0
-    width: 24
+    width: 18
     height: 2
 
   - title: Balance Sheet
     name: Balance Sheet
+    model: cortex-sap-balance-sheet
     explore: balance_sheet
-    type: looker_grid
-    fields: [balance_sheet.parent_text, balance_sheet.node_text,balance_sheet.reporting_period_amount_in_global_currency,balance_sheet.comparison_period_amount_in_global_currency,
-       balance_sheet.difference_value,balance_sheet.difference_percent]
-    filters:
-      balance_sheet.level_number: '3,4'
-    sorts: [balance_sheet.parent,balance_sheet.node]
-    subtotals: [balance_sheet.parent_text]
-    limit: 500
+    type: marketplace_viz_report_table::report_table-marketplace
+    fields: [hierarchy_selection_sdt.hier1_node_text, hierarchy_selection_sdt.hier2_node_text,
+      balance_sheet.total_cumulative_amount_in_global_currency, balance_sheet.fiscal_year_period,
+      hierarchy_selection_sdt.hier3_node_text]
+    pivots: [balance_sheet.fiscal_year_period]
+    filters: {}
+    sorts: [balance_sheet.fiscal_year_period desc, hierarchy_selection_sdt.hier1_node_text,
+      hierarchy_selection_sdt.hier2_node_text, hierarchy_selection_sdt.hier3_node_text]
+    limit: 5000
     column_limit: 50
     total: true
+    hidden_fields: []
+    hidden_points_if_no: []
+    series_labels: {}
     show_view_names: false
-    show_row_numbers: true
+    theme: contemporary
+    customTheme: ''
+    layout: auto
+    minWidthForIndexColumns: true
+    headerFontSize: 12
+    bodyFontSize: 12
+    showTooltip: true
+    showHighlight: true
+    columnOrder: {}
+    rowSubtotals: true
+    colSubtotals: false
+    spanRows: true
+    spanCols: true
+    calculateOthers: true
+    sortColumnsBy: pivots
+    useViewName: false
+    useHeadings: false
+    useShortName: false
+    useUnit: false
+    groupVarianceColumns: false
+    genericLabelForSubtotals: false
+    indexColumn: false
+    transposeTable: false
+    label|hierarchy_selection_sdt.hier1_node_text: " "
+    heading|hierarchy_selection_sdt.hier1_node_text: ''
+    hide|hierarchy_selection_sdt.hier1_node_text: false
+    label|hierarchy_selection_sdt.hier2_node_text: " "
+    heading|hierarchy_selection_sdt.hier2_node_text: ''
+    hide|hierarchy_selection_sdt.hier2_node_text: false
+    label|hierarchy_selection_sdt.hier3_node_text: " "
+    heading|hierarchy_selection_sdt.hier3_node_text: ''
+    hide|hierarchy_selection_sdt.hier3_node_text: false
+    subtotalDepth: '1'
+    label|balance_sheet.total_cumulative_amount_in_global_currency: Amount
+    heading|balance_sheet.total_cumulative_amount_in_global_currency: ''
+    style|balance_sheet.total_cumulative_amount_in_global_currency: black_red
+    reportIn|balance_sheet.total_cumulative_amount_in_global_currency: '1'
+    unit|balance_sheet.total_cumulative_amount_in_global_currency: ''
+    comparison|balance_sheet.total_cumulative_amount_in_global_currency: balance_sheet.fiscal_year_period
+    switch|balance_sheet.total_cumulative_amount_in_global_currency: false
+    var_num|balance_sheet.total_cumulative_amount_in_global_currency: true
+    var_pct|balance_sheet.total_cumulative_amount_in_global_currency: true
+    label|hierarchy_selection_sdt.hier0_node_text: "."
+    heading|hierarchy_selection_sdt.hier0_node_text: ''
+    hide|hierarchy_selection_sdt.hier0_node_text: false
+    # label|balance_sheet.parent_text: Parent
+    # heading|balance_sheet.parent_text: ''
+    # hide|balance_sheet.parent_text: false
+    # label|balance_sheet.node_text: Node
+    # heading|balance_sheet.node_text: ''
+    # hide|balance_sheet.node_text: false
+    show_row_numbers: false
     transpose: false
     truncate_text: true
     hide_totals: false
     hide_row_totals: false
-    size_to_fit: false
+    size_to_fit: true
     table_theme: white
     limit_displayed_rows: false
     enable_conditional_formatting: false
-    header_text_alignment: center
+    header_text_alignment: left
     header_font_size: '12'
     rows_font_size: '12'
     conditional_formatting_include_totals: false
@@ -60,39 +118,14 @@
     show_totals: true
     show_row_totals: true
     truncate_header: false
-    minimum_column_width: 100
-    series_labels:
-      balance_sheet.parent_text: Parent
-      balance_sheet.node_text: Node
-    series_column_widths:
-      balance_sheet.node_text: 200
-    align: left
-    x_axis_gridlines: false
-    y_axis_gridlines: true
-    show_y_axis_labels: true
-    show_y_axis_ticks: true
-    y_axis_tick_density: default
-    y_axis_tick_density_custom: 5
-    show_x_axis_label: true
-    show_x_axis_ticks: true
-    y_axis_scale_mode: linear
-    x_axis_reversed: false
-    y_axis_reversed: false
-    plot_size_by_field: false
-    trellis: ''
-    stacking: ''
-    legend_position: center
-    point_style: none
-    show_value_labels: false
-    label_density: 25
-    x_axis_scale: auto
-    y_axis_combined: true
-    ordering: none
-    show_null_labels: false
-    show_totals_labels: false
-    show_silhouette: false
-    totals_color: "#808080"
-    defaults_version: 1
+    minimum_column_width: 75
+    # series_cell_visualizations:
+    #   balance_sheet.total_cumulative_amount_in_global_currency:
+    #     is_active: false
+    hidden_pivots: {}
+    defaults_version: 0
+    y_axes: []
+    title_hidden: true
     listen:
       Fiscal Period: balance_sheet.select_fiscal_period
       Comparison Type: balance_sheet.select_comparison_type
@@ -102,10 +135,10 @@
       Company: balance_sheet.company_text
       Currency: balance_sheet.target_currency_tcurr
       Ledger: balance_sheet.ledger_name
-
+      Top Hierarchy Level to Display: hierarchy_selection_sdt.parameter_pick_start_level
     row: 2
     col: 0
-    width: 24
+    width: 18
     height: 13
 
 
@@ -177,7 +210,7 @@
   - name: Chart of Accounts
     title: Chart of Accounts
     type: field_filter
-    default_value: CA01
+    # default_value: CA01
     default_value: "{% if _user_attributes['sap_sql_flavor']=='S4' %}{% assign coa = 'YCOA'%}{%else%}{% assign coa = 'CA01' %}{% endif %}{{coa}}"
     allow_multiple_values: false
     required: true
@@ -211,3 +244,16 @@
       display: inline
     explore: balance_sheet
     field: balance_sheet.ledger_name
+
+  - name: Top Hierarchy Level to Display
+    title: Top Hierarchy Level to Display
+    type: field_filter
+    default_value: '2'
+    allow_multiple_values: false
+    required: false
+    ui_config:
+      type: dropdown_menu
+      display: inline
+    explore: balance_sheet
+    listens_to_filters: []
+    field: hierarchy_selection_sdt.parameter_pick_start_level
