@@ -115,4 +115,4 @@
       type: dropdown_menu
       display: inline
     explore: balance_sheet
-    field: hierarchy_selection_sdt.parameter_pick_start_level
+    field: balance_sheet_hierarchy_selection_sdt.parameter_pick_start_level

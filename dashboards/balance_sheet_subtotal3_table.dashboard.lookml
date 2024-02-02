@@ -11,7 +11,6 @@
   elements:
   - title: Summary Title
     name: Summary Title
-    model: cortex-sap-balance-sheet
     explore: balance_sheet
     type: single_value
     fields: [balance_sheet.title_balance_sheet]
@@ -34,16 +33,15 @@
 
   - title: Balance Sheet
     name: Balance Sheet
-    model: cortex-sap-balance-sheet
     explore: balance_sheet
     type: looker_grid
     fields: [balance_sheet.reporting_period_amount_in_global_currency, balance_sheet.comparison_period_amount_in_global_currency,
-      balance_sheet.difference_value, balance_sheet.difference_percent, hierarchy_selection_sdt.hier1_node_text,
-      hierarchy_selection_sdt.hier2_node_text, hierarchy_selection_sdt.hier3_node_text]
+      balance_sheet.difference_value, balance_sheet.difference_percent, balance_sheet_hierarchy_selection_sdt.hier1_node_text,
+      balance_sheet_hierarchy_selection_sdt.hier2_node_text, balance_sheet_hierarchy_selection_sdt.hier3_node_text]
 
-    sorts: [hierarchy_selection_sdt.hier1_node_text, hierarchy_selection_sdt.hier2_node_text, hierarchy_selection_sdt.hier3_node_text]
+    sorts: [balance_sheet_hierarchy_selection_sdt.hier1_node_text, balance_sheet_hierarchy_selection_sdt.hier2_node_text, balance_sheet_hierarchy_selection_sdt.hier3_node_text]
     # subtotals: [balance_sheet.parent_text]
-    subtotals: [hierarchy_selection_sdt.hier1_node_text, hierarchy_selection_sdt.hier2_node_text]
+    subtotals: [balance_sheet_hierarchy_selection_sdt.hier1_node_text, balance_sheet_hierarchy_selection_sdt.hier2_node_text]
 
     total: true
     show_view_names: false
@@ -67,16 +65,16 @@
     truncate_header: false
     minimum_column_width: 100
     series_labels:
-      hierarchy_selection_sdt.hier1_node_text: ' '
-      hierarchy_selection_sdt.hier2_node_text: ' '
-      hierarchy_selection_sdt.hier3_node_text: ' '
+      balance_sheet_hierarchy_selection_sdt.hier1_node_text: ' '
+      balance_sheet_hierarchy_selection_sdt.hier2_node_text: ' '
+      balance_sheet_hierarchy_selection_sdt.hier3_node_text: ' '
 
     # series_cell_visualizations:
     #   balance_sheet.reporting_period_amount_in_global_currency:
     #     is_active: true
     series_collapsed:
-      hierarchy_selection_sdt.hier1_node_text: false
-      hierarchy_selection_sdt.hier2_node_text: true
+      balance_sheet_hierarchy_selection_sdt.hier1_node_text: false
+      balance_sheet_hierarchy_selection_sdt.hier2_node_text: false
     align: left
     # x_axis_gridlines: false
     # y_axis_gridlines: true
@@ -113,7 +111,7 @@
       Company: balance_sheet.company_text
       Currency: balance_sheet.target_currency_tcurr
       Ledger: balance_sheet.ledger_name
-      Top Hierarchy Level: hierarchy_selection_sdt.parameter_pick_start_level
+      Top Hierarchy Level: balance_sheet_hierarchy_selection_sdt.parameter_pick_start_level
     row: 2
     col: 0
     width: 24
@@ -129,7 +127,6 @@
     ui_config:
       type: dropdown_menu
       display: inline
-    model: cortex-sap-balance-sheet
     explore: balance_sheet
     listens_to_filters: []
     field: balance_sheet.select_fiscal_period
@@ -143,7 +140,6 @@
     ui_config:
       type: dropdown_menu
       display: inline
-    model: cortex-sap-balance-sheet
     explore: balance_sheet
     listens_to_filters: []
     field: balance_sheet.select_comparison_type
@@ -157,7 +153,6 @@
     ui_config:
       type: dropdown_menu
       display: inline
-    model: cortex-sap-balance-sheet
     explore: balance_sheet
     listens_to_filters: []
     field: balance_sheet.select_custom_comparison_period
@@ -171,7 +166,6 @@
     ui_config:
       type: dropdown_menu
       display: inline
-    model: cortex-sap-balance-sheet
     explore: balance_sheet
     listens_to_filters: []
     field: balance_sheet.target_currency_tcurr
@@ -185,7 +179,6 @@
     ui_config:
       type: dropdown_menu
       display: inline
-    model: cortex-sap-balance-sheet
     explore: balance_sheet
     listens_to_filters: []
     field: balance_sheet.hierarchy_name
@@ -193,13 +186,13 @@
   - name: Chart of Accounts
     title: Chart of Accounts
     type: field_filter
-    default_value: YCOA
+    # default_value: YCOA
+    default_value: "{% if _user_attributes['sap_sql_flavor']=='S4' %}{% assign coa = 'YCOA'%}{%else%}{% assign coa = 'CA01' %}{% endif %}{{coa}}"
     allow_multiple_values: false
     required: true
     ui_config:
       type: dropdown_menu
       display: inline
-    model: cortex-sap-balance-sheet
     explore: balance_sheet
     listens_to_filters: []
     field: balance_sheet.chart_of_accounts
@@ -241,4 +234,4 @@
       display: inline
     explore: balance_sheet
     listens_to_filters: []
-    field: hierarchy_selection_sdt.parameter_pick_start_level
+    field: balance_sheet_hierarchy_selection_sdt.parameter_pick_start_level

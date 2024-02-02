@@ -10,5 +10,5 @@ include: "/dashboards/*.dashboard"
 
 
 
-include: "/views/core/hierarchy_selection_sdt.view"
-explore: hierarchy_selection_sdt {}
+include: "/views/core/balance_sheet_hierarchy_selection_sdt.view"
+explore: balance_sheet_hierarchy_selection_sdt {}
