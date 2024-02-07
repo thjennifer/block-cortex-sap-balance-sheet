@@ -2,7 +2,7 @@
 view: profit_and_loss_kpi_to_glaccount_map_sdt {
   # extends: [common_sets]
   derived_table: {
-    sql: {% assign sql_flavor = '@{SQL_FLAVOR}' %}
+    sql: {% assign sql_flavor = '_user_attributes[\'sap_sql_flavor\']' %}
           {% if sql_flavor == 'ECC' %}{% assign lpad_setting = "10,'0'" %}
           {% else %}{% assign lpad_setting = "11,'100'" %}
           {% endif %}

@@ -28,11 +28,11 @@ constant: USE_DEMO_DATA {
   export: override_required
 }
 
-# specify either ECC or S4
-constant: SQL_FLAVOR {
-  value: "S4"
-  export: override_required
-}
+# # specify either ECC or S4
+# constant: SQL_FLAVOR {
+#   value: "S4"
+#   export: override_required
+# }
 
 
 

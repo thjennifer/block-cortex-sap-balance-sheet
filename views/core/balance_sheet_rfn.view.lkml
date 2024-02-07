@@ -98,6 +98,7 @@ view: +balance_sheet {
 #{
 
   dimension: client_mandt {
+    hidden: yes
     type: string
     label: "Client"
     sql: ${TABLE}.Client ;;

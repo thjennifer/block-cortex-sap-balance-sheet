@@ -11,14 +11,15 @@
 view: fiscal_periods_sdt {
   derived_table: {
     sql:
-      select
+      SELECT
         FiscalYear as fiscal_year,
         FiscalPeriod as fiscal_period,
-        concat(b.FiscalYear,'.Q',b.FiscalQuarter) as fiscal_year_quarter,
-        concat(b.FiscalYear,'.',b.FiscalPeriod)  AS fiscal_year_period,
-        parse_numeric(concat(b.FiscalYear,b.FiscalPeriod)) * -1 as negative_fiscal_year_period_number,
-        parse_numeric(concat(b.FiscalYear,b.FiscalQuarter)) * -1 as negative_fiscal_year_quarter_number
+        CONCAT(b.FiscalYear,'.Q',b.FiscalQuarter) as fiscal_year_quarter,
+        CONCAT(b.FiscalYear,'.',b.FiscalPeriod)  AS fiscal_year_period,
+        PARSE_NUMERIC(concat(b.FiscalYear,b.FiscalPeriod)) * -1 as negative_fiscal_year_period_number,
+        PARSE_NUMERIC(concat(b.FiscalYear,b.FiscalQuarter)) * -1 as negative_fiscal_year_quarter_number
       FROM `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.BalanceSheet`  AS b
+      WHERE Client = '@{CLIENT_ID}'
       GROUP BY
         fiscal_year,
         fiscal_period,

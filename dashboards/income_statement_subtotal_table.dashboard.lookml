@@ -50,7 +50,7 @@
     #   profit_and_loss.reporting_period_current_year_amount_in_global_currency:
     #     is_active: false
     series_collapsed:
-      profit_and_loss_hierarchy_selection_sdt.hier2_node_text: true
+      profit_and_loss_hierarchy_selection_sdt.hier2_node_text: false
     hidden_fields: []
     hidden_points_if_no: []
     theme: contemporary
@@ -249,7 +249,7 @@
   - name: Top Hierarchy Level to Display
     title: Top Hierarchy Level to Display
     type: field_filter
-    default_value: '000002'
+    default_value: '2'
     allow_multiple_values: true
     required: false
     ui_config:

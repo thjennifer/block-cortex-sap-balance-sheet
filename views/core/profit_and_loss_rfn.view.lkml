@@ -13,6 +13,20 @@ label: "Income Statement"
           ,${glnode},${fiscal_year},${fiscal_period},${language_key_spras},${target_currency_tcurr});;
   }
 
+#########################################################
+# Parameters & Filters for Income Statement Dashboard
+#{
+# 3 parameters:
+#   parameter_display_period_or_quarter
+#   filter_fiscal_timeframe
+#   parameter_compare_to
+#
+# use parameter selections to define fiscal_period_group values of 'Reporting' or 'Comparison'
+#
+# a sql_always_where clause defined at explore level will
+# filter where fiscal_period_group is null if select_fiscal_period is in the query
+#########################################################
+
   parameter: parameter_display_period_or_quarter {
     type: unquoted
     view_label: "🗓 Pick Fiscal Periods"
@@ -22,45 +36,37 @@ label: "Income Statement"
     default_value: "qtr"
   }
 
-
-
-
+  # this filter is intended for use on a dashboard only and should be linked to a change in parameter_display_period_or_quarter
+  # so that values in drop-down populate correctly
+  # note, when used in an explore this filter may not update as expected for changes in parameter_display_period_or_quarter
+  # this filter is applied in view profit_and_loss_hierarchy_selection_sdt (which is joined to this view in the Explore profit_and_loss)
   filter: filter_fiscal_timeframe {
     type: string
     view_label: "🗓 Pick Fiscal Periods"
     description: "Choose fiscal periods or quarters for Income Statement Reporting. To ensure the correct timeframes are listed, add this filter to a dashboard. Add the parameter \'Display Fiscal Period or Quarter\' and select this filter to update when the display parameter changes."
     label: "Select Fiscal Timeframe"
     suggest_dimension: timeframes_list
-    suggest_persist_for: "0 seconds"
-    # keep the periods selected plus the same period last year (by adding a year to last year's period to match the selection
-    # sql:  {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
-    #                       {% else %}${fiscal_year_quarter_label}
-    #                       {% endif %}
-    #       {%endcondition%} or
-    #       {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period_add_one_year}
-    #                       {% else %}${fiscal_year_quarter_label_add_one_year}
-    #                       {% endif %}{%endcondition%}
-    #     ;;
+
   }
 
-  filter: filter_comparison_timeframe {
-    hidden: yes
-    type: string
-    view_label: "🗓 Pick Fiscal Periods"
-    description: "Choose fiscal periods or quarters for Income Statement Reporting. To ensure the correct timeframes are listed, add this filter to a dashboard. Add the parameter \'Display Fiscal Period or Quarter\' and select this filter to update when the display parameter changes."
-    label: "Select Custom Comparison"
-    suggest_dimension: timeframes_list
-    # suggest_persist_for: "0 seconds"
-    # keep the periods selected plus the same period last year (by adding a year to last year's period to match the selection
-    # sql:  {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
-    #                       {% else %}${fiscal_year_quarter_label}
-    #                       {% endif %}
-    #       {%endcondition%} or
-    #       {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period_add_one_year}
-    #                       {% else %}${fiscal_year_quarter_label_add_one_year}
-    #                       {% endif %}{%endcondition%}
-    #     ;;
-  }
+  # filter: filter_comparison_timeframe {
+  #   hidden: yes
+  #   type: string
+  #   view_label: "🗓 Pick Fiscal Periods"
+  #   description: "Choose fiscal periods or quarters for Income Statement Reporting. To ensure the correct timeframes are listed, add this filter to a dashboard. Add the parameter \'Display Fiscal Period or Quarter\' and select this filter to update when the display parameter changes."
+  #   label: "Select Custom Comparison"
+  #   suggest_dimension: timeframes_list
+  #   # suggest_persist_for: "0 seconds"
+  #   # keep the periods selected plus the same period last year (by adding a year to last year's period to match the selection
+  #   # sql:  {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
+  #   #                       {% else %}${fiscal_year_quarter_label}
+  #   #                       {% endif %}
+  #   #       {%endcondition%} or
+  #   #       {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period_add_one_year}
+  #   #                       {% else %}${fiscal_year_quarter_label_add_one_year}
+  #   #                       {% endif %}{%endcondition%}
+  #   #     ;;
+  # }
 
 
   parameter: parameter_compare_to {
@@ -82,18 +88,17 @@ label: "Income Statement"
     default_value: "none"
   }
 
-
+#} end parameters & filters
 
   dimension: timeframes_list {
     hidden: no
     view_label: "🗓 Pick Fiscal Periods"
     label: "Timeframe"
-    description: "Used to populate filter named Select Fiscal Timeframe. Timeframes shown depend on whether displaying Fiscal Periods or Quarter in the Income Statement dashboards."
+    description: "Used to populate filter labeled Select Fiscal Timeframe. Timeframes listed depend on whether displaying Fiscal Periods or Quarter in the Income Statement dashboards."
     sql: {% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
          {% else %}${fiscal_year_quarter_label}
          {% endif %}
         ;;
-    # suggest_persist_for: "0 seconds"
     order_by_field: selected_timeframe_level_as_negative_number
   }
 
@@ -186,6 +191,14 @@ label: "Income Statement"
     type: number
     label: "GL Level (number)"
     sql: parse_numeric(${gllevel}) ;;
+  }
+
+  dimension: gllevel_string {
+    type: string
+    hidden: yes
+    label: "Level"
+    description: "Level as a numeric. Level shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 2 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 3 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
+    sql: ltrim(${gllevel},'0') ;;
   }
 
   dimension: glnode {
