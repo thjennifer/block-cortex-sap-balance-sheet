@@ -1,11 +1,11 @@
 constant: CONNECTION_NAME {
-  value: "qa-thjennifer3"
+  value: "qa-thjennifer1"
   export: override_required
 }
 
 
 constant: GCP_PROJECT_ID {
-  value: "thjennifer3"
+  value: "thjennifer1"
   # value: "zeeshanqayyum1"
   # value: "kittycorn-dev-infy"
   export: override_required
