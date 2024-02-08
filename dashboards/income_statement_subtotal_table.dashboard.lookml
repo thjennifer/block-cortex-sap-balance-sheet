@@ -46,9 +46,6 @@
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text: " "
       profit_and_loss_hierarchy_selection_sdt.hier3_node_text: " "
       profit_and_loss_fiscal_periods_selected_sdt.focus_timeframe: " "
-    # series_cell_visualizations:
-    #   profit_and_loss.reporting_period_current_year_amount_in_global_currency:
-    #     is_active: false
     series_collapsed:
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text: false
     hidden_fields: []

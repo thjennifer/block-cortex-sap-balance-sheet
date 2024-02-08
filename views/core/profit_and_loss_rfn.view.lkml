@@ -7,9 +7,9 @@ label: "Income Statement"
   dimension: key {
     primary_key: yes
     hidden: yes
-    sql: concat(${client},${company_code}, ${chart_of_accounts}, ${glhierarchy},
-          coalesce(${business_area},'is null') ,coalesce(${ledger_in_general_ledger_accounting},'0L'),
-          coalesce(${profit_center},'is null'),coalesce(${cost_center},'is null')
+    sql:  CONCAT(${client},${company_code}, ${chart_of_accounts}, ${glhierarchy},
+          COALESCE(${business_area},'is null') ,COALESCE(${ledger_in_general_ledger_accounting},'0L'),
+          COALESCE(${profit_center},'is null'),COALESCE(${cost_center},'is null')
           ,${glnode},${fiscal_year},${fiscal_period},${language_key_spras},${target_currency_tcurr});;
   }
 
@@ -104,7 +104,7 @@ label: "Income Statement"
 
   measure: max_timeframe {
     type: string
-    sql: (select max(${timeframes_list}) ) ;;
+    sql: (SELECT MAX(${timeframes_list}) ) ;;
   }
 
   # filter: filter_fiscal_period {
@@ -158,18 +158,14 @@ label: "Income Statement"
   dimension: ledger_in_general_ledger_accounting {
     label: "Ledger"
     description: "Ledger in General Ledger Accounting"
-    sql: coalesce(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
+    sql: COALESCE(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
   }
 
   dimension: ledger_name {
     description: "Ledger in General Ledger Accounting"
-    # sql: if(${ledger_in_general_ledger_accounting} = '0L','Leading Ledger', ${ledger_in_general_ledger_accounting} );;
-    sql: case when ${ledger_in_general_ledger_accounting} = '0L' then 'Leading Ledger'
-              when right(${ledger_in_general_ledger_accounting},1)='E' then concat(${ledger_in_general_ledger_accounting},' (Extending Ledger)')
-         else ${ledger_in_general_ledger_accounting} end;;
-    # html: {% assign l = ledger_in_general_ledger_accounting._value | slice: -1,1 %}
-          # {% if l == 'E' %}{% assign addon = ' (Extending Ledger)' %}{% assign assign addon = '' %}{%endif%}
-          # {{value | append: addon}};;
+    sql: CASE WHEN ${ledger_in_general_ledger_accounting} = '0L' THEN 'Leading Ledger'
+              WHEN RIGHT(${ledger_in_general_ledger_accounting},1)='E' THEN concat(${ledger_in_general_ledger_accounting},' (Extending Ledger)')
+         ELSE ${ledger_in_general_ledger_accounting} END;;
     order_by_field: ledger_in_general_ledger_accounting
   }
 
@@ -190,7 +186,7 @@ label: "Income Statement"
   dimension: gllevel_number {
     type: number
     label: "GL Level (number)"
-    sql: parse_numeric(${gllevel}) ;;
+    sql: PARSE_NUMERIC(${gllevel}) ;;
   }
 
   dimension: gllevel_string {
@@ -198,7 +194,7 @@ label: "Income Statement"
     hidden: yes
     label: "Level"
     description: "Level as a numeric. Level shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 2 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 3 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
-    sql: ltrim(${gllevel},'0') ;;
+    sql: LTRIM(${gllevel},'0') ;;
   }
 
   dimension: glnode {
@@ -240,7 +236,7 @@ label: "Income Statement"
     group_label: "Fiscal Dates"
     description: "Fiscal Period as a Numeric Value"
     type: number
-    sql: parse_numeric(${fiscal_period}) ;;
+    sql: PARSE_NUMERIC(${fiscal_period}) ;;
     value_format_name: id
   }
 
@@ -254,14 +250,14 @@ label: "Income Statement"
     group_label: "Fiscal Dates"
     label: "Fiscal Quarter"
     description: "Fiscal Quarter value of Q1, Q2, Q3, or Q4"
-    sql: concat('Q',${fiscal_quarter});;
+    sql: CONCAT('Q',${fiscal_quarter});;
   }
 
   dimension: fiscal_year_quarter_label {
     group_label: "Fiscal Dates"
     label: "Fiscal Year Quarter"
     description: "Fiscal Quarter value with year in format YYYY.Q#"
-    sql: concat(${fiscal_year},'.Q',${fiscal_quarter}) ;;
+    sql: CONCAT(${fiscal_year},'.Q',${fiscal_quarter}) ;;
   }
 
   dimension: fiscal_year {
@@ -273,7 +269,7 @@ label: "Income Statement"
     type: string
     group_label: "Fiscal Dates"
     description: "Fiscal Year and Period as String in form of YYYY.PPP"
-    sql: concat(${fiscal_year},'.',${fiscal_period});;
+    sql: CONCAT(${fiscal_year},'.',${fiscal_period});;
     order_by_field: fiscal_year_period_negative_number
   }
 
@@ -282,7 +278,7 @@ label: "Income Statement"
     type: number
     group_label: "Fiscal Dates"
     description: "Fiscal Year and Period as a Numeric Value in form of YYYYPPP"
-    sql: parse_numeric(concat(${fiscal_year},${fiscal_period})) ;;
+    sql: PARSE_NUMERIC(concat(${fiscal_year},${fiscal_period})) ;;
     value_format_name: id
   }
 
@@ -295,7 +291,7 @@ label: "Income Statement"
   dimension: fiscal_year_quarter_negative_number {
     hidden: yes
     type: number
-    sql: -1 * parse_numeric(concat(${fiscal_year},${fiscal_quarter})) ;;
+    sql: -1 * PARSE_NUMERIC(concat(${fiscal_year},${fiscal_quarter})) ;;
   }
 
   dimension: selected_timeframe_level_as_negative_number {
@@ -306,25 +302,6 @@ label: "Income Statement"
          {% endif %};;
   }
 
-
-
-
-  # dimension: fiscal_year_period_add_one_year {
-  #   hidden: yes
-  #   type: string
-  #   group_label: "Fiscal Dates"
-  #   sql: {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
-  #       {% if max_fp_size == 2 %} {% assign fp = 'right(${fiscal_period},2)'%}{%else%}{%assign fp = '${fiscal_period}' %}{%endif%}
-  #       concat(${fiscal_year_number} + 1,'.',{{fp}}) ;;
-  # }
-
-  # dimension: fiscal_year_quarter_label_add_one_year {
-  #   hidden: yes
-  #   type: string
-  #   group_label: "Fiscal Dates"
-  #   sql: concat(${fiscal_year_number} + 1,'.',${fiscal_quarter_label}) ;;
-  # }
-
   dimension: fiscal_year_number {
     hidden: yes
     group_label: "Fiscal Dates"
@@ -333,38 +310,6 @@ label: "Income Statement"
     sql: parse_numeric(${fiscal_year}) ;;
     value_format_name: id
   }
-
-  # dimension: fiscal_reporting_period {
-  #   group_label: "Fiscal Dates"
-  #   description: "Reporting Period of Current Year or Last Year"
-  #   sql: case when {% condition filter_fiscal_period %}${fiscal_year_period}{%endcondition%} then 'Current Year'
-  #             when {% condition filter_fiscal_period %}${fiscal_year_period_add_one_year}{%endcondition%} then 'Last Year'
-  #       end;;
-  # }
-
-  # dimension: selected_fiscal_period {
-  #   group_label: "Fiscal Dates"
-  #   description: "Both Current Year and Last Year will display the selected fiscal period"
-  #   sql: case when {% condition filter_fiscal_period %}${fiscal_year_period}{%endcondition%} then ${fiscal_year_period}
-  #         when {% condition filter_fiscal_period %}${fiscal_year_period_add_one_year}{%endcondition%} then ${fiscal_year_period_add_one_year}
-  #         end;;
-  # }
-
-  # dimension: reporting_period {
-  #   group_label: "Fiscal Dates"
-  #   description: "Reporting Period of Current Year or Last Year"
-  #   sql: case when {% condition filter_fiscal_timeframe %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
-  #                         {% else %}${fiscal_year_quarter_label}
-  #                         {% endif %}{%endcondition%} then 'Current Year'
-  #             when {% condition filter_fiscal_timeframe %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period_add_one_year}
-  #                         {% else %}${fiscal_year_quarter_label_add_one_year}
-  #                         {% endif %}{%endcondition%} then 'Last Year'
-  #       end;;
-  # }
-
-
-
-
 
   #} end fiscal period
 
@@ -467,47 +412,6 @@ label: "Income Statement"
     value_format_name: decimal_0
     # value_format_name: millions_d1
   }
-
-  # measure: reporting_period_current_year_amount_in_global_currency {
-  #   type: sum
-  #   group_label: "Reporting v Comparison Period Metrics"
-  #   label: "Current Year"
-  #   sql: ${amount_in_target_currency} ;;
-  #   filters: [fiscal_reporting_period: "Current Year"]
-  #   value_format_name: decimal_0
-  #   # html: @{negative_format} ;;
-  # }
-
-  # measure: comparison_period_last_year_amount_in_global_currency {
-  #   type: sum
-  #   group_label: "Reporting v Comparison Period Metrics"
-  #   label: "Last Year"
-  #   sql: ${amount_in_target_currency} ;;
-  #   filters: [fiscal_reporting_period: "Last Year"]
-  #   value_format_name: decimal_0
-  #   # html: @{negative_format} ;;
-  # }
-
-  # measure: difference_value {
-  #   type: number
-  #   group_label: "Reporting v Comparison Period Metrics"
-  #   label: "Gain (Loss)"
-  #   description: "Reporting Period Amount - Comparison Period Amount"
-  #   sql: ${reporting_period_current_year_amount_in_global_currency} - ${comparison_period_last_year_amount_in_global_currency} ;;
-  #   value_format_name: decimal_0
-  #   # html: @{negative_format} ;;
-  # }
-
-  # measure: difference_percent {
-  #   type: number
-  #   group_label: "Reporting v Comparison Period Metrics"
-  #   label: "Var %"
-  #   description: "Percentage Change between Reporting and Comparison Periods"
-  #   sql: safe_divide(${reporting_period_current_year_amount_in_global_currency},${comparison_period_last_year_amount_in_global_currency}) - 1 ;;
-  #   value_format_name: percent_1
-  #   # html: @{negative_format} ;;
-  # }
-
 
 
 

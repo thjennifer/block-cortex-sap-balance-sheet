@@ -19,9 +19,19 @@ view: profit_and_loss_path_to_node_pdt {
           GLNode,
           COALESCE(GLNodeText,GLNode) AS GLNodeText
         FROM
-          `thjennifer1.CORTEX_SAP_REPORTING.ProfitAndLoss`
+          `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.ProfitAndLoss`
         GROUP BY
-          1, 2, 3, 4, 5, 6, 7, 8, 9 ),
+          Client,
+          ChartOfAccounts,
+          GLHierarchy,
+          LanguageKey_SPRAS,
+          CAST(GLLevel AS INT64),
+          GLParent,
+          COALESCE(GLParentText,GLParent),
+          GLNode,
+          COALESCE(GLNodeText,GLNode)
+          --1, 2, 3, 4, 5, 6, 7, 8, 9
+          ),
         iterations AS (
         SELECT
           Client,
@@ -65,7 +75,7 @@ view: profit_and_loss_path_to_node_pdt {
           AND i.GLHierarchy = n.GLHierarchy
           AND i.LanguageKey_SPRAS = n.LanguageKey_SPRAS
           )
-      select Client,
+      SELECT Client,
              ChartOfAccounts,
              GLHierarchy,
              LanguageKey_SPRAS,
@@ -74,12 +84,12 @@ view: profit_and_loss_path_to_node_pdt {
              GLParentText,
              LevelNumber,
              LevelSequenceNumber,
-             max(LevelNumber) over (partition by Client,ChartOfAccounts,GLHierarchy) as MaxLevelNumber,
+             MAX(LevelNumber) OVER (PARTITION BY Client,ChartOfAccounts,GLHierarchy) AS MaxLevelNumber,
              NodeTextPath_String,
              NodePath_String,
-             split(NodeTextPath_String,'/') as NodeTextPath,
-             split(NodePath_String,'/') as NodePath
-      from iterations
+             SPLIT(NodeTextPath_String,'/') AS NodeTextPath,
+             SPLIT(NodePath_String,'/') AS NodePath
+      FROM iterations
        ;;
     }
   }

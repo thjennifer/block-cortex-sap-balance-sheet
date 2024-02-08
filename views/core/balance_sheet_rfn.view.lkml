@@ -126,22 +126,23 @@ view: +balance_sheet {
   dimension: ledger_in_general_ledger_accounting {
     label: "Ledger"
     description: "Ledger in General Ledger Accounting"
-    sql: coalesce(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
+    sql: COALESCE(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
   }
 
   dimension: ledger_name {
     description: "Ledger in General Ledger Accounting"
     # sql: if(${ledger_in_general_ledger_accounting} = '0L','Leading Ledger', ${ledger_in_general_ledger_accounting} );;
-    sql: case ${ledger_in_general_ledger_accounting}
-        when '0L' then '0L - Leading Ledger'
-        when '2L' then '2L - IFRS Non-leading Ledger'
-        when '0E' then '0E - Extension Ledger'
-    else ${ledger_in_general_ledger_accounting} end;;
+    sql:  CASE ${ledger_in_general_ledger_accounting}
+            WHEN '0L' THEN '0L - Leading Ledger'
+            WHEN '2L' THEN '2L - IFRS Non-leading Ledger'
+            WHEN '0E' THEN '0E - Extension Ledger'
+          ELSE ${ledger_in_general_ledger_accounting}
+          END;;
     order_by_field: ledger_in_general_ledger_accounting
   }
 
   dimension: business_area {
-    sql: coalesce(${TABLE}.BusinessArea,'N/A') ;;
+    sql: COALESCE(${TABLE}.BusinessArea,'N/A') ;;
   }
 
   dimension: company_code {
@@ -164,13 +165,14 @@ view: +balance_sheet {
     label: "Parent (text)"
     description: "Parent (as text) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
     # sql: coalesce(${TABLE}.ParentText,${TABLE}.Parent) ;;
-    sql: coalesce(regexp_replace(${TABLE}.ParentText,'Non[- ]Current','Noncurrent'),${TABLE}.Parent) ;;
+    sql: COALESCE(regexp_replace(${TABLE}.ParentText,'Non[- ]Current','Noncurrent'),${TABLE}.Parent) ;;
     order_by_field: parent
   }
+
   dimension: parent_sort_order {
     type: string
     hidden: yes
-    sql: concat(${level_number},${parent}) ;;
+    sql: CONCAT(${level_number},${parent}) ;;
   }
 
   dimension: node {
@@ -182,7 +184,7 @@ view: +balance_sheet {
     type: string
     label: "Node (text)"
     description: "Child Node (as text) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
-    sql: coalesce(regexp_replace(${TABLE}.NodeText,'Non[- ]Current','Noncurrent'),${TABLE}.Node) ;;
+    sql: COALESCE(regexp_replace(${TABLE}.NodeText,'Non[- ]Current','Noncurrent'),${TABLE}.Node) ;;
     order_by_field: node
   }
 
@@ -194,14 +196,14 @@ view: +balance_sheet {
   dimension: level_number {
     type: number
     description: "Level as a numeric. Level shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 2 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 3 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
-    sql: parse_numeric(${level}) ;;
+    sql: PARSE_NUMERIC(${level}) ;;
   }
 
   dimension: level_string {
     type: string
     label: "Level"
     description: "Level as a numeric. Level shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 2 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 3 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
-    sql: ltrim(${level},'0') ;;
+    sql: LTRIM(${level},'0') ;;
   }
 
   dimension: is_leaf_node {
@@ -221,7 +223,7 @@ view: +balance_sheet {
     group_label: "Fiscal Dates"
     description: "Fiscal Period as a Numeric Value"
     type: number
-    sql: parse_numeric(${fiscal_period}) ;;
+    sql: PARSE_NUMERIC(${fiscal_period}) ;;
     value_format_name: id
   }
 
@@ -240,7 +242,7 @@ view: +balance_sheet {
     type: number
     group_label: "Fiscal Dates"
     description: "Fiscal Year and Period as a Numeric Value in form of YYYYPPP"
-    sql: parse_numeric(concat(${fiscal_year},${fiscal_period})) ;;
+    sql: PARSE_NUMERIC(CONCAT(${fiscal_year},${fiscal_period})) ;;
     value_format_name: id
   }
 
@@ -255,7 +257,7 @@ view: +balance_sheet {
     type: string
     group_label: "Fiscal Dates"
     description: "Fiscal Year and Period as String in form of YYYY.PPP"
-    sql: concat(${fiscal_year},'.',${fiscal_period});;
+    sql: CONCAT(${fiscal_year},'.',${fiscal_period});;
     order_by_field: fiscal_year_period_negative_number
   }
 
@@ -263,7 +265,7 @@ view: +balance_sheet {
     type: string
     group_label: "Fiscal Dates"
     description: "Fiscal Year and Quater in form of YYYY.Q#"
-    sql: concat(${fiscal_year},'.Q',${fiscal_quarter}) ;;
+    sql: CONCAT(${fiscal_year},'.Q',${fiscal_quarter}) ;;
   }
 
   dimension: fiscal_year_number {
@@ -271,7 +273,7 @@ view: +balance_sheet {
     group_label: "Fiscal Dates"
     description: "Fiscal Year as a Numeric Value"
     type: number
-    sql: parse_numeric(${fiscal_year}) ;;
+    sql: PARSE_NUMERIC(${fiscal_year}) ;;
     value_format_name: id
   }
 
@@ -289,11 +291,11 @@ view: +balance_sheet {
     sql:    {% if select_fiscal_period._in_query %}
                 @{derive_comparison_period}
 
-      case  when ${fiscal_year_period} = '{{fp}}' then 'Reporting'
+      CASE WHEN ${fiscal_year_period} = '{{fp}}' THEN 'Reporting'
       {% if comparison_type != 'none' %}
-      when ${fiscal_year_period} = '{{cp}}' then 'Comparison'
+           WHEN ${fiscal_year_period} = '{{cp}}' THEN 'Comparison'
       {% endif %}
-      end
+      END
       {% else %} 'No Fiscal Reporting Period has been selected. Add Select Fiscal Period parameter.'
       {% endif %}
       ;;
@@ -396,7 +398,7 @@ view: +balance_sheet {
   measure: current_ratio {
     type: number
     description: "The ratio of current assets to current liabilities. Generally, a current ratio below 1 may be a warning sign that the company doesn’t have enough convertible assets to meet its short-term liabilities."
-    sql: safe_divide(${current_assets},${current_liabilities}) * -1;;
+    sql: SAFE_DIVIDE(${current_assets},${current_liabilities}) * -1;;
     value_format_name: decimal_2
   }
 
@@ -420,7 +422,7 @@ view: +balance_sheet {
     {% else %} Comparison Period Amount in Global Currency
     {% endif %}"
     description: "Cumulative Amount in Global Currency for the selected Fiscal Comparison Period"
-    sql: sum(case ${fiscal_period_group} when "Comparison" then ${cumulative_amount_in_target_currency} else null end) ;;
+    sql: SUM(CASE ${fiscal_period_group} WHEN "Comparison" THEN ${cumulative_amount_in_target_currency} ELSE NULL END) ;;
     value_format_name: millions_d1
     html: @{negative_format} ;;
   }
@@ -428,7 +430,7 @@ view: +balance_sheet {
   measure: difference_value {
     type: number
     group_label: "Reporting v Comparison Period Metrics"
-    label: "Gain (Loss)"
+    label: "Variance Amount"
     description: "Reporting Period Amount minus Comparison Period Amount"
     sql: ${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency} ;;
     value_format_name: millions_d1
@@ -438,9 +440,10 @@ view: +balance_sheet {
   measure: difference_percent {
     type: number
     group_label: "Reporting v Comparison Period Metrics"
-    label: "Var %"
+    label: "Variance %"
     description: "Percentage Change between Reporting and Comparison Periods"
-    sql: safe_divide( (${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency}),abs(${comparison_period_amount_in_global_currency})) ;;
+    # note ABS in denominator because both numerator and denominator can both be negative. ABS allows further Decline between 2 negative numbers to show as negative
+    sql: SAFE_DIVIDE( (${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency}),ABS(${comparison_period_amount_in_global_currency})) ;;
     value_format_name: percent_1
     html: @{negative_format} ;;
   }

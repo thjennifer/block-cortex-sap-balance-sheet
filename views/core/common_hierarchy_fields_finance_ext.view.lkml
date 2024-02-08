@@ -46,7 +46,6 @@ view: common_hierarchy_fields_finance_ext {
     type: string
     group_label: "Hierarchy Paths to Node"
     label: "Full Hierarchy Path (code)"
-
     sql: ${TABLE}.NodePath_String ;;
   }
 

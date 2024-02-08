@@ -27,7 +27,17 @@ view: balance_sheet_path_to_node_pdt {
         FROM
           `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.BalanceSheet`
         GROUP BY
-          1, 2, 3, 4, 5, 6, 7, 8, 9 ),
+          Client,
+          ChartOfAccounts,
+          HierarchyName,
+          LanguageKey_SPRAS,
+          LevelNumber,
+          Parent,
+          COALESCE(REGEXP_REPLACE(ParentText,'Non[- ]Current','Noncurrent'),Parent),
+          Node,
+          COALESCE(REGEXP_REPLACE(NodeText,'Non[- ]Current','Noncurrent'),Node)
+          ),
+
         iterations AS (
         SELECT
           Client,
@@ -71,7 +81,7 @@ view: balance_sheet_path_to_node_pdt {
           AND i.HierarchyName = n.HierarchyName
           AND i.LanguageKey_SPRAS = n.LanguageKey_SPRAS
           )
-      select Client,
+      SELECT Client,
              ChartOfAccounts,
              HierarchyName,
              LanguageKey_SPRAS,
@@ -80,12 +90,12 @@ view: balance_sheet_path_to_node_pdt {
              ParentText,
              LevelNumber,
              LevelSequenceNumber,
-             max(LevelNumber) over (partition by Client,ChartOfAccounts,HierarchyName) as MaxLevelNumber,
+             MAX(LevelNumber) OVER (PARTITION BY Client,ChartOfAccounts,HierarchyName) AS MaxLevelNumber,
              NodeTextPath_String,
              NodePath_String,
-             split(NodeTextPath_String,'/') as NodeTextPath,
-             split(NodePath_String,'/') as NodePath
-      from iterations
+             SPLIT(NodeTextPath_String,'/') AS NodeTextPath,
+             SPLIT(NodePath_String,'/') AS NodePath
+      FROM iterations
 
         ;;
     }

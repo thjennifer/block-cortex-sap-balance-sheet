@@ -16,12 +16,17 @@
 #                      - For another example, if Quarters 2023.Q4 and 2023.Q3 are selected with comparison to last year,
 #                        then the derived WHERE clause is:
 #                           WHERE fiscal_year_quarter in ('2022.Q4','2022.Q3')
-#
+#           NOTE: A UNION is used because a user is able to select multiple periods to display in report there Reporting and Comparison periods may overlap
 #   3) Uses the existing view fiscal_periods_sdt. All this view is based on BalanceSheet, ProfitAndLoss shares the same fiscal periods.
 #      Dimensions already defined and labeled in the fiscal_periods_sdt are extended into this view using the extends parameter
 #
-#   4) Defines measures current_amount, comparison_amount, difference_value and difference_percent. These measures reference fields from profit_and_loss view
-#      so always join to profit_and_loss using an inner join on:
+#   4) Defines reporting measures:
+#         current_amount
+#         comparison_amount
+#         difference_value
+#         difference_percent
+#      Note, these measures reference fields from profit_and_loss view
+#      so always join this view to profit_and_loss using an inner join on:
 #         fiscal_year
 #         fiscal_period
 #      Note, the fiscal_periods_sdt view already filters to the same Client id so it is not needed in the join.
@@ -61,7 +66,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
       fiscal_period_group,
       alignment_group,
       selected_timeframe,
-      max(selected_timeframe) over (partition by alignment_group) as focus_timeframe,
+      MAX(selected_timeframe) OVER (PARTITION BY alignment_group) AS focus_timeframe,
       comparison_type
     FROM (
         -- part 1: select Current timeframes based on values selected in filter_fiscal_timeframe
@@ -73,9 +78,9 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
             negative_fiscal_year_period_number,
             negative_fiscal_year_quarter_number,
             'Current' as fiscal_period_group,
-            RANK() over (ORDER BY {{anchor_time}} DESC) as alignment_group,
-            {{anchor_time}} as selected_timeframe,
-            '{{comparison_type}}' as comparison_type
+            RANK() OVER (ORDER BY {{anchor_time}} DESC) AS alignment_group,
+            {{anchor_time}} AS selected_timeframe,
+            '{{comparison_type}}' AS comparison_type
           FROM ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
           WHERE {% condition profit_and_loss.filter_fiscal_timeframe %}
                    {% if time_level == 'fp' %}fiscal_year_period{% else %} fiscal_year_quarter {% endif %}
@@ -91,10 +96,10 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
             fiscal_year_period,
             negative_fiscal_year_period_number,
             negative_fiscal_year_quarter_number,
-            'Comparison' as fiscal_period_group,
-            rank() over (order by {{anchor_time}} desc) as alignment_group,
-            {{anchor_time}} as selected_timeframe,
-            '{{comparison_type}}' as comparison_type
+            'Comparison' AS fiscal_period_group,
+            RANK() OVER (ORDER BY {{anchor_time}} DESC) AS alignment_group,
+            {{anchor_time}} AS selected_timeframe,
+            '{{comparison_type}}' AS comparison_type
           FROM ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
           WHERE
         {% if comparison_type == 'yoy' or comparison_type == 'prior' %}
@@ -124,26 +129,26 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
       ) t0
 
       {% else %}
-      select
+      SELECT
             fiscal_year,
             fiscal_period,
             fiscal_year_quarter,
             fiscal_year_period,
             negative_fiscal_year_period_number,
             negative_fiscal_year_quarter_number,
-            'Current' as fiscal_period_group,
+            'Current' AS fiscal_period_group,
             1 as alignment_group,
-            {{anchor_time}} as selected_timeframe,
-            cast(null as string) as focus_timeframe
-        from ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
-        {% endif %}
+            {{anchor_time}} AS selected_timeframe,
+            CAST(null as STRING) AS focus_timeframe
+      FROM ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
+      {% endif %}
         ;;
     }
 
   dimension: key {
     hidden: yes
     primary_key: yes
-    sql: concat(${fiscal_period_group},${fiscal_year_period}) ;;
+    sql: CONCAT(${fiscal_period_group},${fiscal_year_period}) ;;
   }
 
   dimension: fiscal_year_period {
@@ -203,7 +208,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
   measure: difference_value {
     type: number
     group_label: "Current v Comparison Period Metrics"
-    label: "Gain (Loss)"
+    label: "Variance Amount"
     sql: ${current_amount} - ${comparison_amount} ;;
     value_format_name: decimal_0
     html: @{negative_format} ;;
@@ -212,9 +217,10 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
   measure: difference_percent {
     type: number
     group_label: "Current v Comparison Period Metrics"
-    label: "Var %"
+    label: "Variance %"
     # sql: safe_divide(${current_amount},${comparison_amount}) - 1 ;;
-    sql: SAFE_DIVIDE( (${current_amount} - ${comparison_amount}),abs(${comparison_amount})) ;;
+    # use ABS for denominator as negative values are possible in both numerator and denominator. ABS allows for % Change to be negative when both are negative.
+    sql: SAFE_DIVIDE( (${current_amount} - ${comparison_amount}),ABS(${comparison_amount})) ;;
     value_format_name: percent_1
     html: @{negative_format} ;;
   }

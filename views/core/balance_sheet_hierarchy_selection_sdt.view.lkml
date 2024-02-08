@@ -18,7 +18,7 @@ view: balance_sheet_hierarchy_selection_sdt {
     sql:
           {% assign start = parameter_pick_start_level._parameter_value | times: 1 | minus: 2 %}
           {% assign depth = parameter_pick_depth_level._parameter_value | times: 1 | minus: 1 %}
-          select
+        SELECT
             h.Client,
             h.ChartOfAccounts,
             h.HierarchyName,
@@ -39,11 +39,8 @@ view: balance_sheet_hierarchy_selection_sdt {
             NodePath[SAFE_OFFSET({{start | plus: 2}})] AS hier3_node,
             NodePath[SAFE_OFFSET({{start | plus: 3}})] AS hier4_node,
             NodePath[SAFE_OFFSET({{start | plus: 4}})] AS hier5_node
-        from ${balance_sheet_path_to_node_pdt.SQL_TABLE_NAME} h
-        where
-        --filter to ending level as start + depth + 2 (add 2 as minimum level is 2)
-        --cap at Max Number of Levels if requested depth exceeds
-        LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
+        FROM ${balance_sheet_path_to_node_pdt.SQL_TABLE_NAME} h
+        WHERE LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
         ;;
   }
 
@@ -78,7 +75,7 @@ view: balance_sheet_hierarchy_selection_sdt {
     hidden: yes
     type: string
     primary_key: yes
-    sql: concat(${client_mandt},${hierarchy_name},${chart_of_accounts},${language_key_spras},${node}) ;;
+    sql: CONCAT(${client_mandt},${hierarchy_name},${chart_of_accounts},${language_key_spras},${node}) ;;
   }
 
   dimension: client_mandt {

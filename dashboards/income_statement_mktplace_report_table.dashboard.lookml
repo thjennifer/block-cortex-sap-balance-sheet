@@ -73,7 +73,7 @@
     switch|profit_and_loss_fiscal_periods_selected_sdt.comparison_amount: false
     var_num|profit_and_loss_fiscal_periods_selected_sdt.comparison_amount: false
     var_pct|profit_and_loss_fiscal_periods_selected_sdt.comparison_amount: false
-    label|profit_and_loss_fiscal_periods_selected_sdt.difference_value: Gain (Loss)
+    label|profit_and_loss_fiscal_periods_selected_sdt.difference_value: Variance Amount
     heading|profit_and_loss_fiscal_periods_selected_sdt.difference_value: ''
     style|profit_and_loss_fiscal_periods_selected_sdt.difference_value: black_red
     reportIn|profit_and_loss_fiscal_periods_selected_sdt.difference_value: '1'
@@ -82,7 +82,7 @@
     switch|profit_and_loss_fiscal_periods_selected_sdt.difference_value: false
     var_num|profit_and_loss_fiscal_periods_selected_sdt.difference_value: false
     var_pct|profit_and_loss_fiscal_periods_selected_sdt.difference_value: false
-    label|profit_and_loss_fiscal_periods_selected_sdt.difference_percent: Gain (Loss)
+    label|profit_and_loss_fiscal_periods_selected_sdt.difference_percent: Variance
       %
     heading|profit_and_loss_fiscal_periods_selected_sdt.difference_percent: ''
     style|profit_and_loss_fiscal_periods_selected_sdt.difference_percent: black_red
