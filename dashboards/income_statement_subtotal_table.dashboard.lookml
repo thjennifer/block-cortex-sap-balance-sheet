@@ -233,7 +233,7 @@
   - name: Ledger Name
     title: Ledger Name
     type: field_filter
-    default_value: Leading Ledger
+    default_value: "0L - Leading Ledger"
     allow_multiple_values: true
     required: false
     ui_config:

@@ -49,26 +49,6 @@ label: "Income Statement"
 
   }
 
-  # filter: filter_comparison_timeframe {
-  #   hidden: yes
-  #   type: string
-  #   view_label: "🗓 Pick Fiscal Periods"
-  #   description: "Choose fiscal periods or quarters for Income Statement Reporting. To ensure the correct timeframes are listed, add this filter to a dashboard. Add the parameter \'Display Fiscal Period or Quarter\' and select this filter to update when the display parameter changes."
-  #   label: "Select Custom Comparison"
-  #   suggest_dimension: timeframes_list
-  #   # suggest_persist_for: "0 seconds"
-  #   # keep the periods selected plus the same period last year (by adding a year to last year's period to match the selection
-  #   # sql:  {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
-  #   #                       {% else %}${fiscal_year_quarter_label}
-  #   #                       {% endif %}
-  #   #       {%endcondition%} or
-  #   #       {% condition %}{% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period_add_one_year}
-  #   #                       {% else %}${fiscal_year_quarter_label_add_one_year}
-  #   #                       {% endif %}{%endcondition%}
-  #   #     ;;
-  # }
-
-
   parameter: parameter_compare_to {
     type: unquoted
     view_label: "🗓 Pick Fiscal Periods"
@@ -82,9 +62,6 @@ label: "Income Statement"
     allowed_value: {
       label: "Previous Fiscal Period" value: "prior"
     }
-  # allowed_value: {
-  #     label: "Custom Range" value: "custom"
-  #   }
     default_value: "none"
   }
 
@@ -107,27 +84,12 @@ label: "Income Statement"
     sql: (SELECT MAX(${timeframes_list}) ) ;;
   }
 
-  # filter: filter_fiscal_period {
-  #   type: string
-  #   view_label: "🗓 Pick Fiscal Periods"
-  #   description: "Select fiscal periods for Income Statement Reporting. Each period selected will be compared to same period last year."
-  #   label: "Select Fiscal Period"
-  #   suggest_dimension: fiscal_year_period
-  #   suggest_persist_for: "1 seconds"
-  #   # keep the periods selected plus the same period last year (by adding a year to last year's period to match the selection
-  #   sql: {% condition %}${fiscal_year_period}{%endcondition%} or
-  #       {% condition %}${fiscal_year_period_add_one_year}{%endcondition%}
-  #       ;;
-  # }
-
-
   dimension: selected_time_dimension {
     label_from_parameter: parameter_display_period_or_quarter
     sql: {% if parameter_display_period_or_quarter._parameter_value == 'qtr' %}${fiscal_quarter_label}
          {% else %}${fiscal_period}
          {% endif %};;
   }
-
 
   dimension: client_mandt {
     type: string
@@ -150,11 +112,6 @@ label: "Income Statement"
     description: "Target or Global Currency to display in Balance Sheet"
   }
 
-  dimension: glhierarchy {
-    label: "GL Hierarchy"
-    description: "GL Hierarchy Name is same as Financial Statement Version (FSV)"
-  }
-
   dimension: ledger_in_general_ledger_accounting {
     label: "Ledger"
     description: "Ledger in General Ledger Accounting"
@@ -163,9 +120,12 @@ label: "Income Statement"
 
   dimension: ledger_name {
     description: "Ledger in General Ledger Accounting"
-    sql: CASE WHEN ${ledger_in_general_ledger_accounting} = '0L' THEN 'Leading Ledger'
-              WHEN RIGHT(${ledger_in_general_ledger_accounting},1)='E' THEN concat(${ledger_in_general_ledger_accounting},' (Extending Ledger)')
-         ELSE ${ledger_in_general_ledger_accounting} END;;
+    sql:  CASE ${ledger_in_general_ledger_accounting}
+          WHEN '0L' THEN '0L - Leading Ledger'
+          WHEN '2L' THEN '2L - IFRS Non-leading Ledger'
+          WHEN '0E' THEN '0E - Extension Ledger'
+          ELSE ${ledger_in_general_ledger_accounting}
+          END;;
     order_by_field: ledger_in_general_ledger_accounting
   }
 
@@ -177,6 +137,11 @@ label: "Income Statement"
   dimension: company_text {
     label: "Company (text)"
     description: "Company Name"
+  }
+
+  dimension: glhierarchy {
+    label: "GL Hierarchy"
+    description: "GL Hierarchy Name is same as Financial Statement Version (FSV)"
   }
 
   dimension: gllevel {
@@ -215,21 +180,17 @@ label: "Income Statement"
     order_by_field: glparent
   }
 
+  dimension: glfinancial_item {
+    label: "GL Financial Item"
+    description: "A single line-item entry within a GL account"
+  }
+
 # Fiscal Year and Period and other forms of Fiscal Dates
 # {
   dimension: fiscal_period {
     group_label: "Fiscal Dates"
     description: "Fiscal Period as 3-character string (e.g., 001)"
   }
-
-  # dimension: fiscal_period_label {
-  #   type: string
-  #   hidden: yes
-  #   description: "Fiscal Period as either 2- or 3-character string"
-  #   sql: {% assign max_fp_size = '@{max_fiscal_period}' | remove_first: '0' | size | times: 1 %}
-  #       {% if max_fp_size == 2 %} {% assign fp = 'right(${fiscal_period},2)'%}{%else%}{%assign fp = '${fiscal_period}' %}{%endif%}
-  #       {{fp}};;
-  # }
 
   dimension: fiscal_period_number {
     hidden: yes

@@ -1,4 +1,4 @@
-view: profit_and_loss_old {
+view: profit_and_loss {
   sql_table_name: `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.ProfitAndLoss` ;;
 
   dimension: amount_in_local_currency {

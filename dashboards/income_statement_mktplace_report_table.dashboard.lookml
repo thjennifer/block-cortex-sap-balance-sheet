@@ -120,7 +120,7 @@
       Top Hierarchy Level to Display: profit_and_loss_hierarchy_selection_sdt.parameter_pick_start_level
     row: 0
     col: 0
-    width: 16
+    width: 24
     height: 12
 
   filters:
