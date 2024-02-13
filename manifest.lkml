@@ -23,6 +23,13 @@ constant: CLIENT_ID {
   export: override_required
 }
 
+# Revenue is generally displayed in general ledger as a negative number, which indicates a credit.
+# By setting Sign Change value to 'yes', it's displayed as a positive number in income statement reports.
+constant: SIGN_CHANGE {
+  value: "yes"
+  export: override_required
+}
+
 # constant: FISCAL_MONTH_OFFSET {
 #   value: "0"
 # }
@@ -94,6 +101,15 @@ constant: derive_comparison_period {
                 {% endif %}"
 }
 
+# based on value of SIGN_CHANGE assigned during installation, derive a multiplier to be applied to dimension amounts in profit_and_loss view. For example:
+# dimension: amount_in_local_currency {
+#   sql: @{sign_change_multiplier}
+#        ${TABLE}.AmountInLocalCurrency * {{multiplier}} ;;
+#   }
+constant: sign_change_multiplier {
+  value: "{% assign choice = '@{SIGN_CHANGE}' | downcase %}
+          {% if choice == 'yes' %}{% assign multiplier = -1 %}{% else %}{% assign multiplier = 1 %}{% endif %}"
+}
 
 constant: big_numbers_format {
   value: "

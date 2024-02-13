@@ -299,27 +299,33 @@ label: "Income Statement"
     hidden: yes
   }
 
-  # flip the signs so Income is positive and Expenses negative
+  # adjust sign if needed so that Revenue is displayed as positive value and Expense as negative
   dimension: amount_in_local_currency {
     hidden: yes
-    sql: ${TABLE}.AmountInLocalCurrency * -1 ;;
+    sql: @{sign_change_multiplier}
+         ${TABLE}.AmountInLocalCurrency * {{multiplier}} ;;
   }
 
   # flip the signs so Income is positive and Expenses negative
   dimension: amount_in_target_currency {
     hidden: no
     label: "Amount in Global Currency"
-    sql: ${TABLE}.AmountInTargetCurrency * -1 ;;
+    sql: @{sign_change_multiplier}
+         ${TABLE}.AmountInTargetCurrency * {{multiplier}} ;;
   }
 
   dimension: cumulative_amount_in_local_currency {
     hidden: yes
+    sql: @{sign_change_multiplier}
+         ${TABLE}.CumulativeAmountInLocalCurrency * {{multiplier}} ;;
   }
 
   dimension: cumulative_amount_in_target_currency {
     hidden: yes
     label: "Cumulative Amount in Global Currency"
     description: "End of Period Cumulative Amount in Global/Target Currency"
+    sql: @{sign_change_multiplier}
+         ${TABLE}.CumulativeAmountInTargetCurrency * {{multiplier}} ;;
   }
 
   dimension: exchange_rate {hidden: yes}
