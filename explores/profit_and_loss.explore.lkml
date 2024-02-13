@@ -1,8 +1,9 @@
 include: "/views/core/profit_and_loss_rfn.view"
 include: "/views/core/language_map_sdt.view"
-include: "/views/core/profit_and_loss_kpi_to_glaccount_map_sdt.view"
+# include: "/views/core/profit_and_loss_kpi_to_glaccount_map_sdt.view"
 include: "/views/core/profit_and_loss_fiscal_periods_selected_sdt.view"
 include: "/views/core/profit_and_loss_hierarchy_selection_sdt.view"
+include: "/views/core/navigation_income_statement_ext.view"
 
 explore: profit_and_loss {
   always_join: [language_map_sdt]
@@ -22,11 +23,11 @@ explore: profit_and_loss {
     fields: []
   }
 
-  join: profit_and_loss_kpi_to_glaccount_map_sdt  {
-    type: left_outer
-    relationship: many_to_many
-    sql_on: ${profit_and_loss.glnode} = ${profit_and_loss_kpi_to_glaccount_map_sdt.gl_account};;
-  }
+  # join: profit_and_loss_kpi_to_glaccount_map_sdt  {
+  #   type: left_outer
+  #   relationship: many_to_many
+  #   sql_on: ${profit_and_loss.glnode} = ${profit_and_loss_kpi_to_glaccount_map_sdt.gl_account};;
+  # }
 
   join: profit_and_loss_fiscal_periods_selected_sdt  {
     type: inner
@@ -45,5 +46,11 @@ explore: profit_and_loss {
             ${profit_and_loss.glnode} = ${profit_and_loss_hierarchy_selection_sdt.glnode};;
 
   }
+
+  join: navigation_income_statement_ext {
+    view_label: "🔍 Filters & 🛠 Tools"
+    relationship: one_to_one
+    sql:  ;;
+}
 
 }

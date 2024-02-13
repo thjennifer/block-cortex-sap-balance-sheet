@@ -1,10 +1,9 @@
-- dashboard: income_statement_mktplace_report_table
+- dashboard: bkp_income_statement_mktplace_report_table
   title: Income Statement
   layout: newspaper
   preferred_viewer: dashboards-next
   description: ''
   filters_location_top: false
-  extends: income_statement_filter_template
 
   elements:
   - title: profit and loss table
@@ -111,9 +110,9 @@
 
     defaults_version: 0
     listen:
-      Global Currency: profit_and_loss.target_currency_tcurr
+      Currency: profit_and_loss.target_currency_tcurr
       Select Fiscal Timeframe: profit_and_loss.filter_fiscal_timeframe
-      Display Timeframe: profit_and_loss.parameter_display_time_dimension
+      Display Period or Quarter: profit_and_loss.parameter_display_time_dimension
       Select Comparison Type: profit_and_loss.parameter_compare_to
       Ledger Name: profit_and_loss.ledger_name
       Company: profit_and_loss.company_text
@@ -123,3 +122,102 @@
     col: 0
     width: 24
     height: 12
+
+  filters:
+  - name: Hierarchy
+    title: Hierarchy
+    type: field_filter
+    default_value: FPA1
+    allow_multiple_values: true
+    required: false
+    ui_config:
+      type: dropdown_menu
+      display: inline
+    explore: profit_and_loss
+    listens_to_filters: []
+    field: profit_and_loss.glhierarchy
+  - name: Display Period or Quarter
+    title: Display Period or Quarter
+    type: field_filter
+    default_value: qtr
+    allow_multiple_values: true
+    required: false
+    ui_config:
+      type: button_toggles
+      display: inline
+    explore: profit_and_loss
+    listens_to_filters: []
+    field: profit_and_loss.parameter_display_time_dimension
+  - name: Select Fiscal Timeframe
+    title: Select Fiscal Timeframe
+    type: field_filter
+    default_value: 2023.Q3
+    allow_multiple_values: true
+    required: false
+    ui_config:
+      type: tag_list
+      display: popover
+    explore: profit_and_loss
+    listens_to_filters: [Display Period or Quarter]
+    field: profit_and_loss.filter_fiscal_timeframe
+  - name: Select Comparison Type
+    title: Select Comparison Type
+    type: field_filter
+    default_value: yoy
+    allow_multiple_values: true
+    required: false
+    ui_config:
+      type: dropdown_menu
+      display: inline
+    explore: profit_and_loss
+    listens_to_filters: []
+    field: profit_and_loss.parameter_compare_to
+  - name: Currency
+    title: Currency
+    type: field_filter
+    default_value: USD
+    allow_multiple_values: false
+    required: false
+    ui_config:
+      type: dropdown_menu
+      display: inline
+    explore: profit_and_loss
+    listens_to_filters: []
+    field: profit_and_loss.target_currency_tcurr
+  - name: Company
+    title: Company
+    type: field_filter
+    default_value: C006-CYMBAL US-CENTRAL
+    allow_multiple_values: false
+    required: false
+    ui_config:
+      type: dropdown_menu
+      display: inline
+    explore: profit_and_loss
+    listens_to_filters: []
+    field: profit_and_loss.company_text
+  - name: Ledger Name
+    title: Ledger Name
+    type: field_filter
+    default_value: Leading Ledger
+    allow_multiple_values: true
+    required: false
+    ui_config:
+      type: tag_list
+      display: popover
+    explore: profit_and_loss
+    listens_to_filters: [Hierarchy]
+    field: profit_and_loss.ledger_name
+
+  - name: Top Hierarchy Level to Display
+    title: Top Hierarchy Level to Display
+    type: field_filter
+    default_value: '2'
+    allow_multiple_values: true
+    required: false
+    ui_config:
+      type: dropdown_menu
+      display: inline
+    explore: profit_and_loss
+    listens_to_filters: []
+    field: profit_and_loss_hierarchy_selection_sdt.parameter_pick_start_level

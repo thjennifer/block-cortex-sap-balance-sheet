@@ -17,7 +17,7 @@ label: "Income Statement"
 # Parameters & Filters for Income Statement Dashboard
 #{
 # 3 parameters:
-#   parameter_display_period_or_quarter
+#   parameter_display_time_dimension
 #   filter_fiscal_timeframe
 #   parameter_compare_to
 #
@@ -27,23 +27,24 @@ label: "Income Statement"
 # filter where fiscal_period_group is null if select_fiscal_period is in the query
 #########################################################
 
-  parameter: parameter_display_period_or_quarter {
+  parameter: parameter_display_time_dimension {
     type: unquoted
-    view_label: "🗓 Pick Fiscal Periods"
+    view_label: "🔍 Filters & 🛠 Tools"
     label: "Display Period or Quarter"
-    allowed_value: {label: "Quarter" value: "qtr"}
     allowed_value: {label: "Fiscal Period" value: "fp"}
+    allowed_value: {label: "Quarter" value: "qtr"}
+    allowed_value: {label: "Year" value: "yr"}
     default_value: "qtr"
   }
 
-  # this filter is intended for use on a dashboard only and should be linked to a change in parameter_display_period_or_quarter
+  # this filter is intended for use on a dashboard only and should be linked to a change in parameter_display_time_dimension
   # so that values in drop-down populate correctly
-  # note, when used in an explore this filter may not update as expected for changes in parameter_display_period_or_quarter
+  # note, when used in an explore this filter may not update as expected for changes in parameter_display_time_dimension
   # this filter is applied in view profit_and_loss_hierarchy_selection_sdt (which is joined to this view in the Explore profit_and_loss)
   filter: filter_fiscal_timeframe {
     type: string
-    view_label: "🗓 Pick Fiscal Periods"
-    description: "Choose fiscal periods or quarters for Income Statement Reporting. To ensure the correct timeframes are listed, add this filter to a dashboard. Add the parameter \'Display Fiscal Period or Quarter\' and select this filter to update when the display parameter changes."
+    view_label: "🔍 Filters & 🛠 Tools"
+    description: "Choose fiscal periods, quarters or years for Income Statement Reporting. To ensure the correct timeframes are listed, add this filter to a dashboard. Add the parameter \'Display Fiscal Period or Quarter\' and select this filter to update when the display parameter changes."
     label: "Select Fiscal Timeframe"
     suggest_dimension: timeframes_list
 
@@ -51,16 +52,16 @@ label: "Income Statement"
 
   parameter: parameter_compare_to {
     type: unquoted
-    view_label: "🗓 Pick Fiscal Periods"
+    view_label: "🔍 Filters & 🛠 Tools"
     label: "Select Comparison Type"
     allowed_value: {
       label: "None" value: "none"
     }
     allowed_value: {
-      label: "Same Period Last Year" value: "yoy"
+      label: "Same Timeframe Last Year" value: "yoy"
     }
     allowed_value: {
-      label: "Previous Fiscal Period" value: "prior"
+      label: "Previous Fiscal Timeframe" value: "prior"
     }
     default_value: "none"
   }
@@ -69,14 +70,26 @@ label: "Income Statement"
 
   dimension: timeframes_list {
     hidden: no
-    view_label: "🗓 Pick Fiscal Periods"
+    view_label: "🔍 Filters & 🛠 Tools"
     label: "Timeframe"
-    description: "Used to populate filter labeled Select Fiscal Timeframe. Timeframes listed depend on whether displaying Fiscal Periods or Quarter in the Income Statement dashboards."
-    sql: {% if parameter_display_period_or_quarter._parameter_value == 'fp' %}${fiscal_year_period}
-         {% else %}${fiscal_year_quarter_label}
+    description: "Used to populate filter labeled Select Fiscal Timeframe. Timeframes listed depend on whether displaying Fiscal Periods, Quarters or Years in the Income Statement dashboards."
+    sql: {% assign display = parameter_display_time_dimension._parameter_value %}
+         {% if display == 'yr' %}${fiscal_year}
+         {% elsif display == 'qtr' %}${fiscal_year_quarter_label}
+         {% else %}${fiscal_year_period}
          {% endif %}
         ;;
     order_by_field: selected_timeframe_level_as_negative_number
+  }
+
+  dimension: selected_timeframe_level_as_negative_number {
+    hidden: yes
+    description: "Used to sort timeframes shown (fiscal periods, quarters or years) in descending order."
+    sql: {% assign display = parameter_display_time_dimension._parameter_value %}
+         {% if display == 'yr' %}${fiscal_year_negative_number}
+         {% elsif display == 'qtr' %}${fiscal_year_quarter_negative_number}
+         {% else %}${fiscal_year_period_negative_number}
+         {% endif %};;
   }
 
   measure: max_timeframe {
@@ -85,8 +98,10 @@ label: "Income Statement"
   }
 
   dimension: selected_time_dimension {
-    label_from_parameter: parameter_display_period_or_quarter
-    sql: {% if parameter_display_period_or_quarter._parameter_value == 'qtr' %}${fiscal_quarter_label}
+    label_from_parameter: parameter_display_time_dimension
+    sql: {% assign display = parameter_display_time_dimension._parameter_value %}
+         {% if display == 'yr' %}${fiscal_year}
+         {% elsif display == 'qtr' %}${fiscal_quarter_label}
          {% else %}${fiscal_period}
          {% endif %};;
   }
@@ -255,12 +270,10 @@ label: "Income Statement"
     sql: -1 * PARSE_NUMERIC(concat(${fiscal_year},${fiscal_quarter})) ;;
   }
 
-  dimension: selected_timeframe_level_as_negative_number {
+  dimension: fiscal_year_negative_number {
     hidden: yes
-    description: "Used to sort timeframes shown (fiscal periods or quarters) in descending order."
-    sql: {% if parameter_display_period_or_quarter._parameter_value == 'qtr' %}${fiscal_year_quarter_negative_number}
-         {% else %}${fiscal_year_period_negative_number}
-         {% endif %};;
+    type: number
+    sql: -1 * PARSE_NUMERIC(${fiscal_year}) ;;
   }
 
   dimension: fiscal_year_number {
@@ -357,9 +370,9 @@ label: "Income Statement"
 
     link: {
       label: "Show Income Statement"
-      url: "//cortexdev.cloud.looker.com/dashboards/99?Display+Period+or+Quarter={{ _filters['profit_and_loss.parameter_display_period_or_quarter'] | url_encode }}&Select+Fiscal+Timeframe={{ profit_and_loss.fiscal_year._value | append: '.'| append: profit_and_loss.selected_time_dimension._value }}&Currency={{ _filters['profit_and_loss.target_currency_tcurr'] | url_encode }}&Company={{ _filters['profit_and_loss.company_text'] | url_encode }}"
+      url: "//cortexdev.cloud.looker.com/dashboards/99?Display+Period+or+Quarter={{ _filters['profit_and_loss.parameter_display_time_dimension'] | url_encode }}&Select+Fiscal+Timeframe={{ profit_and_loss.fiscal_year._value | append: '.'| append: profit_and_loss.selected_time_dimension._value }}&Currency={{ _filters['profit_and_loss.target_currency_tcurr'] | url_encode }}&Company={{ _filters['profit_and_loss.company_text'] | url_encode }}"
     }
-    # profit_and_loss.parameter_display_period_or_quarter
+    # profit_and_loss.parameter_display_time_dimension
     # https://cortexdev.cloud.looker.com/dashboards/99?Currency=USD&Select+Fiscal+Timeframe=2023.Q4%2C2023.Q3&Company+%28text%29=C006-CYMBAL+US-CENTRAL&Display+Period+or+Quarter=qtr&Select+Comparison+Type=prior&GL+Level=3&Ledger+Name=Leading+Ledger
     # value_format_name: millions_d1
   }

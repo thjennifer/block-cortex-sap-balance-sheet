@@ -23,6 +23,10 @@ constant: CLIENT_ID {
   export: override_required
 }
 
+# constant: FISCAL_MONTH_OFFSET {
+#   value: "0"
+# }
+
 # constant: USE_DEMO_DATA {
 #   value: "Yes"
 #   export: override_required
@@ -55,7 +59,7 @@ constant: max_fiscal_period {
   export: override_optional
 }
 
-# comparison period derived based on select_comparison_type parameter:
+# balance sheet comparison period derived based on select_comparison_type parameter:
   #     if yoy then subtract year from period
   #     if prior then subtract 1 from period (if period 001 then substract 1 year and use max_fiscal_period for period)
   #     if custom then use value from select_custom_comparison_period

@@ -65,10 +65,6 @@ view: profit_and_loss {
     type: string
     sql: ${TABLE}.FiscalYear ;;
   }
-  dimension: glfinancial_item {
-    type: string
-    sql: ${TABLE}.GLFinancialItem ;;
-  }
   dimension: glhierarchy {
     type: string
     sql: ${TABLE}.GLHierarchy ;;
