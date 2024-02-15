@@ -1,8 +1,8 @@
 - dashboard: income_statement_mktplace_report_table
-  title: Income Statement
+  title: Financial Income Statement
   layout: newspaper
   preferred_viewer: dashboards-next
-  description: ''
+  description: "Using the Report (Table) visualization available from Looker Marketplace, this report shows a company's financial performance over a specific period (e.g., a month, quarter, or year) compared to either preceding timeframe or same timeframe last year. This report summarizes Revenues, Expenses and/or Net Income (Loss) at specified hierarchy level."
   filters_location_top: false
   extends: income_statement_filter_template
 

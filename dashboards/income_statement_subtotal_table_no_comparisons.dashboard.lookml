@@ -1,8 +1,8 @@
 - dashboard: income_statement_subtotal_table_no_comparison
-  title: Financial Report - Income Statement
+  title: Financial Income Statement
   layout: newspaper
   preferred_viewer: dashboards-next
-  description: ''
+  description: "Shows a company's financial performance over a specific period (e.g., a month, quarter, or year). This report summarizes Revenues, Expenses and/or Net Income (Loss) at specified hierarchy level."
   filters_location_top: false
   extends: [income_statement_filter_template]
 
