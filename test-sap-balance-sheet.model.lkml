@@ -9,3 +9,8 @@ include: "/explores/experimental/*.explore"
 include: "/explores/fiscal_periods_sdt.explore"
 
 explore: balance_sheet_3_4 {}
+
+
+include: "/views/core/profit_and_loss_fiscal_periods_sdt.view"
+
+explore: profit_and_loss_fiscal_periods_sdt {}

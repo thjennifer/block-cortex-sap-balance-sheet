@@ -33,151 +33,155 @@
 #########################################################
 
 
-include: "/views/core/fiscal_periods_sdt.view"
+include: "/views/core/profit_and_loss_fiscal_periods_sdt.view"
 
-view: profit_and_loss_fiscal_periods_selected_sdt {
-    label: "Income Statement"
-    extends: [fiscal_periods_sdt]
+view: new_profit_and_loss_fiscal_periods_selected_sdt {
+  label: "Income Statement"
+  extends: [profit_and_loss_fiscal_periods_sdt]
 
-    fields_hidden_by_default: yes
+  fields_hidden_by_default: yes
 
-    derived_table: {
+  derived_table: {
 
-      sql:    {% assign comparison_type = profit_and_loss.parameter_compare_to._parameter_value %}
-              {% assign tp = _filters['profit_and_loss.filter_fiscal_timeframe'] | sql_quote | remove: '"' | remove: "'" %}
-              {% assign tp_array = tp | split: ',' | uniq | sort %}
-              {% assign time_level = profit_and_loss.parameter_display_time_dimension._parameter_value %}
+    sql:    {% assign comparison_type = profit_and_loss.parameter_compare_to._parameter_value %}
+            {% assign time_level = profit_and_loss.parameter_display_time_dimension._parameter_value %}
+            {% assign join2_logic = '' %}{% assign partial_timeframe_note = '' %}
 
-              {% if time_level == 'fp' %}
-                  {% assign anchor_time = 'fiscal_year_period' %}
-                  {% assign max_fp = '@{max_fiscal_period}' %}
-                  {% assign pad = '00' %}{% assign max_fp_size = 3 %}{% assign max_fp_size_neg = -3 %}
-              {% elsif time_level == 'qtr' %}
-                  {% assign anchor_time = 'fiscal_year_quarter' %}
-                  {% assign max_fp = 'Q4' %}{% assign pad = 'Q' %}{% assign max_fp_size = 2 %}{% assign max_fp_size_neg = -2 %}
-              {% else %}
-                  {% assign anchor_time = 'fiscal_year' %}
-                  {% assign max_fp = 'NA' %}{% assign pad = '' %}{% assign max_fp_size = 4 %}{% assign max_fp_size_neg = -4 %}
-              {% endif %}
 
-    {% if profit_and_loss.filter_fiscal_timeframe._is_filtered %}
-    SELECT
-      fiscal_year,
-      fiscal_period,
-      fiscal_year_quarter,
-      fiscal_year_period,
-      negative_fiscal_year_period_number,
-      negative_fiscal_year_quarter_number,
-      fiscal_period_group,
-      alignment_group,
-      selected_timeframe,
-      MAX(selected_timeframe) OVER (PARTITION BY alignment_group) AS focus_timeframe,
-      comparison_type,
-      max_fiscal_period_per_year
-    FROM (
-        -- part 1: select Current timeframes based on values selected in filter_fiscal_timeframe
+      {% if time_level == 'fp' %}
+          --join on fp0.[prior or yoy]_fiscal_year_period = fp1.fiscal_year_period
+          {% assign anchor_time = 'fiscal_year_period' %}
+          {% assign check_for_partial_with = '1' %}
+          {% assign check_for_partial_max = '1' %}
+          {% assign check_for_partial_against = '0' %}
+          {% assign check_for_partial_then = '' %}
+      {% elsif time_level == 'qtr' %}
+          {% assign anchor_time = 'fiscal_year_quarter' %}
+          {% assign join2_logic = 'AND fp0.period_order_in_quarter = fp1.period_order_in_quarter' %}
+
+          {% assign check_for_partial_with = 'period_order_in_quarter' %}
+          {% assign check_for_partial_against = 'max_periods_in_quarter' %}
+          --join on fp0.[prior or yoy].fiscal_year_quarter = fp1.fiscal_year_quarter
+          -- AND fp0.period_order_in_quarter = fp1.period_order_in_quarter
+
+          {% assign check_for_partial_max = 'MAX(' | append: check_for_partial_with | append: ') OVER (PARTITION BY glhierarchy, company_code, fiscal_year, fiscal_quarter ) '%}
+          {% assign check_for_partial_then = "CONCAT('QTD (',"| append: check_for_partial_with | append: ",' periods)')" %}
+
+          -- note when partial Quarter: QTD (2 of 3 periods reported)
+          -- derived as
+          --CASE WHEN
+          --   MAX(period_order_in_quarter) OVER (PARTITION BY glhierarchy, company_code, fiscal_year, fiscal_quarter)
+          -- < max_periods_in_quarter
+          -- THEN CONCAT('QTD (',
+          -- MAX(period_order_in_quarter) OVER (PARTITION BY glhierarchy, company_code, fiscal_year, fiscal_quarter),
+          --' of ',
+          -- max_periods_in_quarter,
+          --' periods reported)') END" %}
+      {% else %}
+          {% assign anchor_time = 'fiscal_year' %}
+          {% assign join2_logic = 'AND fp0.fiscal_period = fp1.fiscal_period' %}
+
+          {% assign check_for_partial_with = 'fiscal_period' %}
+          {% assign check_for_partial_against = 'max_fiscal_period' %}
+          {% assign check_for_partial_then = "CONCAT('YTD (through period ',"| append: check_for_parital_with | append: ",')')" %}
+
+
+          --note when partial Year: YTD (through period XXX)
+          -- derived as
+          -- CASE WHEN MAX(fiscal_period) OVER (PARTITION BY glhierarchy, company_code, fiscal_year)
+          -- < CASE WHEN MAX(fiscal_period) OVER (PARTITION BY glhierarchy, company_code, fiscal_year)
+      {% endif %}
+
+      {% assign comparison_field = 'fp0.' | append: comparison_type | append: '_' | append: anchor_time %}
+      {% assign current_field = 'fp1.' | append: anchor_time %}
+      {% assign join1_logic = 'AND ' | append: comparison_field | append: ' = ' | append: current_field %}
+
+      {% if profit_and_loss.filter_fiscal_timeframe._is_filtered %}
+      SELECT
+        glhierarchy,
+        company_code,
+        fiscal_year,
+        fiscal_period,
+        fiscal_year_quarter,
+        fiscal_year_period,
+        fiscal_period_group,
+        alignment_group,
+        selected_timeframe,
+        MAX(selected_timeframe) OVER (PARTITION BY glhierarchy, company_code, alignment_group) AS focus_timeframe,
+        comparison_type,
+        partial_timeframe_note
+      FROM (
+      -- part 1: select Current timeframes based on values selected in filter_fiscal_timeframe
           SELECT
-            fiscal_year,
-            fiscal_period,
-            fiscal_year_quarter,
-            fiscal_year_period,
-            negative_fiscal_year_period_number,
-            negative_fiscal_year_quarter_number,
-            'Current' as fiscal_period_group,
-            RANK() OVER (ORDER BY {{anchor_time}} DESC) AS alignment_group,
-            {{anchor_time}} AS selected_timeframe,
-            '{{comparison_type}}' AS comparison_type,
-            MAX(fiscal_period) OVER (PARTITION BY fiscal_year) as max_fiscal_period_per_year
-          FROM ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
-          WHERE {% condition profit_and_loss.filter_fiscal_timeframe %}
-                   --{% if time_level == 'fp' %}fiscal_year_period{% else %} fiscal_year_quarter {% endif %}
-                  {{anchor_time}}
-                {% endcondition %}
+              glhierarchy,
+              company_code,
+              fiscal_year,
+              fiscal_period,
+              fiscal_year_quarter,
+              fiscal_year_period,
+              'Current' as fiscal_period_group,
+              RANK() OVER (PARTITION BY glhierarchy, company_code ORDER BY {{anchor_time}} DESC) AS alignment_group,
+              {{anchor_time}} AS selected_timeframe,
+              '{{comparison_type}}' AS comparison_type,
+             {% if time_level != 'fp'%}CASE WHEN {{check_for_partial_max}} < {{check_for_partial_against}} THEN {{check_for_partial_then}} ELSE CAST(null as STRING) END
+             {%else%}CAST(NULL as STRING){%endif%}
+               as partial_timeframe_note
+          FROM ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp
+          WHERE {% condition profit_and_loss.filter_fiscal_timeframe %}{{anchor_time}}{% endcondition %}
 
       {% if comparison_type != 'none'  %}
-        -- part 2: UNION ALL for Comparison timeframes as derived from values selected in filter_fiscal_timeframe and parameter_compare_to
-         UNION ALL
-          SELECT
-            fp.fiscal_year,
-            fp.fiscal_period,
-            fiscal_year_quarter,
-            fiscal_year_period,
-            negative_fiscal_year_period_number,
-            negative_fiscal_year_quarter_number,
+      -- part 2: UNION ALL for Comparison timeframes as derived from values selected in filter_fiscal_timeframe and parameter_compare_to
+        UNION ALL
+        SELECT
+            fp1.glhierarchy,
+            fp1.company_code,
+            fp1.fiscal_year,
+            fp1.fiscal_period,
+            fp1.fiscal_year_quarter,
+            fp1.fiscal_year_period,
             'Comparison' AS fiscal_period_group,
-            RANK() OVER (ORDER BY fp.{{anchor_time}} DESC) AS alignment_group,
-            fp.{{anchor_time}} AS selected_timeframe,
+            RANK() OVER (PARTITION BY fp1.glhierarchy, fp1.company_code ORDER BY fp1.{{anchor_time}} DESC) AS alignment_group,
+            fp1.{{anchor_time}} AS selected_timeframe,
             '{{comparison_type}}' AS comparison_type,
-            MAX(fp.fiscal_period) OVER (PARTITION BY fp.fiscal_year) as max_fiscal_period_per_year
-          FROM ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
-          {% if time_level == 'yr' %}
-            --if current year is only a partial year, keep equivalent ytd periods for comparison
-            JOIN (SELECT fiscal_year,
-                         CAST(PARSE_NUMERIC(fiscal_year) - 1 as STRING) as comparison_year,
-                         MAX(fiscal_period) as max_fiscal_period
-                  FROM ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
-                  WHERE {% condition profit_and_loss.filter_fiscal_timeframe %}{{anchor_time}}{% endcondition %}
-                  GROUP BY fiscal_year, comparison_year) mfp
-             ON fp.fiscal_year = mfp.comparison_year
-             AND fp.fiscal_period <= mfp.max_fiscal_period
-          {% endif %}
-          WHERE
-          {% if comparison_type == 'yoy' or comparison_type == 'prior' %}
-             {% for p in tp_array %}
-                {% assign p_array = p | split: '.' %}
-                {% if forloop.last == true %}{%assign d = ''%}{%else%}{%assign d = ','%}{%endif%}
-                {% assign delim = '.' %}
-
-                {% if time_level == 'yr' %}
-                   {% assign m = ''%}
-                   {% assign sub_yr = 1 %}
-                   {% assign delim = '' %}
-                {% elsif time_level != 'yr' and comparison_type == 'yoy' %}
-                      {% assign m = p_array[1] %}
-                      {% assign sub_yr = 1 %}
-
-                {% elsif time_level != 'yr' and comparison_type == 'prior' %}
-                           {% if p_array[1] == '001' or p_array[1] == 'Q1' %}
-                              {% assign m = max_fp | prepend: pad | slice: max_fp_size_neg, max_fp_size%}{% assign sub_yr = 1 %}
-                            {% else %}
-                              {% assign m = p_array[1] | remove: 'Q' | times: 1 | minus: 1 | prepend: pad | slice: max_fp_size_neg, max_fp_size %}{% assign sub_yr = 0 %}
-                            {% endif %}
-                {% endif %}
-
-                {% assign yr = p_array[0] | times: 1 | minus: sub_yr %}
-                {% assign cp_list = cp_list | append: "'" | append: yr | append: delim | append: m | append: "'" | append: d %}
-            {% endfor%}
-
-        fp.{{anchor_time}} in ( {{cp_list}} )
-        {% endif %}
+            CAST(NULL AS STRING) as partial_timeframe_note
+        FROM ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp0
+        JOIN ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp1
+        ON fp0.glhierarchy = fp1.glhierarchy
+        AND fp0.company_code = fp1.company_code
+        {{join1_logic}}
+        {{join2_logic}}
+        WHERE {% condition profit_and_loss.filter_fiscal_timeframe %}fp0.{{anchor_time}}{% endcondition %}
 
       {% endif %}
       ) t0
 
-      {% else %}
+   {% else %}
       SELECT
-            fiscal_year,
-            fiscal_period,
-            fiscal_year_quarter,
-            fiscal_year_period,
-            negative_fiscal_year_period_number,
-            negative_fiscal_year_quarter_number,
-            'Current' AS fiscal_period_group,
-            1 as alignment_group,
-            {{anchor_time}} AS selected_timeframe,
-            CAST(null as STRING) AS focus_timeframe
-      FROM ${fiscal_periods_sdt.SQL_TABLE_NAME} fp
-      {% endif %}
-        ;;
-    }
+        glhierarchy,
+        company_code,
+        fiscal_year,
+        fiscal_period,
+        fiscal_year_quarter,
+        fiscal_year_period,
+        'Current' AS fiscal_period_group,
+        1 as alignment_group,
+        {{anchor_time}} AS selected_timeframe,
+        CAST(null as STRING) AS focus_timeframe,
+        CAST(null as STRING) as partial_timeframe_note
+        FROM ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp
+    {% endif %}
+      ;;
+  }
 
   dimension: key {
     hidden: yes
     primary_key: yes
-    sql: CONCAT(${fiscal_period_group},${fiscal_year_period}) ;;
+    sql: CONCAT(${unique_id},${fiscal_period_group}) ;;
   }
 
-  dimension: fiscal_year_period {
+
+
+  dimension: unique_id {
     primary_key: no
   }
 
@@ -195,6 +199,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
 
   dimension: fiscal_period_group {
     type: string
+    hidden: no
     sql:  ${TABLE}.fiscal_period_group;;
   }
 
@@ -221,6 +226,13 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
     html: {% if profit_and_loss.parameter_display_time_dimension._parameter_value == 'yr'%}<p style=font-size:80%;><em>YTD through period {{value}}</em></p>{% else %} {%endif%} ;;
   }
 
+  dimension: partial_timeframe_note {
+    type: string
+    hidden: no
+    group_label: "Current v Comparison Period"
+    sql: ${TABLE}.partial_timeframe_note ;;
+  }
+
   measure: current_amount {
     type: sum_distinct
     hidden: no
@@ -243,7 +255,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
     #         {% elsif compare == 'none'%} .
     #         {%else%}Comparison{%endif%}{%else%}Comparison Amount{%endif%}"
     label: "{% if profit_and_loss.filter_fiscal_timeframe._in_query%}{% assign compare = profit_and_loss.parameter_compare_to._parameter_value %}{% case profit_and_loss.parameter_display_time_dimension._parameter_value %}{% when 'qtr'%}{%assign timelabel = 'Quarter'%}{% when 'fp' %}{% assign timelabel = 'Period'%}{%else%}{% if compare == 'yoy'%}{% assign timelabel = ''%}{%else%}{%assign timelabel = 'Year'%}{%endif%}{% endcase %}{% if compare == 'yoy'%}{{timelabel | append: ' Prior Year'}}{%elsif compare == 'prior' %}Prior {{timelabel}}{%elsif compare == 'none'%}.{%else%}Comparison Amount{%endif%}
-            {%else%}Comparison Amount{%endif%}"
+    {%else%}Comparison Amount{%endif%}"
     sql_distinct_key: ${profit_and_loss.key} ;;
     sql: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}${profit_and_loss.amount_in_target_currency}{%else%}NULL{%endif%} ;;
     filters: [fiscal_period_group: "Comparison"]
@@ -272,4 +284,31 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
     value_format_name: percent_1
     html: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}@{negative_format}{%else%} {%endif%} ;;
   }
-    }
+}
+#
+#   # Define your dimensions and measures here, like this:
+#   dimension: user_id {
+#     description: "Unique ID for each user that has ordered"
+#     type: number
+#     sql: ${TABLE}.user_id ;;
+#   }
+#
+#   dimension: lifetime_orders {
+#     description: "The total number of orders for each user"
+#     type: number
+#     sql: ${TABLE}.lifetime_orders ;;
+#   }
+#
+#   dimension_group: most_recent_purchase {
+#     description: "The date when each user last ordered"
+#     type: time
+#     timeframes: [date, week, month, year]
+#     sql: ${TABLE}.most_recent_purchase_at ;;
+#   }
+#
+#   measure: total_lifetime_orders {
+#     description: "Use this for counting lifetime orders across many users"
+#     type: sum
+#     sql: ${lifetime_orders} ;;
+#   }
+# }

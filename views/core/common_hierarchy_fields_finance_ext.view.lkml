@@ -11,7 +11,7 @@ view: common_hierarchy_fields_finance_ext {
   parameter: parameter_pick_start_level {
     hidden: no
     type: unquoted
-    view_label: "🗓 Pick Fiscal Periods"
+    view_label: "🔍 Filters & 🛠 Tools"
     label: "Select Top Hierarchy Level to Display"
     # update suggest_explore and dimension after extending
     # suggest_explore: balance_sheet
@@ -22,7 +22,7 @@ view: common_hierarchy_fields_finance_ext {
   parameter: parameter_pick_depth_level {
     hidden: no
     type: unquoted
-    view_label: "🗓 Pick Fiscal Periods"
+    view_label: "🔍 Filters & 🛠 Tools"
     label: "Select Number of Hierarchy Levels to Display"
     description: "Select number of hierarchy levels (1 to 5) to display"
     allowed_value: {value: "1"}

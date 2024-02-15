@@ -1,7 +1,7 @@
 include: "/views/core/profit_and_loss_rfn.view"
 include: "/views/core/language_map_sdt.view"
 # include: "/views/core/profit_and_loss_kpi_to_glaccount_map_sdt.view"
-include: "/views/core/profit_and_loss_fiscal_periods_selected_sdt.view"
+include: "/views/experimental/new_profit_and_loss_fiscal_periods_selected_sdt.view"
 include: "/views/core/profit_and_loss_hierarchy_selection_sdt.view"
 include: "/views/core/navigation_income_statement_ext.view"
 
@@ -14,7 +14,7 @@ explore: profit_and_loss {
 
   sql_always_where: ${profit_and_loss.client_mandt}='@{CLIENT_ID}'
 
-      ;;
+          ;;
 
   join: language_map_sdt {
     type: inner
@@ -29,11 +29,13 @@ explore: profit_and_loss {
   #   sql_on: ${profit_and_loss.glnode} = ${profit_and_loss_kpi_to_glaccount_map_sdt.gl_account};;
   # }
 
-  join: profit_and_loss_fiscal_periods_selected_sdt  {
+  join: new_profit_and_loss_fiscal_periods_selected_sdt  {
     type: inner
     relationship: many_to_many
-    sql_on: ${profit_and_loss.fiscal_year} = ${profit_and_loss_fiscal_periods_selected_sdt.fiscal_year}
-            and ${profit_and_loss.fiscal_period} = ${profit_and_loss_fiscal_periods_selected_sdt.fiscal_period};;
+    sql_on: ${profit_and_loss.glhierarchy} = ${new_profit_and_loss_fiscal_periods_selected_sdt.glhierarchy}
+      AND ${profit_and_loss.company_code} = ${new_profit_and_loss_fiscal_periods_selected_sdt.company_code}
+      AND ${profit_and_loss.fiscal_year} = ${new_profit_and_loss_fiscal_periods_selected_sdt.fiscal_year}
+      and ${profit_and_loss.fiscal_period} = ${new_profit_and_loss_fiscal_periods_selected_sdt.fiscal_period};;
   }
 
   join: profit_and_loss_hierarchy_selection_sdt {
