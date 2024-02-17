@@ -4,7 +4,7 @@
   preferred_viewer: dashboards-next
   description: "Shows a company's financial performance over a specific period (e.g., a month, quarter, or year). This report summarizes Revenues, Expenses and/or Net Income (Loss) at specified hierarchy level."
   filters_location_top: false
-  extends: [income_statement_filter_template]
+  extends: [income_statement_template]
 
   elements:
   - title: profit and loss table

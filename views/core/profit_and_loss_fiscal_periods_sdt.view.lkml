@@ -11,7 +11,7 @@
 view: profit_and_loss_fiscal_periods_sdt {
   derived_table: {
     sql:
-      SELECT  CONCAT(glhierarchy,company_code,fiscal_year,fiscal_period) as unique_id,
+        SELECT  CONCAT(glhierarchy,company_code,fiscal_year,fiscal_period) as unique_id,
               glhierarchy,
               company_code,
               fiscal_year,
@@ -20,16 +20,15 @@ view: profit_and_loss_fiscal_periods_sdt {
               CONCAT(fiscal_year,'.Q',fiscal_quarter) AS fiscal_year_quarter,
               CONCAT(fiscal_year,'.',fiscal_period) as fiscal_year_period,
               CAST(PARSE_NUMERIC(fiscal_year) - 1 AS STRING) as prior_fiscal_year,
-              RANK() OVER (PARTITION BY glhierarchy, company_code, fiscal_year, fiscal_quarter ORDER by fiscal_period) as period_order_in_quarter,
               LAG(CONCAT(fiscal_year,'.Q',fiscal_quarter),3) OVER (PARTITION BY glhierarchy, company_code ORDER BY fiscal_year, fiscal_quarter) as prior_fiscal_year_quarter,
               LAG(CONCAT(fiscal_year,'.',fiscal_period)) OVER (PARTITION BY glhierarchy, company_code ORDER BY fiscal_year, fiscal_period) as prior_fiscal_year_period,
               CAST(PARSE_NUMERIC(fiscal_year) - 1 AS STRING) as yoy_fiscal_year,
               CONCAT(PARSE_NUMERIC(fiscal_year) - 1,'.Q',fiscal_quarter) as yoy_fiscal_year_quarter,
               CONCAT(PARSE_NUMERIC(fiscal_year) - 1,'.',fiscal_period) as yoy_fiscal_year_period,
-              MAX(fiscal_period) OVER (PARTITION BY glhierarchy, company_code) as max_fiscal_period,
-              COUNT (DISTINCT fiscal_period) OVER (PARTITION BY glhierarchy, company_code, fiscal_quarter) as max_periods_in_quarter
-
-      FROM (
+              MAX(fiscal_period) OVER (PARTITION BY glhierarchy, company_code) as max_fiscal_period_in_year,
+              COUNT (DISTINCT fiscal_period) OVER (PARTITION BY glhierarchy, company_code, fiscal_quarter) as max_periods_in_quarter,
+              RANK() OVER (PARTITION BY glhierarchy, company_code, fiscal_year, fiscal_quarter ORDER by fiscal_period) as period_order_in_quarter
+        FROM (
             SELECT
               GLHierarchy as glhierarchy,
               CompanyCode as company_code,
@@ -41,7 +40,7 @@ view: profit_and_loss_fiscal_periods_sdt {
               --CONCAT(pl.FiscalYear,'.',pl.FiscalPeriod)  AS fiscal_year_period
             FROM `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.ProfitAndLoss`  AS pl
             WHERE Client = '@{CLIENT_ID}'
-            AND CONCAT(pl.FiscalYear,'.',pl.FiscalPeriod) <= '2023.011'
+            --AND CONCAT(pl.FiscalYear,'.',pl.FiscalPeriod) <= '2023.011'
             GROUP BY
               glhierarchy,
               company_code,

@@ -61,29 +61,23 @@ view: new_profit_and_loss_fiscal_periods_selected_sdt {
 
           {% assign check_for_partial_with = 'period_order_in_quarter' %}
           {% assign check_for_partial_against = 'max_periods_in_quarter' %}
-          --join on fp0.[prior or yoy].fiscal_year_quarter = fp1.fiscal_year_quarter
-          -- AND fp0.period_order_in_quarter = fp1.period_order_in_quarter
+          {% assign window = '(PARTITION BY glhierarchy, company_code, fiscal_year, fiscal_quarter)' %}
+          {% assign check_for_partial_max_in_timeframe = 'MAX(' | append: check_for_partial_with | append: ') OVER (check_partial_window) '%}
+          {% assign check_for_partial_max_in_alignment = 'MAX(check_for_partial_max_in_timeframe) OVER (partition_alignment_group)' %}
+          {% assign check_for_partial_note = "CONCAT('QTD (',"| append: check_for_partial_max_in_alignment | append: ",' periods)')" %}
 
-          {% assign check_for_partial_max = 'MAX(' | append: check_for_partial_with | append: ') OVER (PARTITION BY glhierarchy, company_code, fiscal_year, fiscal_quarter ) '%}
-          {% assign check_for_partial_then = "CONCAT('QTD (',"| append: check_for_partial_with | append: ",' periods)')" %}
+          -- note when partial Quarter: QTD (2 periods)
 
-          -- note when partial Quarter: QTD (2 of 3 periods reported)
-          -- derived as
-          --CASE WHEN
-          --   MAX(period_order_in_quarter) OVER (PARTITION BY glhierarchy, company_code, fiscal_year, fiscal_quarter)
-          -- < max_periods_in_quarter
-          -- THEN CONCAT('QTD (',
-          -- MAX(period_order_in_quarter) OVER (PARTITION BY glhierarchy, company_code, fiscal_year, fiscal_quarter),
-          --' of ',
-          -- max_periods_in_quarter,
-          --' periods reported)') END" %}
       {% else %}
           {% assign anchor_time = 'fiscal_year' %}
           {% assign join2_logic = 'AND fp0.fiscal_period = fp1.fiscal_period' %}
 
           {% assign check_for_partial_with = 'fiscal_period' %}
           {% assign check_for_partial_against = 'max_fiscal_period' %}
-          {% assign check_for_partial_then = "CONCAT('YTD (through period ',"| append: check_for_parital_with | append: ",')')" %}
+          {% assign window = '(PARTITION BY glhierarchy, company_code, fiscal_year)' %}
+          {% assign check_for_partial_max_in_timeframe = 'MAX(' | append: check_for_partial_with | append: ') OVER (check_partial_window) '%}
+          {% assign check_for_partial_max_in_alignment = 'MAX(check_for_partial_max_in_timeframe) OVER (partition_alignment_group)' %}
+          {% assign check_for_partial_note = "CONCAT('YTD (through period ',"| append: check_for_partial_max_in_alignment | append: ",')')" %}
 
 
           --note when partial Year: YTD (through period XXX)
@@ -107,9 +101,12 @@ view: new_profit_and_loss_fiscal_periods_selected_sdt {
         fiscal_period_group,
         alignment_group,
         selected_timeframe,
-        MAX(selected_timeframe) OVER (PARTITION BY glhierarchy, company_code, alignment_group) AS focus_timeframe,
+        MAX(selected_timeframe) OVER (partition_alignment_group) AS focus_timeframe,
         comparison_type,
-        partial_timeframe_note
+        MAX(is_partial_timeframe) OVER (partition_alignment_group)  as is_partial_timeframe,
+        MAX(check_for_partial_max_in_timeframe) OVER (partition_alignment_group) as partial_timeframe_max,
+        {{check_for_partial_note}} as partial_timeframe_note
+
       FROM (
       -- part 1: select Current timeframes based on values selected in filter_fiscal_timeframe
           SELECT
@@ -123,11 +120,12 @@ view: new_profit_and_loss_fiscal_periods_selected_sdt {
               RANK() OVER (PARTITION BY glhierarchy, company_code ORDER BY {{anchor_time}} DESC) AS alignment_group,
               {{anchor_time}} AS selected_timeframe,
               '{{comparison_type}}' AS comparison_type,
-             {% if time_level != 'fp'%}CASE WHEN {{check_for_partial_max}} < {{check_for_partial_against}} THEN {{check_for_partial_then}} ELSE CAST(null as STRING) END
-             {%else%}CAST(NULL as STRING){%endif%}
-               as partial_timeframe_note
+             {% if time_level != 'fp'%}{{check_for_partial_max_in_timeframe}} < {{check_for_partial_against}}
+             {%else%}CAST(NULL as BOOL){%endif%} as is_partial_timeframe,
+              cast({{check_for_partial_max_in_timeframe}} AS STRING) as partial_max_in_timeframe
           FROM ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp
           WHERE {% condition profit_and_loss.filter_fiscal_timeframe %}{{anchor_time}}{% endcondition %}
+          WINDOW check_partial_window AS {{window}}
 
       {% if comparison_type != 'none'  %}
       -- part 2: UNION ALL for Comparison timeframes as derived from values selected in filter_fiscal_timeframe and parameter_compare_to
@@ -143,7 +141,8 @@ view: new_profit_and_loss_fiscal_periods_selected_sdt {
             RANK() OVER (PARTITION BY fp1.glhierarchy, fp1.company_code ORDER BY fp1.{{anchor_time}} DESC) AS alignment_group,
             fp1.{{anchor_time}} AS selected_timeframe,
             '{{comparison_type}}' AS comparison_type,
-            CAST(NULL AS STRING) as partial_timeframe_note
+            CAST(NULL AS BOOL) as is_partial_timeframe,
+            CAST(NULL AS STRING) as partial_max_in_timeframe
         FROM ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp0
         JOIN ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp1
         ON fp0.glhierarchy = fp1.glhierarchy
@@ -154,7 +153,7 @@ view: new_profit_and_loss_fiscal_periods_selected_sdt {
 
       {% endif %}
       ) t0
-
+      WINDOW partition_alignment_group AS (PARTITION BY glhierarchy, company_code, alignment_group)
    {% else %}
       SELECT
         glhierarchy,

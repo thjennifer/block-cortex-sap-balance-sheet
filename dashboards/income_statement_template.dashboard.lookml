@@ -1,9 +1,59 @@
-- dashboard: income_statement_filter_template
-  title: Income Statement Filter Template
+- dashboard: income_statement_template
+  title: Income Statement Template
+  description: "Common filters and tiles used by Income Statement dashboards"
   layout: newspaper
   preferred_viewer: dashboards-next
   tile_size: 100
   extension: required
+
+  elements:
+  - name: Income Statement Summary
+    title: Income Statement Summary
+    model: cortex-sap-balance-sheet
+    explore: profit_and_loss
+    type: single_value
+    fields: [profit_and_loss_fiscal_periods_selected_sdt.title_income_statement]
+    filters:
+      profit_and_loss.gllevel: '000002'
+      profit_and_loss_fiscal_periods_selected_sdt.fiscal_period_group: Current
+    show_single_value_title: false
+    listen:
+      Global Currency: profit_and_loss.target_currency_tcurr
+      Select Fiscal Timeframe: profit_and_loss.filter_fiscal_timeframe
+      Display Timeframe: profit_and_loss.parameter_display_time_dimension
+      Select Comparison Type: profit_and_loss.parameter_compare_to
+      Ledger Name: profit_and_loss.ledger_name
+      Company: profit_and_loss.company_text
+      Hierarchy: profit_and_loss.glhierarchy
+    row: 2
+    col: 0
+    width: 24
+    height: 3
+
+  - title: navigation
+    name: navigation
+    explore: profit_and_loss
+    type: single_value
+    fields: [navigation_income_statement_ext.navigation]
+    filters:
+      navigation_income_statement_ext.navigation_focus_page: '1'
+      navigation_income_statement_ext.navigation_style: 'small'
+    show_single_value_title: false
+    show_comparison: false
+    listen:
+      Hierarchy: navigation_income_statement_ext.filter1
+      Display Timeframe: navigation_income_statement_ext.filter2
+      Select Fiscal Timeframe: navigation_income_statement_ext.filter3
+      Global Currency: navigation_income_statement_ext.filter4
+      Company: navigation_income_statement_ext.filter5
+      Ledger Name: navigation_income_statement_ext.filter6
+      Top Hierarchy Level to Display: navigation_income_statement_ext.filter7
+    row: 13
+    col: 0
+    width: 24
+    height: 1
+
+
 
   filters:
   - name: Hierarchy
@@ -108,27 +158,3 @@
     explore: profit_and_loss
     listens_to_filters: []
     field: profit_and_loss_hierarchy_selection_sdt.parameter_pick_start_level
-
-  elements:
-  - title: navigation
-    name: navigation
-    explore: profit_and_loss
-    type: single_value
-    fields: [navigation_income_statement_ext.navigation]
-    filters:
-      navigation_income_statement_ext.navigation_focus_page: '1'
-      navigation_income_statement_ext.navigation_style: 'small'
-    show_single_value_title: false
-    show_comparison: false
-    listen:
-      Hierarchy: navigation_income_statement_ext.filter1
-      Display Timeframe: navigation_income_statement_ext.filter2
-      Select Fiscal Timeframe: navigation_income_statement_ext.filter3
-      Global Currency: navigation_income_statement_ext.filter4
-      Company: navigation_income_statement_ext.filter5
-      Ledger Name: navigation_income_statement_ext.filter6
-      Top Hierarchy Level to Display: navigation_income_statement_ext.filter7
-    row: 12
-    col: 0
-    width: 24
-    height: 1
