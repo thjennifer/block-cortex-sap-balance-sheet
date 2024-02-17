@@ -14,8 +14,8 @@
     fields: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier3_node_text, profit_and_loss_fiscal_periods_selected_sdt.current_amount,
       profit_and_loss_fiscal_periods_selected_sdt.comparison_amount, profit_and_loss_fiscal_periods_selected_sdt.difference_value,
-      profit_and_loss_fiscal_periods_selected_sdt.difference_percent, profit_and_loss_fiscal_periods_selected_sdt.focus_timeframe]
-    pivots: [profit_and_loss_fiscal_periods_selected_sdt.focus_timeframe]
+      profit_and_loss_fiscal_periods_selected_sdt.difference_percent, profit_and_loss_fiscal_periods_selected_sdt.focus_timeframe, profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note]
+    pivots: [profit_and_loss_fiscal_periods_selected_sdt.focus_timeframe, profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note]
     # filters:
     #   profit_and_loss.parameter_display_time_dimension: qtr
     #   profit_and_loss.parameter_compare_to: yoy
@@ -45,6 +45,7 @@
     genericLabelForSubtotals: false
     indexColumn: false
     transposeTable: false
+
     label|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: " "
     heading|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: ''
     hide|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: false
@@ -54,6 +55,7 @@
     label|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: " "
     heading|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: ''
     hide|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: false
+    label|profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note: " "
     subtotalDepth: '1'
     label|profit_and_loss_fiscal_periods_selected_sdt.current_amount: Current Quarter
     heading|profit_and_loss_fiscal_periods_selected_sdt.current_amount: ''
@@ -119,7 +121,13 @@
       Company: profit_and_loss.company_text
       Hierarchy: profit_and_loss.glhierarchy
       Top Hierarchy Level to Display: profit_and_loss_hierarchy_selection_sdt.parameter_pick_start_level
-    row: 0
+    row: 3
     col: 0
     width: 24
-    height: 12
+    height: 8
+
+  - title: navigation
+    name: navigation
+    filters:
+      navigation_income_statement_ext.navigation_focus_page: '1'
+      navigation_income_statement_ext.which_dashboard_style: 'mktplace^_report'

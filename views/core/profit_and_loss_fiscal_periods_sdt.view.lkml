@@ -40,7 +40,7 @@ view: profit_and_loss_fiscal_periods_sdt {
               --CONCAT(pl.FiscalYear,'.',pl.FiscalPeriod)  AS fiscal_year_period
             FROM `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.ProfitAndLoss`  AS pl
             WHERE Client = '@{CLIENT_ID}'
-            --AND CONCAT(pl.FiscalYear,'.',pl.FiscalPeriod) <= '2023.011'
+            AND CONCAT(pl.FiscalYear,'.',pl.FiscalPeriod) <= '2023.011'
             GROUP BY
               glhierarchy,
               company_code,

@@ -1,8 +1,8 @@
-- dashboard: income_statement_subtotal_table_no_comparison
+- dashboard: income_statement_mktplace_report_table_no_comparison
   title: Financial Income Statement
   layout: newspaper
   preferred_viewer: dashboards-next
-  description: "Shows a company's financial performance over a specific period (e.g., a month, quarter, or year). This report summarizes Revenues, Expenses and/or Net Income (Loss) at specified hierarchy level."
+  description: "Using the Report (Table) visualization available from Looker Marketplace, this report shows a company's financial performance over a specific period (e.g., a month, quarter, or year). This report summarizes Revenues, Expenses and/or Net Income (Loss) at specified hierarchy level."
   filters_location_top: false
   extends: [income_statement_template]
 
@@ -10,20 +10,26 @@
   - title: profit and loss table
     name: profit and loss table
     explore: profit_and_loss
-    type: looker_grid
+    type: marketplace_viz_report_table::report_table-marketplace
     fields: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier3_node_text, profit_and_loss_fiscal_periods_selected_sdt.selected_timeframe,
-      profit_and_loss_fiscal_periods_selected_sdt.current_amount]
-    pivots: [profit_and_loss_fiscal_periods_selected_sdt.selected_timeframe]
+      profit_and_loss_fiscal_periods_selected_sdt.current_amount,profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note]
+    pivots: [profit_and_loss_fiscal_periods_selected_sdt.selected_timeframe,profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note]
     sorts: [profit_and_loss_fiscal_periods_selected_sdt.selected_timeframe desc, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text, profit_and_loss_hierarchy_selection_sdt.hier3_node_text]
     subtotals: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text]
-    series_labels:
-      profit_and_loss_hierarchy_selection_sdt.hier1_node_text: " "
-      profit_and_loss_hierarchy_selection_sdt.hier2_node_text: " "
-      profit_and_loss_hierarchy_selection_sdt.hier3_node_text: " "
-      profit_and_loss_fiscal_periods_selected_sdt.selected_timeframe: " "
-      profit_and_loss_fiscal_periods_selected_sdt.current_amount: " "
+    label|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: " "
+    heading|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: ''
+    hide|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: false
+    label|profit_and_loss_hierarchy_selection_sdt.hier2_node_text: " "
+    heading|profit_and_loss_hierarchy_selection_sdt.hier2_node_text: ''
+    hide|profit_and_loss_hierarchy_selection_sdt.hier2_node_text: false
+    label|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: " "
+    heading|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: ''
+    hide|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: false
+    label|profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note: " "
+    style|profit_and_loss_fiscal_periods_selected_sdt.current_amount: black_red
+    subtotalDepth: '1'
     limit: 500
     column_limit: 50
     total: false
@@ -31,8 +37,8 @@
     show_row_numbers: true
     transpose: false
     truncate_text: true
-    hide_totals: false
-    hide_row_totals: false
+    hide_totals: true
+    hide_row_totals: true
     size_to_fit: true
     table_theme: white
     limit_displayed_rows: false
@@ -43,13 +49,17 @@
     conditional_formatting_include_totals: false
     conditional_formatting_include_nulls: false
     show_sql_query_menu_options: false
-    show_totals: true
-    show_row_totals: true
+    show_totals: false
+    show_row_totals: false
     truncate_header: false
     minimum_column_width: 75
     hidden_pivots: {}
     defaults_version: 1
     title_hidden: true
+    minWidthForIndexColumns: false
+    showTooltip: true
+    rowSubtotals: true
+    theme: contemporary
 
     listen:
       Global Currency: profit_and_loss.target_currency_tcurr
@@ -70,7 +80,7 @@
     name: navigation
     filters:
       navigation_income_statement_ext.navigation_focus_page: '2'
-      navigation_income_statement_ext.which_dashboard_style: 'subtotal'
+      navigation_income_statement_ext.which_dashboard_style: 'mktplace^_report'
 
   filters:
   - name: Select Comparison Type

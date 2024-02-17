@@ -6,8 +6,15 @@ view: navigation_income_statement_ext {
   dimension: dashBindings {
     hidden: yes
     type: string
-    sql: 'income_statement_subtotal_table|With Comparisons||income_statement_subtotal_table_no_comparison|No Comparisons' ;;
+    sql: 'income_statement_{% parameter which_dashboard_style %}_table|With Comparisons||income_statement_{% parameter which_dashboard_style %}_table_no_comparison|No Comparisons' ;;
     # sql: '114|With Comparisons||115|No Comparisons' ;;
+  }
+
+  parameter: which_dashboard_style {
+    type: unquoted
+    allowed_value: {label:"Marketplace Table (Report)" value:"mktplace_report"}
+    allowed_value: {label: "Subtotal Table" value:"subtotal" }
+    default_value: "subtotal"
   }
 
   dimension: filterBindings {

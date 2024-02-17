@@ -151,12 +151,13 @@
     row: 3
     col: 0
     width: 24
-    height: 12
+    height: 8
 
   - title: navigation
     name: navigation
     filters:
       navigation_income_statement_ext.navigation_focus_page: '1'
+      navigation_income_statement_ext.which_dashboard_style: 'subtotal'
 
   filters:
   - name: Select Comparison Type

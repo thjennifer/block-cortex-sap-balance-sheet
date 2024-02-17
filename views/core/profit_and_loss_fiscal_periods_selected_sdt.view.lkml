@@ -237,6 +237,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
     hidden: no
     group_label: "Current v Comparison Period"
     sql: ${TABLE}.partial_timeframe_note ;;
+    html: <p style=font-size:80%;><em>{{value}}</em></p> ;;
   }
 
   measure: current_amount {

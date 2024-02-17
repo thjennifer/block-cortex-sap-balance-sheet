@@ -38,6 +38,7 @@
     filters:
       navigation_income_statement_ext.navigation_focus_page: '1'
       navigation_income_statement_ext.navigation_style: 'small'
+      navigation_income_statement_ext.which_dashboard_style: 'subtotal'
     show_single_value_title: false
     show_comparison: false
     listen:
@@ -48,7 +49,7 @@
       Company: navigation_income_statement_ext.filter5
       Ledger Name: navigation_income_statement_ext.filter6
       Top Hierarchy Level to Display: navigation_income_statement_ext.filter7
-    row: 13
+    row: 10
     col: 0
     width: 24
     height: 1
