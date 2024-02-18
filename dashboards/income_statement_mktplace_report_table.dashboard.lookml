@@ -131,3 +131,20 @@
     filters:
       navigation_income_statement_ext.navigation_focus_page: '1'
       navigation_income_statement_ext.which_dashboard_style: 'mktplace^_report'
+
+  filters:
+  - name: Select Comparison Type
+    title: Select Comparison Type
+    type: field_filter
+    default_value: "yoy"
+    allow_multiple_values: false
+    required: false
+    ui_config:
+      type: dropdown_menu
+      display: inline
+      options:
+        - yoy
+        - prior
+    explore: profit_and_loss
+    listens_to_filters: []
+    field: profit_and_loss.parameter_compare_to
