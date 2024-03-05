@@ -1,6 +1,42 @@
+#########################################################
+# With this reporting view, users can report on any of the FSV nodes and corresponding amounts will be rolled up or down according to node values
+#
+# aggregation of General Ledger Transactions by the following dimensions:
+#   Client
+#   Fiscal Year
+#   Fiscal Period
+#   Company Code
+#   Chart of Accounts
+#   Hierarchy Name
+#   Business Area
+#   Profit Center
+#   Cost Center
+#   Ledger
+#   Hierarchy Node
+#   Languague
+#   Global (Target) Currency
+#
+# Measures:
+#    Amount in Local Currency, Amount in Global Currency
+#    Cumulative Amount in Local Currency, Cumulative Amount in Global Currency
+#    Exchange Rate (based on last date in the period)
+#    Avg Exchange Rate, Max Exchange Rate
+#
+# To query this table, filter to:
+#   - a single Client MANDT (handled with Constant defined in Manifest file)
+#   - a single Language (the Explore based on this view uses User Attribute locale to select language in joined view language_map_sdt)
+#   - a single Global Currency
+#   - a single Hierarchy Name or Financial Statement Version
+#   - a single Chart of Accounts
+#   - a single Company
+#########################################################
+
+
 include: "/views/base/profit_and_loss.view"
+include: "/views/core/common_fields_finance_ext.view"
 
 view: +profit_and_loss {
+extends: [common_fields_finance_ext]
 
 label: "Income Statement"
 
@@ -8,23 +44,22 @@ label: "Income Statement"
     primary_key: yes
     hidden: yes
     sql:  CONCAT(${client},${company_code}, ${chart_of_accounts}, ${glhierarchy},
-          COALESCE(${business_area},'is null') ,COALESCE(${ledger_in_general_ledger_accounting},'0L'),
-          COALESCE(${profit_center},'is null'),COALESCE(${cost_center},'is null')
+          COALESCE(${business_area},'null') ,COALESCE(${ledger_in_general_ledger_accounting},'0L'),
+          COALESCE(${profit_center},'null'),COALESCE(${cost_center},'null')
           ,${glnode},${fiscal_year},${fiscal_period},${language_key_spras},${target_currency_tcurr});;
   }
 
 #########################################################
-# Parameters & Filters for Income Statement Dashboard
+# Parameters & Filters for Income Statement Dashboard and related dimensions
 #{
 # 3 parameters:
 #   parameter_display_time_dimension
 #   filter_fiscal_timeframe
 #   parameter_compare_to
 #
-# use parameter selections to define fiscal_period_group values of 'Reporting' or 'Comparison'
+# 2 related dimensions:
+#   timeframes_list - based on selection for parameter_display_time_dimension will show either fiscal_year, fiscal_year_quarter_label, fiscal_year_period
 #
-# a sql_always_where clause defined at explore level will
-# filter where fiscal_period_group is null if select_fiscal_period is in the query
 #########################################################
 
   parameter: parameter_display_time_dimension {
@@ -37,9 +72,9 @@ label: "Income Statement"
     default_value: "qtr"
   }
 
-  # this filter is intended for use on a dashboard only and should be linked to a change in parameter_display_time_dimension
-  # so that values in drop-down populate correctly
-  # note, when used in an explore this filter may not update as expected for changes in parameter_display_time_dimension
+  # this filter is intended for use on a dashboard only and should be linked to parameter_display_time_dimension
+  # so that values in drop-down populate correctly based on the time display selected
+  # note, when used in an explore this filter may not reflect changes in parameter_display_time_dimension
   # this filter is applied in view profit_and_loss_hierarchy_selection_sdt (which is joined to this view in the Explore profit_and_loss)
   filter: filter_fiscal_timeframe {
     type: string
@@ -47,7 +82,6 @@ label: "Income Statement"
     description: "Choose fiscal periods, quarters or years for Income Statement Reporting. To ensure the correct timeframes are listed, add this filter to a dashboard. Add the parameter \'Display Fiscal Period or Quarter\' and select this filter to update when the display parameter changes."
     label: "Select Fiscal Timeframe"
     suggest_dimension: timeframes_list
-
   }
 
   parameter: parameter_compare_to {
@@ -66,10 +100,8 @@ label: "Income Statement"
     default_value: "none"
   }
 
-#} end parameters & filters
-
   dimension: timeframes_list {
-    hidden: no
+    hidden: yes
     view_label: "🔍 Filters & 🛠 Tools"
     label: "Timeframe"
     description: "Used to populate filter labeled Select Fiscal Timeframe. Timeframes listed depend on whether displaying Fiscal Periods, Quarters or Years in the Income Statement dashboards."
@@ -92,67 +124,65 @@ label: "Income Statement"
          {% endif %};;
   }
 
-  measure: max_timeframe {
-    type: string
-    sql: (SELECT MAX(${timeframes_list}) ) ;;
-  }
+  # dimension: selected_time_dimension {
+  #   label_from_parameter: parameter_display_time_dimension
+  #   sql: {% assign display = parameter_display_time_dimension._parameter_value %}
+  #       {% if display == 'yr' %}${fiscal_year}
+  #       {% elsif display == 'qtr' %}${fiscal_quarter_label}
+  #       {% else %}${fiscal_period}
+  #       {% endif %};;
+  # }
 
-  dimension: selected_time_dimension {
-    label_from_parameter: parameter_display_time_dimension
-    sql: {% assign display = parameter_display_time_dimension._parameter_value %}
-         {% if display == 'yr' %}${fiscal_year}
-         {% elsif display == 'qtr' %}${fiscal_quarter_label}
-         {% else %}${fiscal_period}
-         {% endif %};;
-  }
+#} end parameters & filters
 
-  dimension: client_mandt {
-    type: string
-    label: "Client"
-    sql: ${TABLE}.Client ;;
-  }
 
-  dimension: language_key_spras {
-    label: "Language Key"
-    description: "Language used for text display of Company, Parent and/or Child Node"
-  }
+  # dimension: client_mandt {
+  #   type: string
+  #   label: "Client"
+  #   sql: ${TABLE}.Client ;;
+  # }
 
-  dimension: currency_key {
-    label: "Currency (Local)"
-    description: "Local Currency"
-  }
+  # dimension: language_key_spras {
+  #   label: "Language Key"
+  #   description: "Language used for text display of Company, Parent and/or Child Node"
+  # }
 
-  dimension: target_currency_tcurr {
-    label: "Currency (Global)"
-    description: "Target or Global Currency to display in Balance Sheet"
-  }
+  # dimension: currency_key {
+  #   label: "Currency (Local)"
+  #   description: "Local Currency"
+  # }
 
-  dimension: ledger_in_general_ledger_accounting {
-    label: "Ledger"
-    description: "Ledger in General Ledger Accounting"
-    sql: COALESCE(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
-  }
+  # dimension: target_currency_tcurr {
+  #   label: "Currency (Global)"
+  #   description: "Target or Global Currency to display"
+  # }
 
-  dimension: ledger_name {
-    description: "Ledger in General Ledger Accounting"
-    sql:  CASE ${ledger_in_general_ledger_accounting}
-          WHEN '0L' THEN '0L - Leading Ledger'
-          WHEN '2L' THEN '2L - IFRS Non-leading Ledger'
-          WHEN '0E' THEN '0E - Extension Ledger'
-          ELSE ${ledger_in_general_ledger_accounting}
-          END;;
-    order_by_field: ledger_in_general_ledger_accounting
-  }
+  # dimension: ledger_in_general_ledger_accounting {
+  #   label: "Ledger"
+  #   description: "Ledger in General Ledger Accounting"
+  #   sql: COALESCE(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
+  # }
 
-  dimension: company_code {
-    label: "Company (code)"
-    description: "Company Code"
-  }
+  # dimension: ledger_name {
+  #   description: "Ledger in General Ledger Accounting"
+  #   sql:  CASE ${ledger_in_general_ledger_accounting}
+  #         WHEN '0L' THEN '0L - Leading Ledger'
+  #         WHEN '2L' THEN '2L - IFRS Non-leading Ledger'
+  #         WHEN '0E' THEN '0E - Extension Ledger'
+  #         ELSE ${ledger_in_general_ledger_accounting}
+  #         END;;
+  #   order_by_field: ledger_in_general_ledger_accounting
+  # }
 
-  dimension: company_text {
-    label: "Company (text)"
-    description: "Company Name"
-  }
+  # dimension: company_code {
+  #   label: "Company (code)"
+  #   description: "Company Code"
+  # }
+
+  # dimension: company_text {
+  #   label: "Company (text)"
+  #   description: "Company Name"
+  # }
 
   dimension: glhierarchy {
     label: "GL Hierarchy"
@@ -202,88 +232,88 @@ label: "Income Statement"
 
 # Fiscal Year and Period and other forms of Fiscal Dates
 # {
-  dimension: fiscal_period {
-    group_label: "Fiscal Dates"
-    description: "Fiscal Period as 3-character string (e.g., 001)"
-  }
+  # dimension: fiscal_period {
+  #   group_label: "Fiscal Dates"
+  #   description: "Fiscal Period as 3-character string (e.g., 001)"
+  # }
 
-  dimension: fiscal_period_number {
-    hidden: yes
-    group_label: "Fiscal Dates"
-    description: "Fiscal Period as a Numeric Value"
-    type: number
-    sql: PARSE_NUMERIC(${fiscal_period}) ;;
-    value_format_name: id
-  }
+  # dimension: fiscal_period_number {
+  #   hidden: yes
+  #   group_label: "Fiscal Dates"
+  #   description: "Fiscal Period as a Numeric Value"
+  #   type: number
+  #   sql: PARSE_NUMERIC(${fiscal_period}) ;;
+  #   value_format_name: id
+  # }
 
-  dimension: fiscal_quarter {
-    hidden: yes
-    group_label: "Fiscal Dates"
-    description: "Fiscal Quarter value of 1, 2, 3, or 4"
-  }
+  # dimension: fiscal_quarter {
+  #   hidden: yes
+  #   group_label: "Fiscal Dates"
+  #   description: "Fiscal Quarter value of 1, 2, 3, or 4"
+  # }
 
-  dimension: fiscal_quarter_label {
-    group_label: "Fiscal Dates"
-    label: "Fiscal Quarter"
-    description: "Fiscal Quarter value of Q1, Q2, Q3, or Q4"
-    sql: CONCAT('Q',${fiscal_quarter});;
-  }
+  # dimension: fiscal_quarter_label {
+  #   group_label: "Fiscal Dates"
+  #   label: "Fiscal Quarter"
+  #   description: "Fiscal Quarter value of Q1, Q2, Q3, or Q4"
+  #   sql: CONCAT('Q',${fiscal_quarter});;
+  # }
 
-  dimension: fiscal_year_quarter_label {
-    group_label: "Fiscal Dates"
-    label: "Fiscal Year Quarter"
-    description: "Fiscal Quarter value with year in format YYYY.Q#"
-    sql: CONCAT(${fiscal_year},'.Q',${fiscal_quarter}) ;;
-  }
+  # dimension: fiscal_year_quarter_label {
+  #   group_label: "Fiscal Dates"
+  #   label: "Fiscal Year Quarter"
+  #   description: "Fiscal Quarter value with year in format YYYY.Q#"
+  #   sql: CONCAT(${fiscal_year},'.Q',${fiscal_quarter}) ;;
+  # }
 
-  dimension: fiscal_year {
-    group_label: "Fiscal Dates"
-    description: "Fiscal Year as YYYY"
-  }
+  # dimension: fiscal_year {
+  #   group_label: "Fiscal Dates"
+  #   description: "Fiscal Year as YYYY"
+  # }
 
-  dimension: fiscal_year_period {
-    type: string
-    group_label: "Fiscal Dates"
-    description: "Fiscal Year and Period as String in form of YYYY.PPP"
-    sql: CONCAT(${fiscal_year},'.',${fiscal_period});;
-    order_by_field: fiscal_year_period_negative_number
-  }
+  # dimension: fiscal_year_period {
+  #   type: string
+  #   group_label: "Fiscal Dates"
+  #   description: "Fiscal Year and Period as String in form of YYYY.PPP"
+  #   sql: CONCAT(${fiscal_year},'.',${fiscal_period});;
+  #   order_by_field: fiscal_year_period_negative_number
+  # }
 
-  dimension: fiscal_year_period_number {
-    hidden: no
-    type: number
-    group_label: "Fiscal Dates"
-    description: "Fiscal Year and Period as a Numeric Value in form of YYYYPPP"
-    sql: PARSE_NUMERIC(concat(${fiscal_year},${fiscal_period})) ;;
-    value_format_name: id
-  }
+  # dimension: fiscal_year_period_number {
+  #   hidden: no
+  #   type: number
+  #   group_label: "Fiscal Dates"
+  #   description: "Fiscal Year and Period as a Numeric Value in form of YYYYPPP"
+  #   sql: PARSE_NUMERIC(concat(${fiscal_year},${fiscal_period})) ;;
+  #   value_format_name: id
+  # }
 
-  dimension: fiscal_year_period_negative_number {
-    hidden: yes
-    type: number
-    sql: -1 * ${fiscal_year_period_number} ;;
-  }
+  # dimension: fiscal_year_period_negative_number {
+  #   hidden: yes
+  #   type: number
+  #   sql: -1 * ${fiscal_year_period_number} ;;
+  # }
 
-  dimension: fiscal_year_quarter_negative_number {
-    hidden: yes
-    type: number
-    sql: -1 * PARSE_NUMERIC(concat(${fiscal_year},${fiscal_quarter})) ;;
-  }
+  # dimension: fiscal_year_quarter_negative_number {
+  #   hidden: yes
+  #   type: number
+  #   sql: -1 * PARSE_NUMERIC(concat(${fiscal_year},${fiscal_quarter})) ;;
+  # }
 
-  dimension: fiscal_year_negative_number {
-    hidden: yes
-    type: number
-    sql: -1 * PARSE_NUMERIC(${fiscal_year}) ;;
-  }
+  # dimension: fiscal_year_negative_number {
+  #   hidden: yes
+  #   type: number
+  #   sql: -1 * PARSE_NUMERIC(${fiscal_year}) ;;
+  # }
 
-  dimension: fiscal_year_number {
-    hidden: yes
-    group_label: "Fiscal Dates"
-    description: "Fiscal Year as a Numeric Value"
-    type: number
-    sql: parse_numeric(${fiscal_year}) ;;
-    value_format_name: id
-  }
+  # dimension: fiscal_year_number {
+  #   hidden: yes
+  #   group_label: "Fiscal Dates"
+  #   description: "Fiscal Year as a Numeric Value"
+  #   type: number
+  #   sql: parse_numeric(${fiscal_year}) ;;
+  #   value_format_name: id
+  # }
 
   #} end fiscal period
 

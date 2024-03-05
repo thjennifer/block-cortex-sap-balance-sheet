@@ -2,9 +2,10 @@
 # use this template to generate an html navigation bar or tabs
 # this template can only be extended into another view
 #
-# this template provides two styles and up to 10 possible filters:
-#       horizontal table with gray background (set with parameter navigation_style = "bar")
-#       tabbed (set with parameter navigation_style = "tabs")
+# this template provides three styles and up to 10 possible filters:
+#       horizontal bar with gray background and cortex image (set with parameter navigation_style = "bar")
+#       tabbed with cortex image (set with parameter navigation_style = "tabs")
+#       small text with links only and no image or formatting (set with parameter navigation_style = "small")
 #
 # modify this template if you want different styles or more filters
 #

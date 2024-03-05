@@ -404,7 +404,7 @@ view: +balance_sheet {
 
   measure: reporting_period_amount_in_global_currency {
     type: sum
-    group_label: "Reporting v Comparison Period Metrics"
+    group_label: "Reporting vs. Comparison Period Metrics"
     label_from_parameter: select_fiscal_period
     description: "Cumulative Amount in Global Currency for the selected Fiscal Reporting Period"
     sql: ${cumulative_amount_in_target_currency} ;;
@@ -416,7 +416,7 @@ view: +balance_sheet {
   # use sum(case ... when Comparison...) instead of type: sum with filter to allow nulls with Comparison is set to None
   measure: comparison_period_amount_in_global_currency {
     type: number
-    group_label: "Reporting v Comparison Period Metrics"
+    group_label: "Reporting vs. Comparison Period Metrics"
     label: "{% if select_fiscal_period._in_query %}
     @{derive_comparison_period}{{cp}}
     {% else %} Comparison Period Amount in Global Currency
@@ -429,7 +429,7 @@ view: +balance_sheet {
 
   measure: difference_value {
     type: number
-    group_label: "Reporting v Comparison Period Metrics"
+    group_label: "Reporting vs. Comparison Period Metrics"
     label: "Variance Amount"
     description: "Reporting Period Amount minus Comparison Period Amount"
     sql: ${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency} ;;
@@ -439,7 +439,7 @@ view: +balance_sheet {
 
   measure: difference_percent {
     type: number
-    group_label: "Reporting v Comparison Period Metrics"
+    group_label: "Reporting vs. Comparison Period Metrics"
     label: "Variance %"
     description: "Percentage Change between Reporting and Comparison Periods"
     # note ABS in denominator because both numerator and denominator can both be negative. ABS allows further Decline between 2 negative numbers to show as negative

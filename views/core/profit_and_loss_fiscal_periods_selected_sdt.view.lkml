@@ -1,24 +1,50 @@
 #########################################################
-# This SQL Derived Table (sdt):
+# This SQL Derived Table (sdt) uses view profit_and_loss_fiscal_periods_sdt as source and:
 #   1) Takes user inputs from parameters and filters:
-#         profit_and_loss.parameter_display_time_dimension - display either Period or Quarter in report
+#         profit_and_loss.parameter_display_time_dimension - display either Year, Quarter or Period in report
 #         profit_and_loss.filter_fiscal_timeframe - select one or more fiscal periods to include in Income Statement report
 #         profit_and_loss.parameter_compare_to - compare timeframes selected to either same period(s) last year, most recent period(s) prior or no comparison
 #   2) Using Liquid, builds SQL statement on the fly based on values selected for above parameters and filters
 #         * part 1: select "Current" timeframes based on values selected in filter_fiscal_timeframe (using templated filter)
 #         * part 2: if comparison type <> 'none', select "Comparison" timeframes as a UNION ALL statement.
-#                   Dervie the WHERE clause using liquid to loop through each timeframe selected in filter_fiscal_timeframe
-#                   and compute the comparison period based on value in parameter_compare_to.
-#                   Results in list of periods seperated by commas:
-#                      - For example, if Periods 2023.009 and 2023.008 selected with comparison to last year,
-#                        then the derived WHERE clause for the Comparison periods is:
-#                           WHERE fiscal_year_period in ('2022.009','2022.008')
-#                      - For another example, if Quarters 2023.Q4 and 2023.Q3 are selected with comparison to last year,
-#                        then the derived WHERE clause is:
-#                           WHERE fiscal_year_quarter in ('2022.Q4','2022.Q3')
-#           NOTE: A UNION is used because a user is able to select multiple periods to display in report there Reporting and Comparison periods may overlap
-#   3) Uses the existing view fiscal_periods_sdt. All this view is based on BalanceSheet, ProfitAndLoss shares the same fiscal periods.
-#      Dimensions already defined and labeled in the fiscal_periods_sdt are extended into this view using the extends parameter
+#                   NOTE: A UNION is used because a user is able to select multiple periods to display in report there Reporting and Comparison periods may overlap
+#                   Uses a SELF JOIN of the profit_and_loss_fiscal_periods_sdt to derive the comparison period using either yoy or prior fiscal year/fiscal year quarter/fiscal year period
+#                   For example, if user selects to display Fiscal Period and compare to last year, the derived join statement will be:
+#                       FROM profit_and_loss_fiscal_periods_sdt fp0
+#                       JOIN profit_and_loss_fiscal_periods_sdt fp1
+#                       ON fp0.glhierarchy = fp1.glhierarchy
+#                       AND fp0.company_code = fp1.company_code
+#                       AND fp0.yoy_fiscal_year_period = fp1.fiscal_year_period
+#
+#                   If display of Fiscal Year or Quarter is selected, an additional JOIN clause will be added so comparisons are equal for Year to Date or Quarter to Date. For example, if user selects
+#                   2024 for filter_fiscal_timeframe and only periods 001, 002 and 003 have been posted to date, the comparison year of 2023 will only use 001, 002 and 003 rather than all of 2023.
+#                   The derived join statement will be:
+#                       FROM profit_and_loss_fiscal_periods_sdt fp0
+#                       JOIN profit_and_loss_fiscal_periods_sdt fp1
+#                       ON fp0.glhierarchy = fp1.glhierarchy
+#                       AND fp0.company_code = fp1.company_code
+#                       AND fp0.yoy_fiscal_year = fp1.fiscal_year
+#                       AND fp0.fiscal_period = fp1.fiscal_period
+#
+#   3) Dimensions already defined and labeled in the profit_and_loss_fiscal_periods_sdt are extended into this view using the extends parameter
+#
+#   4) Derives new dimensions:
+#         fiscal_period_group -- values of Current or Comparison
+#         alignment_group -- uses RANK() based on Order of fiscal year, quarter or period to assign each set of comparisons to a group number
+#                            e.g., if user selects 2024.001 and 2024.002 to compare to same periods last year, two alignment groups will be defined as:
+#                            alignment group 1 = 2024.001 and 2023.001
+#                            alignment group 2 = 2024.002 and 2023.002
+#        selected_timeframe -- returns either fiscal_year, fiscal_year_quarter or fiscal_year_period based on parameter_display_time_dimension
+#        focus_timeframe -- labels a given alignment group with the max (or current) time value
+#                           e.g., if user selects 2024.001 and 2024.002 to compare to same periods last year, two alignment groups with focus_timeframe labels will be defined as:
+#                            alignment group 1 = 2024.001 and 2023.001 and focus_timeframe = 2024.001
+#                            alignment group 2 = 2024.002 and 2023.002 and focus_timeframe = 2024.002
+#        comparison_type -- captures the selected value for parameter_compare_to (either yoy or prior)
+#        is_partial_timeframe -- if user selects fiscal year or quarter for parameter_display_time_dimension, will set to true if YTD or QTD timeframes are selected with filter_fiscal_timeframe else set to false
+#        partial_timeframe_max -- if user selects fiscal year or quarter for parameter_display_time_dimension, returns the max timeframe selected else returns null
+#        partial_timeframe_note -- if user selects fiscal year or quarter for parameter_display_time_dimension AND a YTD or QTD timeframes are selected, will derive a string to display on report to indicate YTD or QTD
+#                                  for example: YTD (through period 003) or QTD (2 periods)
+#        selected_timeframes_string -- captures the values selected in filter_fiscal_timeframe as a string (e.g., 2024.001, 2024.002, 2024.003)
 #
 #   4) Defines reporting measures:
 #         current_amount
@@ -29,7 +55,7 @@
 #      so always join this view to profit_and_loss using an inner join on:
 #         fiscal_year
 #         fiscal_period
-#      Note, the fiscal_periods_sdt view already filters to the same Client id so it is not needed in the join.
+#      Note, the profit_and_loss_fiscal_periods_sdt view already filters to the same Client id so it is not needed in the join.
 #########################################################
 
 
@@ -134,7 +160,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
               '{{comparison_type}}' AS comparison_type,
               CAST(NULL AS BOOL) as is_partial_timeframe,
               CAST(NULL AS STRING) as partial_max_in_timeframe,
-               '{{tp}}' as selected_timeframes_string
+              '{{tp}}' as selected_timeframes_string
           FROM ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp0
           JOIN ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp1
           ON fp0.glhierarchy = fp1.glhierarchy
@@ -165,7 +191,6 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
           CAST(NULL AS STRING) as partial_timeframe_max,
           CAST(NULL AS STRING) as partial_timeframe_note,
           '{{tp}}' as selected_timeframes_string
-
       FROM ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp
       {% endif %}
       ;;
@@ -187,14 +212,14 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
   dimension: selected_timeframe {
     type: string
     hidden: no
-    group_label: "Current v Comparison Period"
+    group_label: "Current vs. Comparison Period"
     sql:  ${TABLE}.selected_timeframe;;
   }
 
   dimension: selected_timeframes_string {
     type: string
     hidden: no
-    group_label: "Current v Comparison Period"
+    group_label: "Current vs. Comparison Period"
     sql: ${TABLE}.selected_timeframes_string ;;
   }
 
@@ -212,14 +237,14 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
   dimension: alignment_group {
     type: number
     hidden: no
-    group_label: "Current v Comparison Period"
+    group_label: "Current vs. Comparison Period"
     sql: ${TABLE}.alignment_group ;;
   }
 
   dimension: focus_timeframe {
     type: string
     hidden: yes
-    group_label: "Current v Comparison Period"
+    group_label: "Current vs. Comparison Period"
     sql: ${TABLE}.focus_timeframe ;;
   }
 
@@ -227,7 +252,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
   dimension: max_fiscal_period_per_year {
     type: string
     hidden: no
-    group_label: "Current v Comparison Period"
+    group_label: "Current vs. Comparison Period"
     sql: {% if profit_and_loss.parameter_display_time_dimension._parameter_value == 'yr'%}${TABLE}.max_fiscal_period_per_year{% else %}" "{%endif%} ;;
     html: {% if profit_and_loss.parameter_display_time_dimension._parameter_value == 'yr'%}<p style=font-size:80%;><em>YTD through period {{value}}</em></p>{% else %} {%endif%} ;;
   }
@@ -235,7 +260,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
   dimension: partial_timeframe_note {
     type: string
     hidden: no
-    group_label: "Current v Comparison Period"
+    group_label: "Current vs. Comparison Period"
     sql: ${TABLE}.partial_timeframe_note ;;
     html: <p style=font-size:80%;><em>{{value}}</em></p> ;;
   }
@@ -243,7 +268,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
   measure: current_amount {
     type: sum_distinct
     hidden: no
-    group_label: "Current v Comparison Period"
+    group_label: "Current vs. Comparison Period"
     label: "{% if profit_and_loss.filter_fiscal_timeframe._in_query%}{% assign timelevel = profit_and_loss.parameter_display_time_dimension._parameter_value %}Current {%if timelevel =='yr'%}Year{% elsif timelevel == 'qtr' %}Quarter{%else%}Period{%endif%}{%else%}Current Amount{%endif%}"
     sql_distinct_key: ${profit_and_loss.key} ;;
     sql: ${profit_and_loss.amount_in_target_currency} ;;
@@ -255,7 +280,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
   measure: comparison_amount {
     type: sum_distinct
     hidden: no
-    group_label: "Current v Comparison Period"
+    group_label: "Current vs. Comparison Period"
     # label: "{% if profit_and_loss.filter_fiscal_timeframe._in_query%}{% assign compare = profit_and_loss.parameter_compare_to._parameter_value %}
     #         {% assign timelevel = profit_and_loss.parameter_display_time_dimension._parameter_value %}{% if compare == 'yoy' %}Prior Year
     #         {% elsif compare == 'prior'%}Prior {% if timelevel == 'yr'%}Year{% elsif timelevel == 'qtr' %}Quarter{%else%}Period{%endif%}
@@ -273,7 +298,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
   measure: difference_value {
     type: number
     hidden: no
-    group_label: "Current v Comparison Period"
+    group_label: "Current vs. Comparison Period"
     label: "{% if profit_and_loss.filter_fiscal_timeframe._in_query%}{% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}Variance Amount{%else%} . {%endif%}{%else%}Variance Amount{%endif%}"
     sql: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}${current_amount} - ${comparison_amount}{%else%}NULL{%endif%} ;;
     value_format_name: decimal_0
@@ -283,7 +308,7 @@ view: profit_and_loss_fiscal_periods_selected_sdt {
   measure: difference_percent {
     type: number
     hidden: no
-    group_label: "Current v Comparison Period"
+    group_label: "Current vs. Comparison Period"
     label: "{% if profit_and_loss.filter_fiscal_timeframe._in_query%}{% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}Variance %{%else%} . {%endif%}{%else%}Variance %{%endif%}"
     # sql: safe_divide(${current_amount},${comparison_amount}) - 1 ;;
     # use ABS for denominator as negative values are possible in both numerator and denominator. ABS allows for % Change to be negative when both are negative.
