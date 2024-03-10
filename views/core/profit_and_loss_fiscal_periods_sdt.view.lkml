@@ -16,13 +16,16 @@ view: profit_and_loss_fiscal_periods_sdt {
               fiscal_period,
               CONCAT(fiscal_year,'.Q',fiscal_quarter) AS fiscal_year_quarter,
               CONCAT(fiscal_year,'.',fiscal_period) as fiscal_year_period,
+              rank() over (partition by glhierarchy, company_code order by CONCAT(fiscal_year,'.',fiscal_period) desc) as fiscal_year_period_rank,
+              dense_rank() over (partition by glhierarchy, company_code order by CONCAT(fiscal_year,'.',fiscal_quarter) desc) as fiscal_year_quarter_rank,
+              dense_rank() over (partition by glhierarchy, company_code order by fiscal_year desc) as fiscal_year_rank,
               --prior fiscal year, quarter and period
               CAST(PARSE_NUMERIC(fiscal_year) - 1 AS STRING) as prior_fiscal_year,
               LAG(CONCAT(fiscal_year,'.Q',fiscal_quarter),3) OVER (PARTITION BY glhierarchy, company_code ORDER BY fiscal_year, fiscal_quarter) as prior_fiscal_year_quarter,
               LAG(CONCAT(fiscal_year,'.',fiscal_period)) OVER (PARTITION BY glhierarchy, company_code ORDER BY fiscal_year, fiscal_period) as prior_fiscal_year_period,
               --yoy fiscal year, quarter and period
-              CAST(PARSE_NUMERIC(fiscal_year) - 1 AS STRING) as yoy_fiscal_year,
-              CONCAT(PARSE_NUMERIC(fiscal_year) - 1,'.Q',fiscal_quarter) as yoy_fiscal_year_quarter,
+             -- CAST(PARSE_NUMERIC(fiscal_year) - 1 AS STRING) as yoy_fiscal_year,
+             -- CONCAT(PARSE_NUMERIC(fiscal_year) - 1,'.Q',fiscal_quarter) as yoy_fiscal_year_quarter,
               CONCAT(PARSE_NUMERIC(fiscal_year) - 1,'.',fiscal_period) as yoy_fiscal_year_period,
               --derive max fiscal period for year, max number of periods in quarter and period order in quarter (will be used to identify partial/incomplete time periods)
               MAX(fiscal_period) OVER (PARTITION BY glhierarchy, company_code) as max_fiscal_period_in_year,
@@ -37,13 +40,14 @@ view: profit_and_loss_fiscal_periods_sdt {
               FiscalPeriod as fiscal_period
             FROM `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.ProfitAndLoss`  AS pl
             WHERE Client = '@{CLIENT_ID}'
-            --AND CONCAT(pl.FiscalYear,'.',pl.FiscalPeriod) <= '2023.011'
+            AND CONCAT(pl.FiscalYear,'.',pl.FiscalPeriod) <= '2023.011'
             GROUP BY
               glhierarchy,
               company_code,
               fiscal_year,
               fiscal_quarter,
               fiscal_period
+
             ) p
             ;;
   }
@@ -111,15 +115,15 @@ view: profit_and_loss_fiscal_periods_sdt {
     sql: ${TABLE}.prior_fiscal_year_period ;;
   }
 
-  dimension: yoy_fiscal_year {
-    type: string
-    sql: ${TABLE}.yoy_fiscal_year ;;
-  }
+  # dimension: yoy_fiscal_year {
+  #   type: string
+  #   sql: ${TABLE}.yoy_fiscal_year ;;
+  # }
 
-  dimension: yoy_fiscal_year_quarter {
-    type: string
-    sql: ${TABLE}.yoy_fiscal_year_quarter ;;
-  }
+  # dimension: yoy_fiscal_year_quarter {
+  #   type: string
+  #   sql: ${TABLE}.yoy_fiscal_year_quarter ;;
+  # }
 
   dimension: yoy_fiscal_year_period {
     type: string

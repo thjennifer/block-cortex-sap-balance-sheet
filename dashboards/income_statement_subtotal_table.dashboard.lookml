@@ -11,13 +11,13 @@
     name: profit and loss table
     explore: profit_and_loss
     type: looker_grid
-    fields: [profit_and_loss_fiscal_periods_selected_sdt.focus_timeframe, profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note, profit_and_loss_fiscal_periods_selected_sdt.current_amount,
-      profit_and_loss_fiscal_periods_selected_sdt.comparison_amount, profit_and_loss_fiscal_periods_selected_sdt.difference_value,
-      profit_and_loss_fiscal_periods_selected_sdt.difference_percent, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
+    fields: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name, profit_and_loss_03_selected_fiscal_periods_sdt.current_amount,
+      profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount, profit_and_loss_03_selected_fiscal_periods_sdt.difference_value,
+      profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text, profit_and_loss_hierarchy_selection_sdt.hier3_node_text]
-    pivots: [profit_and_loss_fiscal_periods_selected_sdt.focus_timeframe,profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note]
+    pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name]
     filters: {}
-    sorts: [profit_and_loss_fiscal_periods_selected_sdt.focus_timeframe desc, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
+    sorts: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text,profit_and_loss_hierarchy_selection_sdt.hier3_node_text]
     subtotals: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text]
     limit: 500
@@ -46,8 +46,7 @@
       profit_and_loss_hierarchy_selection_sdt.hier1_node_text: " "
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text: " "
       profit_and_loss_hierarchy_selection_sdt.hier3_node_text: " "
-      profit_and_loss_fiscal_periods_selected_sdt.focus_timeframe: " "
-      profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note: " "
+      profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name: " "
     series_collapsed:
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text: false
     hidden_fields: []
@@ -142,6 +141,7 @@
     listen:
       Global Currency: profit_and_loss.target_currency_tcurr
       Select Fiscal Timeframe: profit_and_loss.filter_fiscal_timeframe
+      Combine Selected Timeframes?: profit_and_loss.parameter_aggregate
       Display Timeframe: profit_and_loss.parameter_display_time_dimension
       Select Comparison Type: profit_and_loss.parameter_compare_to
       Ledger Name: profit_and_loss.ledger_name
@@ -157,7 +157,7 @@
     name: navigation
     filters:
       navigation_income_statement_ext.navigation_focus_page: '1'
-      navigation_income_statement_ext.which_dashboard_style: 'subtotal'
+      navigation_income_statement_ext.navigation_which_dashboard_style: 'subtotal'
 
   filters:
   - name: Select Comparison Type

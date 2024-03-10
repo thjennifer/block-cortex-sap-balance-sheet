@@ -12,12 +12,12 @@
     explore: profit_and_loss
     type: marketplace_viz_report_table::report_table-marketplace
     fields: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text,
-      profit_and_loss_hierarchy_selection_sdt.hier3_node_text, profit_and_loss_fiscal_periods_selected_sdt.selected_timeframe,
-      profit_and_loss_fiscal_periods_selected_sdt.current_amount,profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note]
-    pivots: [profit_and_loss_fiscal_periods_selected_sdt.selected_timeframe,profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note]
-    sorts: [profit_and_loss_fiscal_periods_selected_sdt.selected_timeframe desc, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
+      profit_and_loss_hierarchy_selection_sdt.hier3_node_text, profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name,
+      profit_and_loss_03_selected_fiscal_periods_sdt.current_amount]
+    pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name]
+    sorts: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text, profit_and_loss_hierarchy_selection_sdt.hier3_node_text]
-    subtotals: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text]
+    # subtotals: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text]
     label|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: " "
     heading|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: ''
     hide|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: false
@@ -27,8 +27,7 @@
     label|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: " "
     heading|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: ''
     hide|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: false
-    label|profit_and_loss_fiscal_periods_selected_sdt.partial_timeframe_note: " "
-    style|profit_and_loss_fiscal_periods_selected_sdt.current_amount: black_red
+    style|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: black_red
     subtotalDepth: '1'
     limit: 500
     column_limit: 50
@@ -70,6 +69,7 @@
       Company: profit_and_loss.company_text
       Hierarchy: profit_and_loss.glhierarchy
       Top Hierarchy Level to Display: profit_and_loss_hierarchy_selection_sdt.parameter_pick_start_level
+      Combine Selected Timeframes?: profit_and_loss.parameter_aggregate
     row: 3
     col: 0
     width: 24
@@ -80,7 +80,7 @@
     name: navigation
     filters:
       navigation_income_statement_ext.navigation_focus_page: '2'
-      navigation_income_statement_ext.which_dashboard_style: 'mktplace^_report'
+      navigation_income_statement_ext.navigation_which_dashboard_style: 'mktplace^_report'
 
   filters:
   - name: Select Comparison Type

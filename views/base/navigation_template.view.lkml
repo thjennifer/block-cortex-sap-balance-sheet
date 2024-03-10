@@ -1,4 +1,4 @@
-######################
+#########################################################{
 # use this template to generate an html navigation bar or tabs
 # this template can only be extended into another view
 #
@@ -17,7 +17,7 @@
 #   - create new view
 #   - add extend: parameter and reference this view (navigation_template)
 #   - required updates:
-#       - edit the sql: parameter of dashBindings dimension with list of dashboard ids and names:
+#       - edit the sql: parameter of dash_bindings dimension with list of dashboard ids and names:
 #             for udd dashboards use numeric id:
 #                 sql: '131|Dashboard 1||132|Dashboard 2' ;;
 #
@@ -25,14 +25,36 @@
 #                 sql: 'dashboard_name1|Dashboard 1||dashboard_name2|Dashboard 2';;
 #                 sql: 'model_name::dashboard_name1|Dashboard 1||model_name::dashboard_name2|Dashboard 2';;
 #
-#       - edit the sql: parameter of filterBindings dimension with list of filters that should be passed from one dashboard to another
+#       - edit the sql: parameter of filter_bindings dimension with list of filters that should be passed from one dashboard to another
 #             sql: 'filter1|Filter 1 Name||filter2|Filter 2 Name' ;;
 #
 #       - edit filter1 to filterN (up to 10) to unhide and label
 #
 #   - optional updates:
-#       - change itemDelimiter (||) and valueDelimiter (|) to match delimiters used in Bindings dimensions
-######################
+#       - change item_delimiter (||) and value_delimiter (|) to match delimiters used in Bindings dimensions
+#
+# Once this template is extended and filter1 to filter8 are labeled, create a Single Value Visualization
+# and add to a dashboard. LookML example:
+#     - title: navigation
+#       name: navigation
+#       explore: profit_and_loss
+#       type: single_value
+#       fields: [navigation_income_statement_ext.navigation]
+#       filters:
+#         navigation_income_statement_ext.navigation_focus_page: '1'
+#         navigation_income_statement_ext.navigation_style: 'small'
+#       show_single_value_title: false
+#       show_comparison: false
+#       listen:
+#         Hierarchy: navigation_income_statement_ext.filter1
+#         Display Timeframe: navigation_income_statement_ext.filter2
+#         Select Fiscal Timeframe: navigation_income_statement_ext.filter3
+#         Global Currency: navigation_income_statement_ext.filter4
+#         Company: navigation_income_statement_ext.filter5
+#         Ledger Name: navigation_income_statement_ext.filter6
+#         Top Hierarchy Level to Display: navigation_income_statement_ext.filter7
+#         Combine Selected Timeframes?: navigation_income_statement_ext.filter8
+#########################################################}
 
 view: navigation_template {
   extension: required
@@ -40,13 +62,13 @@ view: navigation_template {
   ###### Fields *requiring override* in extension
   ########################################
 
-  dimension: dashBindings {
+  dimension: dash_bindings {
     hidden: yes
     type: string
     sql: '131|Dashboard 1||132|Dashboard 2' ;;
   }
 
-  dimension: filterBindings {
+  dimension: filter_bindings {
     hidden: yes
     type: string
     sql: 'filter1|Filter 1 Name||filter1|Filter 2 Name' ;;
@@ -54,28 +76,28 @@ view: navigation_template {
 
   # ** override hidden and label in extension as required **
   # ** Add more as required, currently supports 5 **
-  filter: filter1 { hidden: yes label: "filter1" }
-  filter: filter2 { hidden: yes label: "filter2" }
-  filter: filter3 { hidden: yes label: "filter3" }
-  filter: filter4 { hidden: yes label: "filter4" }
-  filter: filter5 { hidden: yes label: "filter5" }
-  filter: filter6 { hidden: yes label: "filter6" }
-  filter: filter7 { hidden: yes label: "filter7" }
-  filter: filter8 { hidden: yes label: "filter8" }
-  filter: filter9 { hidden: yes label: "filter9" }
+  filter: filter1 { hidden: yes label: "filter1"}
+  filter: filter2 { hidden: yes label: "filter2"}
+  filter: filter3 { hidden: yes label: "filter3"}
+  filter: filter4 { hidden: yes label: "filter4"}
+  filter: filter5 { hidden: yes label: "filter5"}
+  filter: filter6 { hidden: yes label: "filter6"}
+  filter: filter7 { hidden: yes label: "filter7"}
+  filter: filter8 { hidden: yes label: "filter8"}
+  filter: filter9 { hidden: yes label: "filter9"}
   filter: filter10 { hidden: yes label: "filter10" }
 
   ########################################
   ###### Fields *optionally overriden* in extension
   ########################################
 
-  dimension: itemDelimiter {
+  dimension: item_delimiter {
     hidden: yes
     type: string
     sql: '||' ;;
   }
 
-  dimension: valueDelimiter {
+  dimension: value_delimiter {
     hidden: yes
     type: string
     sql: '|' ;;
@@ -85,6 +107,7 @@ view: navigation_template {
   parameter: navigation_style {
     hidden: no
     type: unquoted
+    description: "Select navigation style (e.g., Tabs, Hyperlinks in Box or Hyperlinks with No Styling)"
     allowed_value: {label: "Hyperlinks - Center Aligned in Box" value: "bar"}
     allowed_value: {label: "Tabs" value: "tabs"}
     allowed_value: {label: "Hyperlinks - Left Aligned - No Border - Small font" value: "small"}
@@ -100,9 +123,6 @@ view: navigation_template {
     type: unquoted
     allowed_value: {value:"1"}
     allowed_value: {value:"2"}
-    allowed_value: {value:"3"}
-    allowed_value: {value:"4"}
-    allowed_value: {value:"5"}
     default_value: "1"
   }
 
@@ -113,11 +133,12 @@ view: navigation_template {
   dimension: navigation {
     type: string
     hidden: no
+    description: "Add to Single Value Visualization. Defined HTML styling will be shown."
     sql: '' ;;
     html:
      <!-- initial splits -->
-      {% assign navItems = dashBindings._value | split: itemDelimiter._value %}
-      {% assign filterItems = filterBindings._value | split: itemDelimiter._value %}
+      {% assign navItems = dash_bindings._value | split: item_delimiter._value %}
+      {% assign filterItems = filter_bindings._value | split: item_delimiter._value %}
 
       <!-- initialize variables -->
       {% assign counter = 1 %}
@@ -156,7 +177,7 @@ view: navigation_template {
       <!-- loop through filterItems defined in filterBindings dimension to create queryString used in dashboard url-->
       {% for filterItem in filterItems %}
       <!-- split filter into parts -->
-      {% assign filterParts = filterItem | split: valueDelimiter._value %}
+      {% assign filterParts = filterItem | split: value_delimiter._value %}
       {% assign filterField = filterParts[0] %} <!-- for readability -->
       {% assign filterName = filterParts[1] %} <!-- for readability -->
 
@@ -206,7 +227,7 @@ view: navigation_template {
 
       <!-- Loop through navigation items as defined in dashBindings dimension-->
       {% for navItem in navItems %}
-      {% assign navParts = navItem | split: valueDelimiter._value %}
+      {% assign navParts = navItem | split: value_delimiter._value %}
       {% assign dashName = navParts[1] %}
       {% assign dashID = navParts[0] %}
       {% assign dashIDcheckType = dashID | plus: 0 %}

@@ -1,6 +1,6 @@
 include: "/views/core/profit_and_loss_rfn.view"
 include: "/views/core/language_map_sdt.view"
-include: "/views/core/profit_and_loss_fiscal_periods_selected_sdt.view"
+include: "/views/core/profit_and_loss_03_selected_fiscal_periods_sdt.view"
 include: "/views/core/profit_and_loss_hierarchy_selection_sdt.view"
 include: "/views/core/navigation_income_statement_ext.view"
 
@@ -22,11 +22,11 @@ explore: profit_and_loss {
     fields: []
   }
 
-  join: profit_and_loss_fiscal_periods_selected_sdt  {
+  join: profit_and_loss_03_selected_fiscal_periods_sdt  {
     type: inner
     relationship: many_to_many
-    sql_on: ${profit_and_loss.fiscal_year} = ${profit_and_loss_fiscal_periods_selected_sdt.fiscal_year}
-            and ${profit_and_loss.fiscal_period} = ${profit_and_loss_fiscal_periods_selected_sdt.fiscal_period};;
+    sql_on: ${profit_and_loss.fiscal_year} = ${profit_and_loss_03_selected_fiscal_periods_sdt.fiscal_year}
+            and ${profit_and_loss.fiscal_period} = ${profit_and_loss_03_selected_fiscal_periods_sdt.fiscal_period};;
   }
 
   join: profit_and_loss_hierarchy_selection_sdt {

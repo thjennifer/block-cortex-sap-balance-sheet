@@ -65,7 +65,7 @@ label: "Income Statement"
   parameter: parameter_display_time_dimension {
     type: unquoted
     view_label: "🔍 Filters & 🛠 Tools"
-    label: "Display Period or Quarter"
+    label: "Display Year, Quarter or Period"
     allowed_value: {label: "Fiscal Period" value: "fp"}
     allowed_value: {label: "Quarter" value: "qtr"}
     allowed_value: {label: "Year" value: "yr"}
@@ -84,6 +84,16 @@ label: "Income Statement"
     suggest_dimension: timeframes_list
   }
 
+  parameter: parameter_aggregate {
+    type: unquoted
+    view_label: "🔍 Filters & 🛠 Tools"
+    label: "Combine Selected Timeframes?"
+    description: "If multiple timeframes selected, should results be combined or shown for each time period selected?"
+    allowed_value: {value: "Yes"}
+    allowed_value: {value: "No"}
+    default_value: "Yes"
+  }
+
   parameter: parameter_compare_to {
     type: unquoted
     view_label: "🔍 Filters & 🛠 Tools"
@@ -92,7 +102,7 @@ label: "Income Statement"
       label: "None" value: "none"
     }
     allowed_value: {
-      label: "Same Timeframe Last Year" value: "yoy"
+      label: "Year Ago" value: "yoy"
     }
     allowed_value: {
       label: "Previous Fiscal Timeframe" value: "prior"
@@ -338,7 +348,7 @@ label: "Income Statement"
 
   # flip the signs so Income is positive and Expenses negative
   dimension: amount_in_target_currency {
-    hidden: no
+    hidden: yes
     label: "Amount in Global Currency"
     sql: @{sign_change_multiplier}
          ${TABLE}.AmountInTargetCurrency * {{multiplier}} ;;
@@ -410,6 +420,7 @@ label: "Income Statement"
   measure: net_income {
     type: sum
     hidden: no
+    label: "Total Net Income (Global Currency)"
     sql: ${amount_in_target_currency} ;;
     filters: [gllevel_number: "2"]
     value_format_name: millions_d1
