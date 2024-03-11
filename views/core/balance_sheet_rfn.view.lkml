@@ -1,4 +1,4 @@
-#########################################################
+#########################################################{
 # aggregation of Transactions by the following dimensions:
 #   Client
 #   Fiscal Year
@@ -26,12 +26,20 @@
 #   - a single Hierarchy Name or Financial Statement Version
 #   - a single Chart of Accounts
 #   - a single Company
-#########################################################
+#
+# Extends common dimensions found in both balance sheet and profit and loss using view common_fields_finance_ext
+#   client_mandt, language_key_spras, currency_key, target_currency_tcurr, ledger_in_general_ledger_accounting, ledger_name, company_code, company_text, chart_of_accounts, business_area,
+#   fiscal_period, fiscal_quarter, fiscal_year and related fields
+# Changes to these dimensions can be made in view common_fields_finance_ext if the changes are for both balance sheet and profit and loss; or
+# Customize these dimensions specifically for Balance Sheet in this view as needed
+#########################################################}
 
 
 include: "/views/base/balance_sheet.view"
+include: "/views/core/common_fields_finance_ext.view"
 
 view: +balance_sheet {
+  extends: [common_fields_finance_ext]
 
   dimension: key {
     primary_key: yes
@@ -94,65 +102,11 @@ view: +balance_sheet {
   #} end Parameters
 
 #########################################################
-# Dimensions
+# Hierarchy Dimensions
 #{
-
-  dimension: client_mandt {
-    hidden: yes
-    type: string
-    label: "Client"
-    sql: ${TABLE}.Client ;;
-  }
-
-  dimension: language_key_spras {
-    label: "Language Key"
-    description: "Language used for text display of Company, Parent and/or Child Node"
-  }
-
-  dimension: currency_key {
-    label: "Currency (Local)"
-    description: "Local Currency"
-  }
-
-  dimension: target_currency_tcurr {
-    label: "Currency (Global)"
-    description: "Target or Global Currency to display in Balance Sheet"
-  }
 
   dimension: hierarchy_name {
     description: "Hierarchy Name is same as Financial Statement Version (FSV)"
-  }
-
-  dimension: ledger_in_general_ledger_accounting {
-    label: "Ledger"
-    description: "Ledger in General Ledger Accounting"
-    sql: COALESCE(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
-  }
-
-  dimension: ledger_name {
-    description: "Ledger in General Ledger Accounting"
-    # sql: if(${ledger_in_general_ledger_accounting} = '0L','Leading Ledger', ${ledger_in_general_ledger_accounting} );;
-    sql:  CASE ${ledger_in_general_ledger_accounting}
-            WHEN '0L' THEN '0L - Leading Ledger'
-            WHEN '2L' THEN '2L - IFRS Non-leading Ledger'
-            WHEN '0E' THEN '0E - Extension Ledger'
-          ELSE ${ledger_in_general_ledger_accounting}
-          END;;
-    order_by_field: ledger_in_general_ledger_accounting
-  }
-
-  dimension: business_area {
-    sql: COALESCE(${TABLE}.BusinessArea,'N/A') ;;
-  }
-
-  dimension: company_code {
-    label: "Company (code)"
-    description: "Company Code"
-  }
-
-  dimension: company_text {
-    label: "Company (text)"
-    description: "Company Name"
   }
 
   dimension: parent {
@@ -210,72 +164,12 @@ view: +balance_sheet {
     description: "Yes if GL Account Number and indicates lowest level of hierarchy."
   }
 
+  #} end Hierarchy Dimensions
 
-# Fiscal Year and Period and other forms of Fiscal Dates
+
+#########################################################
+# Fiscal Reporting Dimensions
 # {
-  dimension: fiscal_period {
-    group_label: "Fiscal Dates"
-    description: "Fiscal Period as 3-character string (e.g., 001)"
-  }
-
-  dimension: fiscal_period_number {
-    hidden: yes
-    group_label: "Fiscal Dates"
-    description: "Fiscal Period as a Numeric Value"
-    type: number
-    sql: PARSE_NUMERIC(${fiscal_period}) ;;
-    value_format_name: id
-  }
-
-  dimension: fiscal_quarter {
-    group_label: "Fiscal Dates"
-    description: "Fiscal Quarter value of 1, 2, 3, or 4"
-  }
-
-  dimension: fiscal_year {
-    group_label: "Fiscal Dates"
-    description: "Fiscal Year as YYYY"
-  }
-
-  dimension: fiscal_year_period_number {
-    hidden: no
-    type: number
-    group_label: "Fiscal Dates"
-    description: "Fiscal Year and Period as a Numeric Value in form of YYYYPPP"
-    sql: PARSE_NUMERIC(CONCAT(${fiscal_year},${fiscal_period})) ;;
-    value_format_name: id
-  }
-
-  # used in order_by_field to sort fiscal year period in descending order
-  dimension: fiscal_year_period_negative_number {
-    hidden: yes
-    type: number
-    sql: -1 * ${fiscal_year_period_number} ;;
-  }
-
-  dimension: fiscal_year_period {
-    type: string
-    group_label: "Fiscal Dates"
-    description: "Fiscal Year and Period as String in form of YYYY.PPP"
-    sql: CONCAT(${fiscal_year},'.',${fiscal_period});;
-    order_by_field: fiscal_year_period_negative_number
-  }
-
-  dimension: fiscal_year_quarter {
-    type: string
-    group_label: "Fiscal Dates"
-    description: "Fiscal Year and Quater in form of YYYY.Q#"
-    sql: CONCAT(${fiscal_year},'.Q',${fiscal_quarter}) ;;
-  }
-
-  dimension: fiscal_year_number {
-    hidden: yes
-    group_label: "Fiscal Dates"
-    description: "Fiscal Year as a Numeric Value"
-    type: number
-    sql: PARSE_NUMERIC(${fiscal_year}) ;;
-    value_format_name: id
-  }
 
   # if select_fiscal_period parameter used in query, assign fiscal_year_period to either Reporting or Comparison group
   # comparison period derived based on select_comparison_type parameter:
@@ -308,46 +202,17 @@ view: +balance_sheet {
     sql: '{% parameter select_fiscal_period %}';;
   }
 
-  #} end Fiscal Dates
+  #} end Fiscal Reporting dimensions
 
-# Hidden dimensions including those restated as measures like Amounts and Exchange Rates
-# {
-  # hide client and define as client_mandt to match other SAP tables
-  dimension: client {
-    hidden: yes
-  }
-
-  dimension: amount_in_local_currency {
-    hidden: yes
-  }
-
-  dimension: amount_in_target_currency {
-    hidden: yes
-    label: "Amount in Global Currency"
-  }
-
-  dimension: cumulative_amount_in_local_currency {
-    hidden: yes
-  }
-
-  dimension: cumulative_amount_in_target_currency {
-    hidden: yes
-    label: "Cumulative Amount in Global Currency"
-    description: "End of Period Cumulative Amount in Global/Target Currency"
-  }
-
-  dimension: exchange_rate {hidden: yes}
-  dimension: avg_exchange_rate {hidden:yes}
-  dimension: max_exchange_rate {hidden:yes}
-#} end hidden dimensions
-
-#} end Dimensions
 
 #########################################################
 # Measures
 # {
 
-  measure: count {hidden: yes}
+  measure: count {
+    hidden: no
+    label: "Count of Rows"
+    }
 
   measure: total_amount_in_local_currency {
     type: sum

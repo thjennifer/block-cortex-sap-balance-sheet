@@ -3,6 +3,9 @@
 #   balance_sheet_rfn
 #   profit_and_loss_rfn
 #
+# Any changes to this view will be passed into any views extending this view.
+# Once extended into balance_sheet_rfn and profit_and_loss_rfn, these dimensions can be customized as necessary in the extending views.
+#
 # includes:
 #   client_mandt
 #   language_key_spras
@@ -12,9 +15,14 @@
 #   ledger_name
 #   company_code
 #   company_text
+#   business_area
+#   chart_of_accounts
 #   fiscal_period, fiscal_period_number, fiscal_year_period, fiscal_year_period_number, fiscal_year_period_negative_number
 #   fiscal_quarter, fiscal_quarter_label, fiscal_year_quarter_label, fiscal_year_quarter_negative_number
 #   fiscal_year, fiscal_year_number, fiscal_year_negative_number
+#
+#   hidden dimensions: client, exchange_rate, avg_exchange_rate, amount_in_local_currency, amount_in_target_currency, amount_in_target_currency
+#                     cumulative_amount_in_target_currency, cumulative_amount_in_target_currency
 #########################################################
 
 
@@ -22,13 +30,15 @@ view: common_fields_finance_ext {
 
   dimension: client_mandt {
     type: string
+    hidden: yes
     label: "Client"
+    description: "Client MANDT"
     sql: ${TABLE}.Client ;;
   }
 
   dimension: language_key_spras {
     label: "Language Key"
-    description: "Language used for text display of Company, Parent and/or Child Node"
+    description: "Language used for text display of Company, Parent and/or Child Node. Automatically filters to user's locale user attribute value."
   }
 
   dimension: currency_key {
@@ -43,12 +53,12 @@ view: common_fields_finance_ext {
 
   dimension: ledger_in_general_ledger_accounting {
     label: "Ledger"
-    description: "Ledger in General Ledger Accounting"
+    description: "Ledger in General Ledger Accounting as ID or Code"
     sql: COALESCE(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
   }
 
   dimension: ledger_name {
-    description: "Ledger in General Ledger Accounting"
+    description: "Ledger in General Ledger Accounting Name. Currently defined as assigned name values for 0L (Leading Ledger), 2L (IFRS Non-leading Ledger), 0E (Extension Ledger) else ledger value is used."
     sql:  CASE ${ledger_in_general_ledger_accounting}
           WHEN '0L' THEN '0L - Leading Ledger'
           WHEN '2L' THEN '2L - IFRS Non-leading Ledger'
@@ -66,6 +76,15 @@ view: common_fields_finance_ext {
   dimension: company_text {
     label: "Company (text)"
     description: "Company Name"
+  }
+
+  dimension: business_area {
+    description: "Business Area"
+    sql: COALESCE(${TABLE}.BusinessArea,'N/A') ;;
+  }
+
+  dimension: chart_of_accounts {
+    description: "Chart of Accounts"
   }
 
   # Fiscal Year and Period and other forms of Fiscal Dates
@@ -93,11 +112,12 @@ view: common_fields_finance_ext {
   }
 
   dimension: fiscal_year_period_number {
-    hidden: no
+    hidden: yes
     type: number
+    label: "Fiscal Year Period (number)"
     group_label: "Fiscal Dates"
     description: "Fiscal Year and Period as a Numeric Value in form of YYYYPPP"
-    sql: PARSE_NUMERIC(concat(${fiscal_year},${fiscal_period})) ;;
+    sql: PARSE_NUMERIC(CONCAT(${fiscal_year},${fiscal_period})) ;;
     value_format_name: id
   }
 
@@ -108,16 +128,19 @@ view: common_fields_finance_ext {
   }
 
   dimension: fiscal_quarter {
-    hidden: no
+    type: number
+    hidden: yes
+    label: "Fiscal Quarter (number)"
     group_label: "Fiscal Dates"
     description: "Fiscal Quarter value of 1, 2, 3, or 4"
+    sql: PARSE_NUMERIC(${TABLE}.FiscalQuarter) ;;
   }
 
   dimension: fiscal_quarter_label {
     group_label: "Fiscal Dates"
     label: "Fiscal Quarter"
     description: "Fiscal Quarter value of Q1, Q2, Q3, or Q4"
-    sql: CONCAT('Q',${fiscal_quarter});;
+    sql: CONCAT('Q',${TABLE}.FiscalQuarter);;
   }
 
   dimension: fiscal_year_quarter_label {
@@ -130,7 +153,7 @@ view: common_fields_finance_ext {
   dimension: fiscal_year_quarter_negative_number {
     hidden: yes
     type: number
-    sql: -1 * PARSE_NUMERIC(concat(${fiscal_year},${fiscal_quarter})) ;;
+    sql: -1 * PARSE_NUMERIC(CONCAT(${fiscal_year},${fiscal_quarter})) ;;
   }
 
   dimension: fiscal_year {
@@ -141,9 +164,10 @@ view: common_fields_finance_ext {
   dimension: fiscal_year_number {
     hidden: yes
     group_label: "Fiscal Dates"
+    label: "Fiscal Year (number)"
     description: "Fiscal Year as a Numeric Value"
     type: number
-    sql: parse_numeric(${fiscal_year}) ;;
+    sql: PARSE_NUMERIC(${fiscal_year}) ;;
     value_format_name: id
   }
 
@@ -153,8 +177,20 @@ view: common_fields_finance_ext {
     sql: -1 * PARSE_NUMERIC(${fiscal_year}) ;;
   }
 
-
-
 #} end fiscal period
+
+# Hidden dimensions that are restated as measures; Amounts and Exchange Rates
+# {
+  # hide client and define as client_mandt to match other SAP tables
+  dimension: client {hidden: yes}
+  dimension: exchange_rate {hidden: yes}
+  dimension: avg_exchange_rate {hidden:yes}
+  dimension: max_exchange_rate {hidden:yes}
+  dimension: amount_in_local_currency {hidden: yes}
+  dimension: amount_in_target_currency {hidden: yes}
+  dimension: cumulative_amount_in_local_currency {hidden: yes}
+  dimension: cumulative_amount_in_target_currency {hidden: yes}
+
+  #} end hidden dimensions
 
  }

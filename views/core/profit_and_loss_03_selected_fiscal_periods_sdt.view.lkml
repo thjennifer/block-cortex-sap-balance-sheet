@@ -136,6 +136,7 @@ derived_table: {
   dimension: selected_timeframe {
     type: string
     hidden: no
+    description: "Returns either Fiscal Year, Fiscal Year Quarter or Fiscal Year Period as defined by parameter Display Year, Quarter or Period."
     group_label: "Current vs. Comparison Period"
     sql:  ${TABLE}.selected_timeframe;;
   }
@@ -143,6 +144,7 @@ derived_table: {
   dimension: selected_timeframe_list {
     type: string
     hidden: no
+    description: "List of fiscal timeframes selected by user with filter Select Fiscal Timeframes. Example lists include 2024.001, 2024.002 or 2023.Q3, 2023.Q4, 2024.Q1"
     group_label: "Current vs. Comparison Period"
     sql: ${TABLE}.selected_timeframe_list ;;
   }
@@ -150,13 +152,14 @@ derived_table: {
   dimension: fiscal_reporting_group {
     type: string
     hidden: no
+    description: "Identifies the Current or Comparison reporting group. In fiscal reporting, the Current group is determined by the values selected in the Select Fiscal Timeframes filter, while the Comparison group is defined by the Compare To parameter, which can be set to either Year Ago or Prior Timeframe."
     group_label: "Current vs. Comparison Period"
     sql:  ${TABLE}.fiscal_reporting_group;;
   }
 
   dimension: alignment_group {
     type: number
-    hidden: no
+    hidden: yes
     group_label: "Current vs. Comparison Period"
     sql: ${TABLE}.alignment_group ;;
   }
@@ -164,6 +167,7 @@ derived_table: {
   dimension: alignment_group_name {
     type: string
     hidden: no
+    description: "Name for Grouped Timeframes Included in the same Current vs. Comparison set. For example, if Period 2024.001 is to be compared to a Year Ago, the periods 2024.001 and 2023.001 are assigned to same alignment group and given the label 2024.001."
     group_label: "Current vs. Comparison Period"
     sql: ${TABLE}.alignment_group_name ;;
     order_by_field: alignment_group
@@ -173,8 +177,9 @@ derived_table: {
     type: sum_distinct
     hidden: no
     group_label: "Current vs. Comparison Period"
-    # label: "{% if profit_and_loss.filter_fiscal_timeframe._in_query%}{% assign timelevel = profit_and_loss.parameter_display_time_dimension._parameter_value %}Current {%if timelevel =='yr'%}Year{% elsif timelevel == 'qtr' %}Quarter{%else%}Period{%endif%}{%else%}Current Amount{%endif%}"
-    label: "{% assign compare = profit_and_loss.parameter_compare_to._parameter_value %}{% if profit_and_loss.filter_fiscal_timeframe._in_query and compare == 'none'%} {% else %}Current{% endif %}"
+    # Label is Current Amount by default. If filter_fiscal_timeframe in query and parameter_compare_to = 'none' then leave label blank"
+    label: "{% assign compare = profit_and_loss.parameter_compare_to._parameter_value %}{% if profit_and_loss.filter_fiscal_timeframe._in_query and compare == 'none'%} {% else %}Current Amount{% endif %}"
+    description: "Amount in Global Currency for the Current fiscal reporting group."
     sql_distinct_key: ${profit_and_loss.key} ;;
     sql: ${profit_and_loss.amount_in_target_currency} ;;
     filters: [fiscal_reporting_group: "Current"]
@@ -186,7 +191,9 @@ derived_table: {
     type: sum_distinct
     hidden: no
     group_label: "Current vs. Comparison Period"
-    label: "{% if profit_and_loss.filter_fiscal_timeframe._in_query%}{% assign compare = profit_and_loss.parameter_compare_to._parameter_value %}{% if compare == 'yoy' %}{%assign compare_label = 'Year Ago' %}{%elsif compare == 'prior'%}{%assign compare_label = 'Prior'%}{% else %}{% assign compare_label = 'None' %}{%endif%}{{compare_label}}{%else%}Comparison Amount{%endif%}"
+    # Label is Comparison Amount by default. If filter_fiscal_timeframe in query, then Label is Year Ago Amount, Prior Amount or None based on parameter_compare_to
+    label: "{% if profit_and_loss.filter_fiscal_timeframe._in_query%}{% assign compare = profit_and_loss.parameter_compare_to._parameter_value %}{% if compare == 'yoy' %}{%assign compare_label = 'Year Ago Amount' %}{%elsif compare == 'prior'%}{%assign compare_label = 'Prior Amount'%}{% else %}{% assign compare_label = 'None' %}{%endif%}{{compare_label}}{%else%}Comparison Amount{%endif%}"
+    description: "Amount in Global Currency for the Comparison fiscal reporting group."
     sql_distinct_key: ${profit_and_loss.key} ;;
     sql: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}${profit_and_loss.amount_in_target_currency}{%else%}NULL{%endif%} ;;
     filters: [fiscal_reporting_group: "Comparison"]
@@ -198,7 +205,8 @@ derived_table: {
     type: number
     hidden: no
     group_label: "Current vs. Comparison Period"
-    label: "{% if profit_and_loss.filter_fiscal_timeframe._in_query%}{% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}Variance Amount{%else%} . {%endif%}{%else%}Variance Amount{%endif%}"
+    label: "Variance Amount"
+    description: "Current Amount - Comparison Amount"
     sql: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}${current_amount} - ${comparison_amount}{%else%}NULL{%endif%} ;;
     value_format_name: decimal_0
     html: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}@{negative_format}{%else%} {%endif%} ;;
@@ -208,7 +216,8 @@ derived_table: {
     type: number
     hidden: no
     group_label: "Current vs. Comparison Period"
-    label: "{% if profit_and_loss.filter_fiscal_timeframe._in_query%}{% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}Variance %{%else%} . {%endif%}{%else%}Variance %{%endif%}"
+    label: "Variance %"
+    description: "Percent difference between Current Amount and Comparison Amount."
     sql: SAFE_DIVIDE( (${current_amount} - ${comparison_amount}),ABS(${comparison_amount})) ;;
     value_format_name: percent_1
     html: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}@{negative_format}{%else%} {%endif%} ;;
@@ -224,7 +233,7 @@ derived_table: {
       <div  style="font-size:100pct; background-color:rgb((169,169,169,.5); text-align:center;  line-height: .8; font-family:'Noto Sans SC'; font-color: #808080">
           <a style="font-size:100%;font-family:'verdana';color: black"><b>Income Statement</b></a><br>
           <a style= "font-size:80%;font-family:'verdana';color: black">{{profit_and_loss.company_text._value}}</a><br>
-          <a style= "font-size:80%;font-family:'verdana';color: black">Fiscal Timeframe:   {{selected_timeframe_list._value}}&nbsp;&nbsp;&nbsp; Net Income: {{profit_and_loss.net_income._rendered_value}}M</a>
+          <a style= "font-size:80%;font-family:'verdana';color: black">Current Fiscal Timeframe:   {{selected_timeframe_list._value}}&nbsp;&nbsp;&nbsp; Net Income: {{profit_and_loss.net_income._rendered_value}}M</a>
           <br>
           <a style= "font-size: 70%; text-align:center;font-family:'verdana';color: black"> Amounts in {{profit_and_loss.target_currency_tcurr}} </a>
        </div>

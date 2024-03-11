@@ -60,6 +60,7 @@ view: profit_and_loss_hierarchy_selection_sdt {
        NodePath[SAFE_OFFSET({{start | plus: 4}})] AS hier5_node
    FROM ${profit_and_loss_path_to_node_pdt.SQL_TABLE_NAME} h
    WHERE LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
+   --WHERE LevelNumber = 6
    --WHERE NodeTextPath[SAFE_OFFSET({{start}})] is not null
     ;;
 }

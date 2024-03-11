@@ -62,8 +62,8 @@ view: profit_and_loss_path_to_node_pdt {
           n.GLParent,
           n.GLParentText,
           LevelSequenceNumber+1 AS LevelSequenceNumber,
-          CONCAT(NodeTextPath_String, '/',n.GLNodeText) AS NodeTextPath_String,
-          CONCAT(NodePath_String, '/',n.GLNode) AS NodePath_String
+          CONCAT(NodeTextPath_String, '-->',n.GLNodeText) AS NodeTextPath_String,
+          CONCAT(NodePath_String, '-->',n.GLNode) AS NodePath_String
         FROM
           n
         JOIN
@@ -74,6 +74,7 @@ view: profit_and_loss_path_to_node_pdt {
           AND i.ChartOfAccounts = n.ChartOfAccounts
           AND i.GLHierarchy = n.GLHierarchy
           AND i.LanguageKey_SPRAS = n.LanguageKey_SPRAS
+          AND i.LevelSequenceNumber < 12
           )
       SELECT Client,
              ChartOfAccounts,
@@ -87,8 +88,8 @@ view: profit_and_loss_path_to_node_pdt {
              MAX(LevelNumber) OVER (PARTITION BY Client,ChartOfAccounts,GLHierarchy) AS MaxLevelNumber,
              NodeTextPath_String,
              NodePath_String,
-             SPLIT(NodeTextPath_String,'/') AS NodeTextPath,
-             SPLIT(NodePath_String,'/') AS NodePath
+             SPLIT(NodeTextPath_String,'-->') AS NodeTextPath,
+             SPLIT(NodePath_String,'-->') AS NodePath
       FROM iterations
        ;;
     }

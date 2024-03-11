@@ -1,4 +1,4 @@
-#########################################################
+#########################################################{
 # With this reporting view, users can report on any of the FSV nodes and corresponding amounts will be rolled up or down according to node values
 #
 # aggregation of General Ledger Transactions by the following dimensions:
@@ -27,9 +27,14 @@
 #   - a single Language (the Explore based on this view uses User Attribute locale to select language in joined view language_map_sdt)
 #   - a single Global Currency
 #   - a single Hierarchy Name or Financial Statement Version
-#   - a single Chart of Accounts
 #   - a single Company
-#########################################################
+#
+# Extends common dimensions found in both balance sheet and profit and loss using view common_fields_finance_ext
+#   client_mandt, language_key_spras, currency_key, target_currency_tcurr, ledger_in_general_ledger_accounting, ledger_name, company_code, company_text, chart_of_accounts, business_area,
+#   fiscal_period, fiscal_quarter, fiscal_year and related fields
+# Make changes to these dimensions in view common_fields_finance_ext if changes are for both balance sheet and profit and loss or;
+# Customize these dimensions specifically for Profit and Loss in this view as needed
+#########################################################}
 
 
 include: "/views/base/profit_and_loss.view"
@@ -52,10 +57,11 @@ label: "Income Statement"
 #########################################################
 # Parameters & Filters for Income Statement Dashboard and related dimensions
 #{
-# 3 parameters:
+# 4 parameters:
 #   parameter_display_time_dimension
 #   filter_fiscal_timeframe
 #   parameter_compare_to
+#   parameter_aggregate
 #
 # 2 related dimensions:
 #   timeframes_list - based on selection for parameter_display_time_dimension will show either fiscal_year, fiscal_year_quarter_label, fiscal_year_period
@@ -134,65 +140,12 @@ label: "Income Statement"
          {% endif %};;
   }
 
-  # dimension: selected_time_dimension {
-  #   label_from_parameter: parameter_display_time_dimension
-  #   sql: {% assign display = parameter_display_time_dimension._parameter_value %}
-  #       {% if display == 'yr' %}${fiscal_year}
-  #       {% elsif display == 'qtr' %}${fiscal_quarter_label}
-  #       {% else %}${fiscal_period}
-  #       {% endif %};;
-  # }
-
 #} end parameters & filters
 
 
-  # dimension: client_mandt {
-  #   type: string
-  #   label: "Client"
-  #   sql: ${TABLE}.Client ;;
-  # }
-
-  # dimension: language_key_spras {
-  #   label: "Language Key"
-  #   description: "Language used for text display of Company, Parent and/or Child Node"
-  # }
-
-  # dimension: currency_key {
-  #   label: "Currency (Local)"
-  #   description: "Local Currency"
-  # }
-
-  # dimension: target_currency_tcurr {
-  #   label: "Currency (Global)"
-  #   description: "Target or Global Currency to display"
-  # }
-
-  # dimension: ledger_in_general_ledger_accounting {
-  #   label: "Ledger"
-  #   description: "Ledger in General Ledger Accounting"
-  #   sql: COALESCE(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
-  # }
-
-  # dimension: ledger_name {
-  #   description: "Ledger in General Ledger Accounting"
-  #   sql:  CASE ${ledger_in_general_ledger_accounting}
-  #         WHEN '0L' THEN '0L - Leading Ledger'
-  #         WHEN '2L' THEN '2L - IFRS Non-leading Ledger'
-  #         WHEN '0E' THEN '0E - Extension Ledger'
-  #         ELSE ${ledger_in_general_ledger_accounting}
-  #         END;;
-  #   order_by_field: ledger_in_general_ledger_accounting
-  # }
-
-  # dimension: company_code {
-  #   label: "Company (code)"
-  #   description: "Company Code"
-  # }
-
-  # dimension: company_text {
-  #   label: "Company (text)"
-  #   description: "Company Name"
-  # }
+#########################################################
+# GL Hierarchy, Level, Parent and Node dimensions
+# {
 
   dimension: glhierarchy {
     label: "GL Hierarchy"
@@ -201,152 +154,88 @@ label: "Income Statement"
 
   dimension: gllevel {
     label: "GL Level"
+    description: "GL Hierarchy level of the Child Node represents logical classification within a Chart of Accounts and Includes the Parent-Child Relationship."
   }
 
   dimension: gllevel_number {
     type: number
     label: "GL Level (number)"
+    description: "GL Level as a numeric. GL Hierarchy level of the Child Node represents logical classification within a Chart of Accounts and Includes the Parent-Child Relationship."
     sql: PARSE_NUMERIC(${gllevel}) ;;
   }
 
+  # used as input into parameter Top Level of Hierarchy to Show
   dimension: gllevel_string {
     type: string
     hidden: yes
     label: "Level"
-    description: "Level as a numeric. Level shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 2 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 3 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
+    description: "GL Level as a string. GL Hierarchy level of the Child Node represents logical classification within a Chart of Accounts and Includes the Parent-Child Relationship."
     sql: LTRIM(${gllevel},'0') ;;
   }
 
   dimension: glnode {
     label: "GL Node (code)"
+    description: "General Ledger Child Node as a code value."
   }
 
   dimension: glnode_text {
     label: "GL Node (text)"
+    description: "General Ledger Child Node as a descriptive name."
     order_by_field: glnode
   }
 
   dimension: glparent {
     label: "GL Parent (code)"
+    description: "Within a given GL Level, the Parent Node of the Child Node as a code value."
   }
 
   dimension: glparent_text {
     label: "GL Parent (text)"
+    description: "Within a given GL Level, the Parent Node of the Child Node as a descriptive name."
     order_by_field: glparent
   }
 
   dimension: glfinancial_item {
     label: "GL Financial Item"
-    description: "A single line-item entry within a GL account"
+    description: "A single line-item entry within a GL account."
   }
 
-# Fiscal Year and Period and other forms of Fiscal Dates
-# {
-  # dimension: fiscal_period {
-  #   group_label: "Fiscal Dates"
-  #   description: "Fiscal Period as 3-character string (e.g., 001)"
-  # }
-
-  # dimension: fiscal_period_number {
-  #   hidden: yes
-  #   group_label: "Fiscal Dates"
-  #   description: "Fiscal Period as a Numeric Value"
-  #   type: number
-  #   sql: PARSE_NUMERIC(${fiscal_period}) ;;
-  #   value_format_name: id
-  # }
-
-  # dimension: fiscal_quarter {
-  #   hidden: yes
-  #   group_label: "Fiscal Dates"
-  #   description: "Fiscal Quarter value of 1, 2, 3, or 4"
-  # }
-
-  # dimension: fiscal_quarter_label {
-  #   group_label: "Fiscal Dates"
-  #   label: "Fiscal Quarter"
-  #   description: "Fiscal Quarter value of Q1, Q2, Q3, or Q4"
-  #   sql: CONCAT('Q',${fiscal_quarter});;
-  # }
-
-  # dimension: fiscal_year_quarter_label {
-  #   group_label: "Fiscal Dates"
-  #   label: "Fiscal Year Quarter"
-  #   description: "Fiscal Quarter value with year in format YYYY.Q#"
-  #   sql: CONCAT(${fiscal_year},'.Q',${fiscal_quarter}) ;;
-  # }
-
-  # dimension: fiscal_year {
-  #   group_label: "Fiscal Dates"
-  #   description: "Fiscal Year as YYYY"
-  # }
-
-  # dimension: fiscal_year_period {
-  #   type: string
-  #   group_label: "Fiscal Dates"
-  #   description: "Fiscal Year and Period as String in form of YYYY.PPP"
-  #   sql: CONCAT(${fiscal_year},'.',${fiscal_period});;
-  #   order_by_field: fiscal_year_period_negative_number
-  # }
-
-  # dimension: fiscal_year_period_number {
-  #   hidden: no
-  #   type: number
-  #   group_label: "Fiscal Dates"
-  #   description: "Fiscal Year and Period as a Numeric Value in form of YYYYPPP"
-  #   sql: PARSE_NUMERIC(concat(${fiscal_year},${fiscal_period})) ;;
-  #   value_format_name: id
-  # }
-
-  # dimension: fiscal_year_period_negative_number {
-  #   hidden: yes
-  #   type: number
-  #   sql: -1 * ${fiscal_year_period_number} ;;
-  # }
-
-  # dimension: fiscal_year_quarter_negative_number {
-  #   hidden: yes
-  #   type: number
-  #   sql: -1 * PARSE_NUMERIC(concat(${fiscal_year},${fiscal_quarter})) ;;
-  # }
-
-  # dimension: fiscal_year_negative_number {
-  #   hidden: yes
-  #   type: number
-  #   sql: -1 * PARSE_NUMERIC(${fiscal_year}) ;;
-  # }
-
-  # dimension: fiscal_year_number {
-  #   hidden: yes
-  #   group_label: "Fiscal Dates"
-  #   description: "Fiscal Year as a Numeric Value"
-  #   type: number
-  #   sql: parse_numeric(${fiscal_year}) ;;
-  #   value_format_name: id
-  # }
-
-  #} end fiscal period
-
-# derived dimensions
-# {
-
-#} end derived dimensions
-
-# Hidden dimensions that are restated as measures; Amounts and Exchange Rates
-# {
-  # hide client and define as client_mandt to match other SAP tables
-  dimension: client {
-    hidden: yes
+  dimension: glis_leaf_node {
+    type: yesno
+    label: "Is Leaf Node"
+    description: "Yes if GL Child Node is a Leaf Node."
   }
 
-  # adjust sign if needed so that Revenue is displayed as positive value and Expense as negative
-  dimension: amount_in_local_currency {
+  dimension: cost_center {
+    description: "Cost Center"
+  }
+
+  dimension: profit_center {
+    description: "Profit Center"
+  }
+
+#} end gl_dimensions
+
+#########################################################
+# Amount dimensions with Sign Multiplier
+# {
+# Revenue is generally displayed in general ledger as a negative number, which indicates a credit.
+# By setting the constant SIGN_CHANGE value to 'yes' in the project manifest,
+# it's displayed as a positive number in income statement.
+#
+# Using the constant sign_change_multiplier (which uses SIGN_CHANGE constant), the appropriate multiplier is
+# applied to the Amount dimensions below
+#
+# These dimensions are hidden from the explore and restated using measures
+#
+
+dimension: amount_in_local_currency {
     hidden: yes
     sql: @{sign_change_multiplier}
          ${TABLE}.AmountInLocalCurrency * {{multiplier}} ;;
   }
 
-  # flip the signs so Income is positive and Expenses negative
+  # based on value in CONSTANTs sign_change_multiplier flip the signs so Income is positive and Expenses negative
   dimension: amount_in_target_currency {
     hidden: yes
     label: "Amount in Global Currency"
@@ -368,16 +257,16 @@ label: "Income Statement"
          ${TABLE}.CumulativeAmountInTargetCurrency * {{multiplier}} ;;
   }
 
-  dimension: exchange_rate {hidden: yes}
-  dimension: avg_exchange_rate {hidden:yes}
-  dimension: max_exchange_rate {hidden:yes}
-#} end hidden dimensions
+#} end amount dimensions
 
 #########################################################
 # Measures
 # {
 
-  measure: count {hidden: yes}
+  measure: count {
+    hidden: no
+    label: "Count of Rows"
+    }
 
   measure: total_amount_in_local_currency {
     type: sum
@@ -416,7 +305,6 @@ label: "Income Statement"
     # value_format_name: millions_d1
   }
 
-
   measure: net_income {
     type: sum
     hidden: no
@@ -426,12 +314,7 @@ label: "Income Statement"
     value_format_name: millions_d1
 }
 
-
-
-
   #} end measures
 
 
-
-
-   }
+}
