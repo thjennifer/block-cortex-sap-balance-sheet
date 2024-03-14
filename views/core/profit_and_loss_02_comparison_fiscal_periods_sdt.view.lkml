@@ -100,6 +100,7 @@ view: profit_and_loss_02_comparison_fiscal_periods_sdt {
               comp.fiscal_period,
               {{alignment_group_sql}} AS alignment_group,
               comp.{{timeframe_field}} AS selected_timeframe,
+              cur.is_partial_timeframe,
               'Comparison' AS fiscal_reporting_group
       FROM ${profit_and_loss_01_current_fiscal_periods_sdt.SQL_TABLE_NAME} cur
       JOIN ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} comp

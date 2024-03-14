@@ -12,17 +12,17 @@
     explore: profit_and_loss
     type: looker_grid
     fields: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text,
-      profit_and_loss_hierarchy_selection_sdt.hier3_node_text, profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name,
+      profit_and_loss_hierarchy_selection_sdt.hier3_node_text, profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator,
       profit_and_loss_03_selected_fiscal_periods_sdt.current_amount]
-    pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name]
-    sorts: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
+    pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator]
+    sorts: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text, profit_and_loss_hierarchy_selection_sdt.hier3_node_text]
     subtotals: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text]
     series_labels:
       profit_and_loss_hierarchy_selection_sdt.hier1_node_text: " "
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text: " "
       profit_and_loss_hierarchy_selection_sdt.hier3_node_text: " "
-      profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name: " "
+      profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator: " "
       profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: " "
     limit: 500
     column_limit: 50

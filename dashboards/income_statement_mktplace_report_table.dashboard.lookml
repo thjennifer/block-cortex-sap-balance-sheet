@@ -14,13 +14,13 @@
     fields: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier3_node_text, profit_and_loss_03_selected_fiscal_periods_sdt.current_amount,
       profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount, profit_and_loss_03_selected_fiscal_periods_sdt.difference_value,
-      profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent, profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name]
-    pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name]
+      profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent, profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator]
+    pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator]
     # filters:
     #   profit_and_loss.parameter_display_time_dimension: qtr
     #   profit_and_loss.parameter_compare_to: yoy
     #   profit_and_loss.filter_fiscal_timeframe: 2023.Q3
-    sorts: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
+    sorts: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text, profit_and_loss_hierarchy_selection_sdt.hier3_node_text]
     show_view_names: false
     theme: contemporary

@@ -11,13 +11,13 @@
     name: profit and loss table
     explore: profit_and_loss
     type: looker_grid
-    fields: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name, profit_and_loss_03_selected_fiscal_periods_sdt.current_amount,
+    fields: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator, profit_and_loss_03_selected_fiscal_periods_sdt.current_amount,
       profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount, profit_and_loss_03_selected_fiscal_periods_sdt.difference_value,
       profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text, profit_and_loss_hierarchy_selection_sdt.hier3_node_text]
-    pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name]
+    pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator]
     filters: {}
-    sorts: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
+    sorts: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text,profit_and_loss_hierarchy_selection_sdt.hier3_node_text]
     subtotals: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text]
     limit: 500
@@ -46,7 +46,7 @@
       profit_and_loss_hierarchy_selection_sdt.hier1_node_text: " "
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text: " "
       profit_and_loss_hierarchy_selection_sdt.hier3_node_text: " "
-      profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name: " "
+      profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator: " "
     series_collapsed:
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text: false
     hidden_fields: []

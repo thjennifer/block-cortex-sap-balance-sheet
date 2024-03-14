@@ -312,7 +312,12 @@ dimension: amount_in_local_currency {
     sql: ${amount_in_target_currency} ;;
     filters: [gllevel_number: "2"]
     value_format_name: millions_d1
-}
+  }
+
+  measure: list_fiscal_periods {
+    type: list
+    list_field: fiscal_year_period
+  }
 
   #} end measures
 

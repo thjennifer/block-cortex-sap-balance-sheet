@@ -54,9 +54,11 @@ view: profit_and_loss_01_current_fiscal_periods_sdt {
     {% assign time_level = profit_and_loss.parameter_display_time_dimension._parameter_value %}
     {% assign aggregate = profit_and_loss.parameter_aggregate._parameter_value %}
     {% assign window_partition = "(PARTITION BY glhierarchy, company_code)" %}
-    {% if time_level == 'fp' %}{% assign timeframe_field = "fiscal_year_period" %}
+    {% if time_level == 'fp' %}{% assign timeframe_field = "fiscal_year_period" %}{% assign is_partial_sql = "false" %}
       {% elsif time_level == 'qtr' %}{% assign timeframe_field = "fiscal_year_quarter" %}
-      {% elsif time_level == 'yr' %}{% assign timeframe_field = "fiscal_year" %}
+                {% assign is_partial_sql = "is_qtd" %}
+      {% elsif time_level == 'yr' %}{% assign timeframe_field = "fiscal_year" %}{% assign is_partial_sql = "is_ytd" %}
+      {% else %}{% assign is_partial_sql = "" %}
     {% endif %}
     {% assign rank_field = timeframe_field | append: "_rank" %}
 
@@ -75,6 +77,8 @@ view: profit_and_loss_01_current_fiscal_periods_sdt {
       {% else %}{% assign alignment_group_sql = "DENSE_RANK() OVER (window_pk ORDER BY " | append: timeframe_field | append: " DESC)" %}
     {% endif %}
 
+
+
     SELECT  glhierarchy,
             company_code,
             fiscal_year,
@@ -89,6 +93,7 @@ view: profit_and_loss_01_current_fiscal_periods_sdt {
             {{timeframe_join_sql}} as timeframe_join,
             {{prior_timeframe_join_sql}} as prior_timeframe_join,
          {% endif %}
+            {{is_partial_sql}} as is_partial_timeframe,
             'Current' AS fiscal_reporting_group
      FROM ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp
      WHERE {% condition profit_and_loss.filter_fiscal_timeframe %}{{timeframe_field}}{% endcondition %}
