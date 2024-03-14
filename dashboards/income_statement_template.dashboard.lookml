@@ -13,7 +13,7 @@
     type: single_value
     fields: [profit_and_loss_03_selected_fiscal_periods_sdt.title_income_statement]
     filters:
-      profit_and_loss.gllevel: '000002'
+      profit_and_loss.gllevel_number: '2'
       profit_and_loss_03_selected_fiscal_periods_sdt.fiscal_reporting_group: Current
     show_single_value_title: false
     listen:
@@ -105,7 +105,8 @@
   - name: Select Fiscal Timeframe
     title: Select Fiscal Timeframe
     type: field_filter
-    default_value: 2023.Q3
+    # if using demo data default is 2023.Q4 else find current calendar quarter
+    default_value: "{% if _user_attributes['sap_use_demo_data']=='Yes'%}{% assign qtr = '2023.Q4'%}{%else%}{% assign q = 'now' | date: '%m' | times: 1.0 | divided_by: 3 | ceil %}{% assign qtr = 'now' | date: '%Y' | append: '.Q' | append: q %}{%endif%}{{qtr}}"
     allow_multiple_values: true
     required: false
     ui_config:
@@ -156,7 +157,7 @@
   - name: Company
     title: Company
     type: field_filter
-    default_value: C006-CYMBAL US-CENTRAL
+    default_value: "%CENTRAL%"
     allow_multiple_values: false
     required: false
     ui_config:

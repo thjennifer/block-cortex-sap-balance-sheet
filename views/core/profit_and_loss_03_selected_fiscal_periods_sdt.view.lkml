@@ -381,6 +381,4 @@ derived_table: {
           ;;
     }
 
-
-
  }

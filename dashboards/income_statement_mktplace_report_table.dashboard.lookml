@@ -16,10 +16,6 @@
       profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount, profit_and_loss_03_selected_fiscal_periods_sdt.difference_value,
       profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent, profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator]
     pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator]
-    # filters:
-    #   profit_and_loss.parameter_display_time_dimension: qtr
-    #   profit_and_loss.parameter_compare_to: yoy
-    #   profit_and_loss.filter_fiscal_timeframe: 2023.Q3
     sorts: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text, profit_and_loss_hierarchy_selection_sdt.hier3_node_text]
     show_view_names: false
@@ -45,71 +41,15 @@
     genericLabelForSubtotals: false
     indexColumn: false
     transposeTable: false
-
     label|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: " "
-    heading|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: ''
-    hide|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: false
     label|profit_and_loss_hierarchy_selection_sdt.hier2_node_text: " "
-    heading|profit_and_loss_hierarchy_selection_sdt.hier2_node_text: ''
-    hide|profit_and_loss_hierarchy_selection_sdt.hier2_node_text: false
     label|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: " "
-    heading|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: ''
-    hide|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: false
     subtotalDepth: '1'
-    label|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount:
-    heading|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: ''
     style|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: black_red
-    reportIn|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: '1'
-    unit|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: ''
-    comparison|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: no_variance
-    switch|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: false
-    var_num|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: false
-    var_pct|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: false
-    label|profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount:
-    heading|profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount: ''
     style|profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount: black_red
-    reportIn|profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount: '1'
-    unit|profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount: ''
-    comparison|profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount: no_variance
-    switch|profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount: false
-    var_num|profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount: false
-    var_pct|profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount: false
-    label|profit_and_loss_03_selected_fiscal_periods_sdt.difference_value: Variance Amount
-    heading|profit_and_loss_03_selected_fiscal_periods_sdt.difference_value: ''
     style|profit_and_loss_03_selected_fiscal_periods_sdt.difference_value: black_red
-    reportIn|profit_and_loss_03_selected_fiscal_periods_sdt.difference_value: '1'
-    unit|profit_and_loss_03_selected_fiscal_periods_sdt.difference_value: ''
-    comparison|profit_and_loss_03_selected_fiscal_periods_sdt.difference_value: no_variance
-    switch|profit_and_loss_03_selected_fiscal_periods_sdt.difference_value: false
-    var_num|profit_and_loss_03_selected_fiscal_periods_sdt.difference_value: false
-    var_pct|profit_and_loss_03_selected_fiscal_periods_sdt.difference_value: false
-    label|profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent: Variance
-      %
-    heading|profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent: ''
     style|profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent: black_red
-    reportIn|profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent: '1'
-    unit|profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent: ''
-    comparison|profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent: no_variance
-    switch|profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent: false
-    var_num|profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent: false
-    var_pct|profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent: false
-    hidden_pivots: {}
-    show_row_numbers: true
-    transpose: false
-    truncate_text: true
-    hide_totals: false
-    hide_row_totals: false
-    size_to_fit: false
-    table_theme: white
-    limit_displayed_rows: false
-    header_text_alignment: left
-    header_font_size: 12
-    rows_font_size: 12
-    conditional_formatting_include_totals: false
-    conditional_formatting_include_nulls: false
     title_hidden: true
-
-    defaults_version: 0
     listen:
       Global Currency: profit_and_loss.target_currency_tcurr
       Select Fiscal Timeframe: profit_and_loss.filter_fiscal_timeframe

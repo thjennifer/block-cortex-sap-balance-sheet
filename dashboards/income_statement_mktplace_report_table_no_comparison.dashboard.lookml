@@ -17,49 +17,35 @@
     pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator]
     sorts: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator, profit_and_loss_hierarchy_selection_sdt.hier1_node_text,
       profit_and_loss_hierarchy_selection_sdt.hier2_node_text, profit_and_loss_hierarchy_selection_sdt.hier3_node_text]
-    # subtotals: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text]
+    show_view_names: false
+    theme: contemporary
+    layout: auto
+    minWidthForIndexColumns: false
+    headerFontSize: 12
+    bodyFontSize: 12
+    showTooltip: true
+    showHighlight: true
+    columnOrder: {}
+    rowSubtotals: true
+    colSubtotals: false
+    spanRows: true
+    spanCols: true
+    calculateOthers: true
+    sortColumnsBy: pivots
+    useViewName: false
+    useHeadings: false
+    useShortName: false
+    useUnit: false
+    groupVarianceColumns: false
+    genericLabelForSubtotals: false
+    indexColumn: false
+    transposeTable: false
     label|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: " "
-    heading|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: ''
-    hide|profit_and_loss_hierarchy_selection_sdt.hier1_node_text: false
     label|profit_and_loss_hierarchy_selection_sdt.hier2_node_text: " "
-    heading|profit_and_loss_hierarchy_selection_sdt.hier2_node_text: ''
-    hide|profit_and_loss_hierarchy_selection_sdt.hier2_node_text: false
     label|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: " "
-    heading|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: ''
-    hide|profit_and_loss_hierarchy_selection_sdt.hier3_node_text: false
     style|profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: black_red
     subtotalDepth: '1'
-    limit: 500
-    column_limit: 50
-    total: false
-    show_view_names: false
-    show_row_numbers: true
-    transpose: false
-    truncate_text: true
-    hide_totals: true
-    hide_row_totals: true
-    size_to_fit: true
-    table_theme: white
-    limit_displayed_rows: false
-    enable_conditional_formatting: false
-    header_text_alignment: center
-    header_font_size: '12'
-    rows_font_size: '12'
-    conditional_formatting_include_totals: false
-    conditional_formatting_include_nulls: false
-    show_sql_query_menu_options: false
-    show_totals: false
-    show_row_totals: false
-    truncate_header: false
-    minimum_column_width: 75
-    hidden_pivots: {}
-    defaults_version: 1
     title_hidden: true
-    minWidthForIndexColumns: false
-    showTooltip: true
-    rowSubtotals: true
-    theme: contemporary
-
     listen:
       Global Currency: profit_and_loss.target_currency_tcurr
       Select Fiscal Timeframe: profit_and_loss.filter_fiscal_timeframe
