@@ -36,7 +36,7 @@ explore: profit_and_loss {
             ${profit_and_loss.glhierarchy} = ${profit_and_loss_hierarchy_selection_sdt.glhierarchy} and
             ${profit_and_loss.chart_of_accounts} = ${profit_and_loss_hierarchy_selection_sdt.chart_of_accounts} and
             ${profit_and_loss.language_key_spras} = ${profit_and_loss_hierarchy_selection_sdt.language_key_spras} and
-            ${profit_and_loss.glnode} = ${profit_and_loss_hierarchy_selection_sdt.glnode};;
+            ${profit_and_loss.glnode} = ${profit_and_loss_hierarchy_selection_sdt.glnode} ;;
   }
 
   join: navigation_income_statement_ext {

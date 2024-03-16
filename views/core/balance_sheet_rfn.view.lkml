@@ -18,6 +18,16 @@
 #    Exchange Rate (based on last date in the period)
 #    Avg Exchange Rate, Max Exchange Rate
 #
+# Dervies these Dimensions and Measures to support Reporting vs. Comparison Period:
+#    fiscal_reporting_period -- value of Reporting or Comparison
+#    reporting_period_amount_in_global_currency -- Cumulative Amount in Global Currency when fiscal_reporting_period = 'Reporting'
+#    comparison_period_amount_in_global_currency -- Cumulative Amount in Global Currency when fiscal_reporting_period = 'Comparison'
+#    difference_value -- reporting_period_amount_in_global_currency - comparison_period_amount_in_global_currency
+#    difference_percent -- (reporting_period_amount_in_global_currency - comparison_period_amount_in_global_currency) / abs(comparison_period_amount_in_global_currency)
+#
+# Derives Current Ratio, Current Assets, and Current Liabilities using English-only terms found in Node (text).
+# These should be edited as necessary to use Node (code) values instead text values to accomodate other languages.
+#
 # To query this table, always include Fiscal Year and Fiscal Period as dimensions
 # and filter to:
 #   - a single Client MANDT (handled with Constant defined in Manifest file)
@@ -60,12 +70,12 @@ view: +balance_sheet {
 # use parameter selections to define fiscal_period_group values of 'Reporting' or 'Comparison'
 #
 # a sql_always_where clause defined at explore level will
-# filter where fiscal_period_group is null if select_fiscal_period is in the query
+# filter to keep rows where fiscal_period_group is not null if select_fiscal_period is in the query
 #########################################################
 
   parameter: select_fiscal_period {
     type: unquoted
-    view_label: "🗓 Pick Fiscal Periods"
+    view_label: "🔍 Filters"
     description: "Select a Fiscal Period for Balance Sheet Reporting"
     suggest_explore: fiscal_periods_sdt
     suggest_dimension: fiscal_year_period
@@ -73,13 +83,13 @@ view: +balance_sheet {
 
   parameter: select_comparison_type {
     type: unquoted
-    view_label: "🗓 Pick Fiscal Periods"
-    description: "To include a comparison period in the Balance Sheet report, select the type of comparison to make--Same Period Last Year (default), Previous Fiscal Period or Custom. If Cusom is selected, select a Fiscal Period from Select Custom Comparison Period parameter."
+    view_label: "🔍 Filters"
+    description: "When creating a Balance Sheet report, you can choose to compare the selected fiscal period to the previous year, previous fiscal period, or a custom period. If Custom is selected, select a Fiscal Period from the 'Select Custom Comparison Period' parameter."
     allowed_value: {
       label: "None" value: "none"
     }
     allowed_value: {
-      label: "Same Period Last Year" value: "yoy"
+      label: "Year Ago" value: "yoy"
     }
     allowed_value: {
       label: "Previous Fiscal Period" value: "prior"
@@ -92,8 +102,8 @@ view: +balance_sheet {
 
   parameter: select_custom_comparison_period {
     type: unquoted
-    view_label: "🗓 Pick Fiscal Periods"
-    description: "When Comparison Type = Custom, you must select a Comparison Period. If no comparison period selected, Same Period Last Year will be used."
+    view_label: "🔍 Filters"
+    description: "When Comparison Type equals Custom, you must select a Comparison Period. If no comparison period selected, previous year will be used."
     suggest_explore: fiscal_periods_sdt
     suggest_dimension: fiscal_year_period
   }
@@ -111,7 +121,7 @@ view: +balance_sheet {
 
   dimension: parent {
     label: "Parent (code)"
-    description: "Parent (as ID or code) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
+    description: "Parent (as ID or code) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Noncurrent Assets."
   }
 
   dimension: parent_text {
@@ -131,44 +141,44 @@ view: +balance_sheet {
 
   dimension: node {
     label: "Node (code)"
-    description: "Child Node (as an ID or code) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
+    description: "Child Node (as an ID or code) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Noncurrent Assets."
   }
 
   dimension: node_text {
     type: string
     label: "Node (text)"
-    description: "Child Node (as text) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Non-Current Assets."
+    description: "Child Node (as text) of Hierarchy. For example, Assets is Parent with multiple Child Nodes like Current Assets and Noncurrent Assets."
     sql: COALESCE(regexp_replace(${TABLE}.NodeText,'Non[- ]Current','Noncurrent'),${TABLE}.Node) ;;
     order_by_field: node
   }
 
   dimension: level {
     hidden: yes
-    description: "Shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 02 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 03 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
+    description: "The child node level displays the parent-child relationship. For instance at level 2, FPA1 is the parent with Assets and Liabilities & Equity as child nodes. At level 3, Assets is the parent with Current Assets and Noncurrent Assets as child nodes."
   }
 
   dimension: level_number {
     type: number
-    description: "Level as a numeric. Level shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 2 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 3 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
+    description: "Level as a numeric. The child node level displays the parent-child relationship. For instance at level 2, FPA1 is the parent with Assets and Liabilities & Equity as child nodes. At level 3, Assets is the parent with Current Assets and Noncurrent Assets as child nodes."
     sql: PARSE_NUMERIC(${level}) ;;
   }
 
   dimension: level_string {
     type: string
     label: "Level"
-    description: "Level as a numeric. Level shows the Parent-Child Relationship. For example depending on the Hierarchy selected, Level 2 will display FPA1 as the Parent with Assets and Liabilities & Equity as Child Nodes. Level 3 will display Assets as Parent with Current Assets and Non-Current Assets as Child Nodes."
+    description: "Level as a string without any leading 0s. The child node level displays the parent-child relationship. For instance at level 2, FPA1 is the parent with Assets and Liabilities & Equity as child nodes. At level 3, Assets is the parent with Current Assets and Noncurrent Assets as child nodes."
     sql: LTRIM(${level},'0') ;;
   }
 
   dimension: is_leaf_node {
-    description: "Yes if GL Account Number and indicates lowest level of hierarchy."
+    description: "Yes if GL Account Number which indicates lowest level of hierarchy"
   }
 
   #} end Hierarchy Dimensions
 
 
 #########################################################
-# Fiscal Reporting Dimensions
+# Reporting vs Comparison Period Dimensions
 # {
 
   # if select_fiscal_period parameter used in query, assign fiscal_year_period to either Reporting or Comparison group
@@ -180,7 +190,7 @@ view: +balance_sheet {
 
   dimension: fiscal_period_group {
     type: string
-    group_label: "Fiscal Dates"
+    view_label: "Reporting vs. Comparison Period"
     description: "Fiscal Period is labeled either Reporting or Comparison depending on the values user picks for Fiscal Period and Comparison Type."
     sql:    {% if select_fiscal_period._in_query %}
                 @{derive_comparison_period}
@@ -197,12 +207,12 @@ view: +balance_sheet {
 
   dimension: selected_fiscal_reporting_period {
     type: string
-    group_label: "Fiscal Dates"
-    description: "Fiscal Period chosen with parameter Select Fiscal Period"
+    view_label: "Reporting vs. Comparison Period"
+    description: "Value of parameter 'Select Fiscal Period'"
     sql: '{% parameter select_fiscal_period %}';;
   }
 
-  #} end Fiscal Reporting dimensions
+  #} end Reporting vs Comparison Period dimensions
 
 
 #########################################################
@@ -267,59 +277,13 @@ view: +balance_sheet {
     value_format_name: decimal_2
   }
 
-  measure: reporting_period_amount_in_global_currency {
-    type: sum
-    group_label: "Reporting vs. Comparison Period Metrics"
-    label_from_parameter: select_fiscal_period
-    description: "Cumulative Amount in Global Currency for the selected Fiscal Reporting Period"
-    sql: ${cumulative_amount_in_target_currency} ;;
-    filters: [fiscal_period_group: "Reporting"]
-    value_format_name: millions_d1
-    html: @{negative_format} ;;
-  }
-
-  # use sum(case ... when Comparison...) instead of type: sum with filter to allow nulls with Comparison is set to None
-  measure: comparison_period_amount_in_global_currency {
-    type: number
-    group_label: "Reporting vs. Comparison Period Metrics"
-    label: "{% if select_fiscal_period._in_query %}
-    @{derive_comparison_period}{{cp}}
-    {% else %} Comparison Period Amount in Global Currency
-    {% endif %}"
-    description: "Cumulative Amount in Global Currency for the selected Fiscal Comparison Period"
-    sql: SUM(CASE ${fiscal_period_group} WHEN "Comparison" THEN ${cumulative_amount_in_target_currency} ELSE NULL END) ;;
-    value_format_name: millions_d1
-    html: @{negative_format} ;;
-  }
-
-  measure: difference_value {
-    type: number
-    group_label: "Reporting vs. Comparison Period Metrics"
-    label: "Variance Amount"
-    description: "Reporting Period Amount minus Comparison Period Amount"
-    sql: ${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency} ;;
-    value_format_name: millions_d1
-    html: @{negative_format} ;;
-  }
-
-  measure: difference_percent {
-    type: number
-    group_label: "Reporting vs. Comparison Period Metrics"
-    label: "Variance %"
-    description: "Percentage Change between Reporting and Comparison Periods"
-    # note ABS in denominator because both numerator and denominator can both be negative. ABS allows further Decline between 2 negative numbers to show as negative
-    sql: SAFE_DIVIDE( (${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency}),ABS(${comparison_period_amount_in_global_currency})) ;;
-    value_format_name: percent_1
-    html: @{negative_format} ;;
-  }
-
   # used in Balance Sheet dashboard; add to a single-value visualization
   measure: title_balance_sheet {
     type: number
-    description: "Used in Balance Sheet dashboard as Summary visualization with Company, Global Currency, Fiscal Period and Current Ratio."
+    description: "Used in Balance Sheet dashboard as Summary visualization with Company, Global Currency, Fiscal Period and Current Ratio. Add this measure to a single-value visualizaiton."
     sql: 1 ;;
     html:
-      <div  style="font-size:100pct; background-color:rgb((169,169,169,.5); text-align:center;  line-height: .8; font-family:'Noto Sans SC'; font-color: #808080">
+      <div  style="font-size:100pct; background-color:rgb((169,169,169,.5); text-align:center;  line-height: .8; font-family:'verdana'; font-color: #808080">
           <a style="font-size:100%;font-family:'verdana';color: black"><b>Balance Sheet</b></a><br>
           <a style= "font-size:80%;font-family:'verdana';color: black">{{company_text._value}}</a><br>
           <a style= "font-size:80%;font-family:'verdana';color: black">Fiscal Period:   {{select_fiscal_period._parameter_value}}&nbsp;&nbsp;&nbsp; Current Ratio: {{current_ratio._rendered_value}}</a>
@@ -365,4 +329,56 @@ view: +balance_sheet {
 
   #} end measures
 
+
+#########################################################
+# Reporting vs Comparison Period Measures
+# {
+
+  measure: reporting_period_amount_in_global_currency {
+    type: sum
+    view_label: "Reporting vs. Comparison Period"
+    label_from_parameter: select_fiscal_period
+    description: "Cumulative Amount in Global Currency for the selected Fiscal Reporting Period"
+    sql: ${cumulative_amount_in_target_currency} ;;
+    filters: [fiscal_period_group: "Reporting"]
+    value_format_name: millions_d1
+    html: @{negative_format} ;;
+  }
+
+  # use sum(case ... when Comparison...) instead of type: sum with filter to allow nulls with Comparison is set to None
+  measure: comparison_period_amount_in_global_currency {
+    type: number
+    view_label: "Reporting vs. Comparison Period"
+    label: "{% if select_fiscal_period._in_query %}
+    @{derive_comparison_period}{{cp}}
+    {% else %} Comparison Period Amount in Global Currency
+    {% endif %}"
+    description: "Cumulative Amount in Global Currency for the selected Fiscal Comparison Period"
+    sql: SUM(CASE ${fiscal_period_group} WHEN "Comparison" THEN ${cumulative_amount_in_target_currency} ELSE NULL END) ;;
+    value_format_name: millions_d1
+    html: @{negative_format} ;;
+  }
+
+  measure: difference_value {
+    type: number
+    view_label: "Reporting vs. Comparison Period"
+    label: "Variance Amount"
+    description: "Reporting Period Amount minus Comparison Period Amount"
+    sql: ${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency} ;;
+    value_format_name: millions_d1
+    html: @{negative_format} ;;
+  }
+
+  measure: difference_percent {
+    type: number
+    view_label: "Reporting vs. Comparison Period"
+    label: "Variance %"
+    description: "Percentage Change between Reporting and Comparison Periods"
+    # note ABS in denominator because both numerator and denominator can both be negative. ABS allows further Decline between 2 negative numbers to show as negative
+    sql: SAFE_DIVIDE( (${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency}),ABS(${comparison_period_amount_in_global_currency})) ;;
+    value_format_name: percent_1
+    html: @{negative_format} ;;
+  }
+
+#########################################################}
 }

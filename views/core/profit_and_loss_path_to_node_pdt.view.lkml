@@ -13,11 +13,13 @@ view: profit_and_loss_path_to_node_pdt {
           ChartOfAccounts,
           GLHierarchy,
           LanguageKey_SPRAS,
+          GLLevel,
           CAST(GLLevel AS INT64) AS LevelNumber,
           GLParent,
           COALESCE(GLParentText,GLParent) AS GLParentText,
           GLNode,
-          COALESCE(GLNodeText,GLNode) AS GLNodeText
+          COALESCE(GLNodeText,GLNode) AS GLNodeText,
+          GLIsLeafNode
         FROM
           `@{GCP_PROJECT_ID}.@{REPORTING_DATASET}.ProfitAndLoss`
         GROUP BY
@@ -25,11 +27,13 @@ view: profit_and_loss_path_to_node_pdt {
           ChartOfAccounts,
           GLHierarchy,
           LanguageKey_SPRAS,
+          GLLevel,
           CAST(GLLevel AS INT64),
           GLParent,
           COALESCE(GLParentText,GLParent),
           GLNode,
-          COALESCE(GLNodeText,GLNode)
+          COALESCE(GLNodeText,GLNode),
+          GLIsLeafNode
           --1, 2, 3, 4, 5, 6, 7, 8, 9
           ),
         iterations AS (
@@ -38,14 +42,17 @@ view: profit_and_loss_path_to_node_pdt {
           ChartOfAccounts,
           GLHierarchy,
           LanguageKey_SPRAS,
+          GLLevel,
           LevelNumber,
+          GLIsLeafNode,
           GLNode,
           GLNodeText,
           GLParent,
           GLParentText,
           0 AS LevelSequenceNumber,
           GLnodeText AS NodeTextPath_String,
-          GLNode AS NodePath_String
+          GLNode AS NodePath_String,
+          CAST(LevelNumber as STRING) AS NodeLevelPath_String
         FROM
           n
         WHERE
@@ -56,14 +63,17 @@ view: profit_and_loss_path_to_node_pdt {
           n.ChartOfAccounts,
           n.GLHierarchy,
           n.LanguageKey_SPRAS,
+          n.GLLevel,
           n.LevelNumber,
+          n.GLIsLeafNode,
           n.GLNode,
           n.GLNodeText,
           n.GLParent,
           n.GLParentText,
           LevelSequenceNumber+1 AS LevelSequenceNumber,
           CONCAT(NodeTextPath_String, '-->',n.GLNodeText) AS NodeTextPath_String,
-          CONCAT(NodePath_String, '-->',n.GLNode) AS NodePath_String
+          CONCAT(NodePath_String, '-->',n.GLNode) AS NodePath_String,
+          CONCAT(NodeLevelPath_String, '-->',CAST(n.LevelNumber AS STRING)) AS NodeLevelPath_String
         FROM
           n
         JOIN
@@ -80,16 +90,21 @@ view: profit_and_loss_path_to_node_pdt {
              ChartOfAccounts,
              GLHierarchy,
              LanguageKey_SPRAS,
+             GLLevel,
+             GLIsLeafNode,
              GLNode,
              GLNodeText,
+             GLParent,
              GLParentText,
              LevelNumber,
              LevelSequenceNumber,
              MAX(LevelNumber) OVER (PARTITION BY Client,ChartOfAccounts,GLHierarchy) AS MaxLevelNumber,
              NodeTextPath_String,
              NodePath_String,
+             NodeLevelPath_String,
              SPLIT(NodeTextPath_String,'-->') AS NodeTextPath,
-             SPLIT(NodePath_String,'-->') AS NodePath
+             SPLIT(NodePath_String,'-->') AS NodePath,
+             SPLIT(NodeLevelPath_String,'-->') AS NodeLevelPath
       FROM iterations
        ;;
     }

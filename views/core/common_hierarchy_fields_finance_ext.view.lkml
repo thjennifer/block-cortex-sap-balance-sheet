@@ -3,6 +3,8 @@
 #   balance_sheet_hierarchy_selection_sdt
 #   profit_and_loss_hierarchy_selection_sdt
 #
+# This view's established properties will be utilized by any views that use this view as an extension.
+#
 #########################################################
 
 view: common_hierarchy_fields_finance_ext {
@@ -11,8 +13,9 @@ view: common_hierarchy_fields_finance_ext {
   parameter: parameter_pick_start_level {
     hidden: no
     type: unquoted
-    view_label: "🔍 Filters & 🛠 Tools"
+    view_label: "🔍 Filters"
     label: "Select Top Hierarchy Level to Display"
+    description: "Specify the initial hierarchy level to be displayed. If the value is 3, the first three columns of the report will represent child hierarchy levels 3, 4, and 5. If the value is 6, the first three columns will represent levels 6, 7, 8."
     # update suggest_explore and dimension after extending
     # suggest_explore: balance_sheet
     # suggest_dimension: balance_sheet.level_string
@@ -22,7 +25,7 @@ view: common_hierarchy_fields_finance_ext {
   parameter: parameter_pick_depth_level {
     hidden: no
     type: unquoted
-    view_label: "🔍 Filters & 🛠 Tools"
+    view_label: "🔍 Filters"
     label: "Select Number of Hierarchy Levels to Display"
     description: "Select number of hierarchy levels (1 to 5) to display"
     allowed_value: {value: "1"}

@@ -1,4 +1,4 @@
-#########################################################
+#########################################################{
 # This SQL Derived Table (sdt):
 #   1) Takes user inputs from parameters:
 #          parameter_pick_start_level - select top level of hierarchy to show
@@ -22,7 +22,7 @@
 #   chart_of_accounts
 #   language_key_spras
 #   glnode
-#########################################################
+#########################################################}
 
 include: "/views/core/profit_and_loss_path_to_node_pdt.view"
 include: "/views/core/common_hierarchy_fields_finance_ext.view"
@@ -60,16 +60,8 @@ view: profit_and_loss_hierarchy_selection_sdt {
        NodePath[SAFE_OFFSET({{start | plus: 4}})] AS hier5_node
    FROM ${profit_and_loss_path_to_node_pdt.SQL_TABLE_NAME} h
    WHERE LevelNumber = least({{start}} + {{depth}} + 2,MaxLevelNumber)
-   --WHERE LevelNumber = 6
-   --WHERE NodeTextPath[SAFE_OFFSET({{start}})] is not null
     ;;
 }
-
-  # Update with correct suggest explore and dimension (note, must be a string dimension).
-  parameter: parameter_pick_start_level {
-    suggest_explore: profit_and_loss
-    suggest_dimension: profit_and_loss.gllevel_string
-   }
 
   dimension: key {
     hidden: yes
@@ -77,6 +69,20 @@ view: profit_and_loss_hierarchy_selection_sdt {
     primary_key: yes
     sql: CONCAT(${client_mandt},${glhierarchy},${chart_of_accounts},${language_key_spras},${glnode}) ;;
   }
+
+
+  # Update with correct suggest explore and dimension (note, must be a string dimension).
+  parameter: parameter_pick_start_level {
+    view_label: "🔍 Filters & 🛠 Tools"
+    suggest_explore: profit_and_loss
+    suggest_dimension: profit_and_loss.gllevel_string
+   }
+
+  parameter: parameter_pick_depth_level {
+    view_label: "🔍 Filters & 🛠 Tools"
+    }
+
+
 
   dimension: client_mandt {
     type: string

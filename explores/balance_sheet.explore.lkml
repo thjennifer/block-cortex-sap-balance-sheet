@@ -24,7 +24,7 @@ explore: balance_sheet {
   }
 
   join: balance_sheet_hierarchy_selection_sdt {
-    view_label: "Hierarchy Paths to Child Node"
+    view_label: "Balance Sheet"
     type: inner
     relationship: many_to_one
     sql_on: ${balance_sheet.client_mandt} = ${balance_sheet_hierarchy_selection_sdt.client_mandt} and

@@ -68,8 +68,8 @@ view: balance_sheet_path_to_node_pdt {
           n.Parent,
           n.ParentText,
           LevelSequenceNumber+1 AS LevelSequenceNumber,
-          CONCAT(NodeTextPath_String, '/',n.NodeText) AS NodeTextPath_String,
-          CONCAT(NodePath_String, '/',n.Node) AS NodePath_String
+          CONCAT(NodeTextPath_String, '-->',n.NodeText) AS NodeTextPath_String,
+          CONCAT(NodePath_String, '-->',n.Node) AS NodePath_String
         FROM
           n
         JOIN
@@ -93,8 +93,8 @@ view: balance_sheet_path_to_node_pdt {
              MAX(LevelNumber) OVER (PARTITION BY Client,ChartOfAccounts,HierarchyName) AS MaxLevelNumber,
              NodeTextPath_String,
              NodePath_String,
-             SPLIT(NodeTextPath_String,'/') AS NodeTextPath,
-             SPLIT(NodePath_String,'/') AS NodePath
+             SPLIT(NodeTextPath_String,'-->') AS NodeTextPath,
+             SPLIT(NodePath_String,'-->') AS NodePath
       FROM iterations
 
         ;;
