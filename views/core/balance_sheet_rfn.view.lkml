@@ -1,5 +1,5 @@
 #########################################################{
-# aggregation of Transactions by the following dimensions:
+# balance_sheet view reflects an aggregation of Transactions by the following dimensions:
 #   Client
 #   Fiscal Year
 #   Fiscal Period
@@ -18,13 +18,6 @@
 #    Exchange Rate (based on last date in the period)
 #    Avg Exchange Rate, Max Exchange Rate
 #
-# Dervies these Dimensions and Measures to support Reporting vs. Comparison Period:
-#    fiscal_reporting_period -- value of Reporting or Comparison
-#    reporting_period_amount_in_global_currency -- Cumulative Amount in Global Currency when fiscal_reporting_period = 'Reporting'
-#    comparison_period_amount_in_global_currency -- Cumulative Amount in Global Currency when fiscal_reporting_period = 'Comparison'
-#    difference_value -- reporting_period_amount_in_global_currency - comparison_period_amount_in_global_currency
-#    difference_percent -- (reporting_period_amount_in_global_currency - comparison_period_amount_in_global_currency) / abs(comparison_period_amount_in_global_currency)
-#
 # Derives Current Ratio, Current Assets, and Current Liabilities using English-only terms found in Node (text).
 # These should be edited as necessary to use Node (code) values instead text values to accomodate other languages.
 #
@@ -37,11 +30,12 @@
 #   - a single Chart of Accounts
 #   - a single Company
 #
+# EXTENDED FIELDS:
 # Extends common dimensions found in both balance sheet and profit and loss using view common_fields_finance_ext
 #   client_mandt, language_key_spras, currency_key, target_currency_tcurr, ledger_in_general_ledger_accounting, ledger_name, company_code, company_text, chart_of_accounts, business_area,
 #   fiscal_period, fiscal_quarter, fiscal_year and related fields
-# Changes to these dimensions can be made in view common_fields_finance_ext if the changes are for both balance sheet and profit and loss; or
-# Customize these dimensions specifically for Balance Sheet in this view as needed
+# Changes to these dimensions can be made in view common_fields_finance_ext if the changes are for both balance sheet and profit and loss;
+# or customize these dimensions specifically for Balance Sheet in this view as needed
 #########################################################}
 
 
@@ -75,15 +69,15 @@ view: +balance_sheet {
 
   parameter: select_fiscal_period {
     type: unquoted
-    view_label: "🔍 Filters"
+    view_label: "🔍 Filters & 🛠 Tools"
     description: "Select a Fiscal Period for Balance Sheet Reporting"
-    suggest_explore: fiscal_periods_sdt
+    # suggest_explore: balance_sheet_fiscal_periods_sdt
     suggest_dimension: fiscal_year_period
   }
 
   parameter: select_comparison_type {
     type: unquoted
-    view_label: "🔍 Filters"
+    view_label: "🔍 Filters & 🛠 Tools"
     description: "When creating a Balance Sheet report, you can choose to compare the selected fiscal period to the previous year, previous fiscal period, or a custom period. If Custom is selected, select a Fiscal Period from the 'Select Custom Comparison Period' parameter."
     allowed_value: {
       label: "None" value: "none"
@@ -102,9 +96,9 @@ view: +balance_sheet {
 
   parameter: select_custom_comparison_period {
     type: unquoted
-    view_label: "🔍 Filters"
+    view_label: "🔍 Filters & 🛠 Tools"
     description: "When Comparison Type equals Custom, you must select a Comparison Period. If no comparison period selected, previous year will be used."
-    suggest_explore: fiscal_periods_sdt
+    # suggest_explore: fiscal_periods_sdt
     suggest_dimension: fiscal_year_period
   }
 
@@ -176,43 +170,6 @@ view: +balance_sheet {
 
   #} end Hierarchy Dimensions
 
-
-#########################################################
-# Reporting vs Comparison Period Dimensions
-# {
-
-  # if select_fiscal_period parameter used in query, assign fiscal_year_period to either Reporting or Comparison group
-  # comparison period derived based on select_comparison_type parameter:
-  #     if yoy then subtract year from period
-  #     if prior then subtract 1 from period (if period 001 then substract 1 year and use max_fiscal_period for period)
-  #     if custom then use value from select_custom_comparison_period
-  # see manifest for full logic defined in constant derive_comparison_period
-
-  dimension: fiscal_period_group {
-    type: string
-    view_label: "Reporting vs. Comparison Period"
-    description: "Fiscal Period is labeled either Reporting or Comparison depending on the values user picks for Fiscal Period and Comparison Type."
-    sql:    {% if select_fiscal_period._in_query %}
-                @{derive_comparison_period}
-
-      CASE WHEN ${fiscal_year_period} = '{{fp}}' THEN 'Reporting'
-      {% if comparison_type != 'none' %}
-           WHEN ${fiscal_year_period} = '{{cp}}' THEN 'Comparison'
-      {% endif %}
-      END
-      {% else %} 'No Fiscal Reporting Period has been selected. Add Select Fiscal Period parameter.'
-      {% endif %}
-      ;;
-  }
-
-  dimension: selected_fiscal_reporting_period {
-    type: string
-    view_label: "Reporting vs. Comparison Period"
-    description: "Value of parameter 'Select Fiscal Period'"
-    sql: '{% parameter select_fiscal_period %}';;
-  }
-
-  #} end Reporting vs Comparison Period dimensions
 
 
 #########################################################
@@ -320,65 +277,6 @@ view: +balance_sheet {
     value_format_name: decimal_4
   }
 
-  measure: max_fiscal_year_period {
-    type: max
-    sql: ${fiscal_year_period_number} ;;
-    value_format_name: id
-  }
-
-
   #} end measures
 
-
-#########################################################
-# Reporting vs Comparison Period Measures
-# {
-
-  measure: reporting_period_amount_in_global_currency {
-    type: sum
-    view_label: "Reporting vs. Comparison Period"
-    label_from_parameter: select_fiscal_period
-    description: "Cumulative Amount in Global Currency for the selected Fiscal Reporting Period"
-    sql: ${cumulative_amount_in_target_currency} ;;
-    filters: [fiscal_period_group: "Reporting"]
-    value_format_name: millions_d1
-    html: @{negative_format} ;;
-  }
-
-  # use sum(case ... when Comparison...) instead of type: sum with filter to allow nulls with Comparison is set to None
-  measure: comparison_period_amount_in_global_currency {
-    type: number
-    view_label: "Reporting vs. Comparison Period"
-    label: "{% if select_fiscal_period._in_query %}
-    @{derive_comparison_period}{{cp}}
-    {% else %} Comparison Period Amount in Global Currency
-    {% endif %}"
-    description: "Cumulative Amount in Global Currency for the selected Fiscal Comparison Period"
-    sql: SUM(CASE ${fiscal_period_group} WHEN "Comparison" THEN ${cumulative_amount_in_target_currency} ELSE NULL END) ;;
-    value_format_name: millions_d1
-    html: @{negative_format} ;;
-  }
-
-  measure: difference_value {
-    type: number
-    view_label: "Reporting vs. Comparison Period"
-    label: "Variance Amount"
-    description: "Reporting Period Amount minus Comparison Period Amount"
-    sql: ${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency} ;;
-    value_format_name: millions_d1
-    html: @{negative_format} ;;
-  }
-
-  measure: difference_percent {
-    type: number
-    view_label: "Reporting vs. Comparison Period"
-    label: "Variance %"
-    description: "Percentage Change between Reporting and Comparison Periods"
-    # note ABS in denominator because both numerator and denominator can both be negative. ABS allows further Decline between 2 negative numbers to show as negative
-    sql: SAFE_DIVIDE( (${reporting_period_amount_in_global_currency} - ${comparison_period_amount_in_global_currency}),ABS(${comparison_period_amount_in_global_currency})) ;;
-    value_format_name: percent_1
-    html: @{negative_format} ;;
-  }
-
-#########################################################}
 }

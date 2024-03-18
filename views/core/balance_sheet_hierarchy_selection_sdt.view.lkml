@@ -10,6 +10,7 @@
 #
 # If more than 5 hierarchy levels are needed, update the parameter_pick_depth_level and add additional hierN dimensions for node and node_text
 #
+# EXTENDED FIELDS
 # The following parameters and dimensions are extended from view common_hierarchy_fields_finance_ext and can be further customized for Balance Sheet reporting:
 #   parameter_pick_start_level
 #   parameter_pick_depth_level
@@ -74,36 +75,6 @@ view: balance_sheet_hierarchy_selection_sdt {
     suggest_dimension: balance_sheet.level_string
   }
 
-  # parameter: parameter_pick_start_level {
-  #   hidden: no
-  #   type: unquoted
-  #   view_label: "🗓 Pick Fiscal Periods"
-  #   label: "Select Top Hierarchy Level to Display"
-  #   suggest_explore: balance_sheet
-  #   suggest_dimension: balance_sheet.level_string
-  #   default_value: "2"
-  # }
-
-  # parameter: parameter_pick_depth_level {
-  #   view_label: "🗓 Pick Fiscal Periods"
-  # }
-
-  # parameter: parameter_pick_depth_level {
-  #   hidden: no
-  #   type: unquoted
-  #   view_label: "🗓 Pick Fiscal Periods"
-  #   label: "Select Number of Hierarchy Levels to Display"
-  #   description: "Select number of hierarchy levels (1 to 5) to display"
-  #   allowed_value: {value: "1"}
-  #   allowed_value: {value: "2"}
-  #   allowed_value: {value: "3"}
-  #   allowed_value: {value: "4"}
-  #   allowed_value: {value: "5"}
-  #   default_value: "3"
-  # }
-
-
-
   dimension: client_mandt {
     type: string
     sql: ${TABLE}.client ;;
@@ -139,86 +110,5 @@ view: balance_sheet_hierarchy_selection_sdt {
     sql: ${TABLE}.NodeText ;;
   }
 
-  # dimension: node_text_path_string {
-  #   hidden: no
-  #   type: string
-  #   sql: ${TABLE}.NodeTextPath_String ;;
-  # }
-
-  # dimension: node_path_string {
-  #   hidden: no
-  #   type: string
-  #   sql: ${TABLE}.NodePath_String ;;
-  # }
-
-  # dimension: hier1_node_text {
-  #   hidden: no
-  #   type: string
-  #   sql: ${TABLE}.hier1_node_text ;;
-  #   order_by_field: hier1_node
-  # }
-
-  # dimension: hier2_node_text {
-  #   hidden: no
-  #   type: string
-  #   sql: ${TABLE}.hier2_node_text ;;
-  #   order_by_field: hier2_node
-  # }
-
-  # dimension: hier3_node_text {
-  #   hidden: no
-  #   type: string
-  #   sql: ${TABLE}.hier3_node_text ;;
-  #   order_by_field: hier3_node
-  # }
-
-  # dimension: hier4_node_text {
-  #   hidden: no
-  #   type: string
-  #   sql: ${TABLE}.hier4_node_text ;;
-  #   order_by_field: hier4_node
-  # }
-
-  # dimension: hier5_node_text {
-  #   hidden: no
-  #   type: string
-  #   sql: ${TABLE}.hier5_node_text ;;
-  #   order_by_field: hier5_node
-  # }
-
-  # dimension: hier1_node {
-  #   hidden: no
-  #   description: "First level of hierarchy to display"
-  #   type: string
-  #   sql: ${TABLE}.hier1_node ;;
-  # }
-
-  # dimension: hier2_node {
-  #   hidden: no
-  #   description: "Second level of hierarchy to display"
-  #   type: string
-  #   sql: ${TABLE}.hier2_node ;;
-  # }
-
-  # dimension: hier3_node {
-  #   hidden: no
-  #   description: "Third level of hierarchy to display"
-  #   type: string
-  #   sql: ${TABLE}.hier3_node ;;
-  # }
-
-  # dimension: hier4_node {
-  #   hidden: no
-  #   description: "Fourth level of hierarchy to display"
-  #   type: string
-  #   sql: ${TABLE}.hier4_node ;;
-  # }
-
-  # dimension: hier5_node {
-  #   hidden: no
-  #   description: "Fifth level of hierarchy to display"
-  #   type: string
-  #   sql: ${TABLE}.hier5_node ;;
-  # }
 
 }

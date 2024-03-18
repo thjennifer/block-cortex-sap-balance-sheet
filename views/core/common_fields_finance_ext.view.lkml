@@ -1,4 +1,4 @@
-#########################################################
+#########################################################{
 # common fields and parameters to be extended into:
 #   balance_sheet_rfn
 #   profit_and_loss_rfn
@@ -23,7 +23,7 @@
 #
 #   hidden dimensions: client, exchange_rate, avg_exchange_rate, amount_in_local_currency, amount_in_target_currency, amount_in_target_currency
 #                     cumulative_amount_in_target_currency, cumulative_amount_in_target_currency
-#########################################################
+#########################################################}
 
 
 view: common_fields_finance_ext {

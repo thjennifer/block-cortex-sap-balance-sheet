@@ -5,7 +5,7 @@ include: "/components/datagroups.lkml"
 
 include: "/explores/balance_sheet.explore"
 include: "/explores/profit_and_loss.explore"
-include: "/explores/fiscal_periods_sdt.explore"
+include: "/explores/balance_sheet_fiscal_periods_sdt.explore"
 include: "/dashboards/*.dashboard"
 
 

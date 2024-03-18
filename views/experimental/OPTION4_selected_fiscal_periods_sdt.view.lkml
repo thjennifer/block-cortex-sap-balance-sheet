@@ -4,7 +4,7 @@
 ### parameter Compare to: Previous Period or YoY or CUSTOM, if custom, user provide values for filter Comparison Period
 ### optional filter Comparison Period
 ###########
-include: "/views/core/fiscal_periods_sdt.view"
+include: "/views/experimental/fiscal_periods_sdt.view"
 include: "/views/experimental/shared_parameters.view"
 # explore: selected_fiscal_periods_sdt {hidden:yes
 #   join: shared_parameters {

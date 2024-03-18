@@ -1,4 +1,4 @@
-include: "/views/core/fiscal_periods_sdt.view"
+include: "/views/experimental/fiscal_periods_sdt.view"
 
 view: selected_periods_sdt {
   extends: [fiscal_periods_sdt]

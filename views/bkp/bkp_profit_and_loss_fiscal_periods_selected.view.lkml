@@ -1,4 +1,4 @@
-include: "/views/core/fiscal_periods_sdt.view"
+include: "/views/experimental/fiscal_periods_sdt.view"
 
 view: bkp_profit_and_loss_fiscal_periods_selected {
 #########################################################
@@ -51,7 +51,8 @@ view: bkp_profit_and_loss_fiscal_periods_selected {
 
         {% if time_level == 'fp' %}
         {% assign anchor_time = 'fiscal_year_period' %}
-        {% assign max_fp = '@{max_fiscal_period}' %}
+
+         {% assign max_fp = '12' %}
         {% assign pad = '00' %}{% assign max_fp_size = 3 %}{% assign max_fp_size_neg = -3 %}
         {% elsif time_level == 'qtr' %}
         {% assign anchor_time = 'fiscal_year_quarter' %}

@@ -1,26 +1,37 @@
 include: "/views/core/balance_sheet_rfn.view"
 include: "/views/core/language_map_sdt.view"
+include: "/views/core/balance_sheet_fiscal_periods_selected_sdt.view"
 include: "/views/core/balance_sheet_hierarchy_selection_sdt.view"
+include: "/views/core/balance_sheet_navigation_ext.view"
 
 explore: balance_sheet {
   always_join: [language_map_sdt]
 
-  always_filter: {filters:[balance_sheet.hierarchy_name: "FPA1",balance_sheet.chart_of_accounts: "CA01",balance_sheet.company_text: "%CENTRAL%",balance_sheet.target_currency_tcurr: "USD"]}
+  always_filter: {filters:[balance_sheet.hierarchy_name: "",balance_sheet.chart_of_accounts: "",balance_sheet.company_text: "",balance_sheet.target_currency_tcurr: ""]}
 
   # always filter on:
   #   - Client as defined with constant
   #   - if parameter select_fiscal_period is in the query, keep only rows where fiscal_period_group (Reporting/Comparison) is not null
   sql_always_where: ${balance_sheet.client_mandt}='@{CLIENT_ID}'
-      {% if balance_sheet.select_fiscal_period._in_query %}
-        and ${balance_sheet.fiscal_period_group} is not null
-      {% endif %}
-      ;;
 
+      ;;
+# -- {% if balance_sheet.select_fiscal_period._in_query %}
+#     --   and ${balance_sheet.fiscal_period_group} is not null
+#     --  {% endif %}
   join: language_map_sdt {
     type: inner
     relationship: many_to_one
     sql_on: ${balance_sheet.language_key_spras} = ${language_map_sdt.language_spras} ;;
     fields: []
+  }
+
+  join: balance_sheet_fiscal_periods_selected_sdt {
+    type: inner
+    relationship: many_to_one
+    sql_on: ${balance_sheet.hierarchy_name} = ${balance_sheet_fiscal_periods_selected_sdt.hierarchy_name} AND
+            ${balance_sheet.company_code}= ${balance_sheet_fiscal_periods_selected_sdt.company_code} AND
+            ${balance_sheet.fiscal_year} = ${balance_sheet_fiscal_periods_selected_sdt.fiscal_year} AND
+             ${balance_sheet.fiscal_period} =  ${balance_sheet_fiscal_periods_selected_sdt.fiscal_period};;
   }
 
   join: balance_sheet_hierarchy_selection_sdt {
@@ -32,6 +43,11 @@ explore: balance_sheet {
             ${balance_sheet.chart_of_accounts} = ${balance_sheet_hierarchy_selection_sdt.chart_of_accounts} and
             ${balance_sheet.language_key_spras} = ${balance_sheet_hierarchy_selection_sdt.language_key_spras} and
             ${balance_sheet.node} = ${balance_sheet_hierarchy_selection_sdt.node};;
+  }
 
+  join: balance_sheet_navigation_ext {
+    view_label: "🔍 Filters & 🛠 Tools"
+    relationship: one_to_one
+    sql:  ;;
   }
 }

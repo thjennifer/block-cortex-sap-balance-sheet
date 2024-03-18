@@ -1,13 +1,3 @@
-######################
-# Finds the Fiscal Years and Periods available in Balance Sheet
-#
-# Used as source for Fiscal Period parameter or filter selections
-# Depending on max_fp_size, fiscal_year_period will display either YYYY.PP or YYYY.PPP
-# includes dimension negative_fiscal_year_period_number which:
-#   - is used as an order_by_field for fiscal_year_period
-#   - allows the fiscal_year_period to be displayed in descending order in paramter/filter drop-down selectors
-######################
-
 view: fiscal_periods_sdt {
   derived_table: {
     sql:
