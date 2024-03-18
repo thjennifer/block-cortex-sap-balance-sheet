@@ -63,7 +63,7 @@ view: +balance_sheet {
 #
 # use parameter selections to define fiscal_period_group values of 'Reporting' or 'Comparison'
 #
-# a sql_always_where clause defined at explore level will
+# the inner join to balance_sheet_fiscal_periods_selected at explore level will
 # filter to keep rows where fiscal_period_group is not null if select_fiscal_period is in the query
 #########################################################
 

@@ -11,13 +11,8 @@ explore: balance_sheet {
 
   # always filter on:
   #   - Client as defined with constant
-  #   - if parameter select_fiscal_period is in the query, keep only rows where fiscal_period_group (Reporting/Comparison) is not null
-  sql_always_where: ${balance_sheet.client_mandt}='@{CLIENT_ID}'
+  sql_always_where: ${balance_sheet.client_mandt}='@{CLIENT_ID}';;
 
-      ;;
-# -- {% if balance_sheet.select_fiscal_period._in_query %}
-#     --   and ${balance_sheet.fiscal_period_group} is not null
-#     --  {% endif %}
   join: language_map_sdt {
     type: inner
     relationship: many_to_one
