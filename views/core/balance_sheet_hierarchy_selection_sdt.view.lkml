@@ -4,9 +4,12 @@
 #          parameter_pick_start_level - select top level of hierarchy to show
 #          parameter_pick_depth_level - how many levels should be shown (1 to 5 levels)
 #   2) Derives node_text and node values for hier1 to hier5 by placing the top level selected by user into hier_1 and subsequent levels into hier2 to hier5
-#   3) Filters to the last level selected by user. For example, if Top Level to Display of 2 and a depth of 3 is selected:
-#         LevelNumber = 4
-#         derived as: top_level (2) + depth (3) - 1
+#   3) Filters applied:
+#         first level of the hierarchy = top level selected AND
+#         (level number = last level selected by user OR
+#          level number < last level AND IsLeafNode = true)
+#      For example, if Top Level to Display of 2 and a depth of 3 is selected, level 4 will be selected as the lowest level AND
+#       levels 2 and 3 where IsLeafNode = true will also be selected
 #
 # If more than 5 hierarchy levels are needed, update the parameter_pick_depth_level and add additional hierN dimensions for node and node_text
 #
@@ -19,10 +22,10 @@
 #
 # This view should be joined to balance sheet using an inner join on:
 #   client_mandt
-#   glhierarchy
+#   hierarchy_name
 #   chart_of_accounts
 #   language_key_spras
-#   glnode
+#   node
 #########################################################}
 
 include: "/views/core/balance_sheet_path_to_node_pdt.view"
