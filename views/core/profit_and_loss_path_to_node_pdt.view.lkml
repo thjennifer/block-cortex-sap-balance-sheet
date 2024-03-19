@@ -34,7 +34,6 @@ view: profit_and_loss_path_to_node_pdt {
           GLNode,
           COALESCE(GLNodeText,GLNode),
           GLIsLeafNode
-          --1, 2, 3, 4, 5, 6, 7, 8, 9
           ),
         iterations AS (
         SELECT
