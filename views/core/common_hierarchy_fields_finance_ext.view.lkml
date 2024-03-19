@@ -68,7 +68,7 @@ view: common_hierarchy_fields_finance_ext {
     group_label: "Hierarchy Paths to Node"
     label: "Hierarchy Node 2"
     description: "Node (text) for 2nd Hierarchy Level as set with the parameter 'Select Top Hierarchy Level to Display'"
-    sql: ${TABLE}.hier2_node_text ;;
+    sql: COALESCE(${TABLE}.hier2_node_text,' ') ;;
     order_by_field: hier2_node
   }
 
@@ -78,7 +78,7 @@ view: common_hierarchy_fields_finance_ext {
     group_label: "Hierarchy Paths to Node"
     label: "Hierarchy Node 3"
     description: "Node (text) for 3rd Hierarchy Level as set with the parameter 'Select Top Hierarchy Level to Display'"
-    sql: ${TABLE}.hier3_node_text ;;
+    sql: COALESCE(${TABLE}.hier3_node_text,' ') ;;
     order_by_field: hier3_node
   }
 
@@ -88,7 +88,7 @@ view: common_hierarchy_fields_finance_ext {
     group_label: "Hierarchy Paths to Node"
     label: "Hierarchy Node 4"
     description: "Node (text) for 4th Hierarchy Level as set with the parameter 'Select Top Hierarchy Level to Display'"
-    sql: ${TABLE}.hier4_node_text ;;
+    sql: COALESCE(${TABLE}.hier4_node_text, ' ') ;;
     order_by_field: hier4_node
   }
 
@@ -98,7 +98,7 @@ view: common_hierarchy_fields_finance_ext {
     group_label: "Hierarchy Paths to Node"
     label: "Hierarchy Node 5"
     description: "Node (text) for 5th Hierarchy Level as set with the parameter 'Select Top Hierarchy Level to Display'"
-    sql: ${TABLE}.hier5_node_text ;;
+    sql: COALESCE(${TABLE}.hier5_node_text,' ') ;;
     order_by_field: hier5_node
   }
 
