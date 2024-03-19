@@ -35,7 +35,7 @@
 # To use this view:
 #   1) Add to an explore using a bare join
 #         explore: profit_and_loss {
-#         join: navigation_income_statement_ext {
+#         join: profit_and_loss_navigation_ext {
 #           view_label: "🔍 Filters & 🛠 Tools"
 #           relationship: one_to_one
 #           sql:  ;;
@@ -53,28 +53,28 @@
 #       name: navigation
 #       explore: profit_and_loss
 #       type: single_value
-#       fields: [navigation_income_statement_ext.navigation]
+#       fields: [profit_and_loss_navigation_ext.navigation]
 #       filters:
-#         navigation_income_statement_ext.navigation_focus_page: '1'
-#         navigation_income_statement_ext.navigation_style: 'small'
-#         navigation_income_statement_ext.navigation_which_dashboard_style: 'subtotal'
+#         profit_and_loss_navigation_ext.navigation_focus_page: '1'
+#         profit_and_loss_navigation_ext.navigation_style: 'small'
+#         profit_and_loss_navigation_ext.navigation_which_dashboard_style: 'subtotal'
 #       show_single_value_title: false
 #       show_comparison: false
 #       listen:
-#         Hierarchy: navigation_income_statement_ext.filter1
-#         Display Timeframe: navigation_income_statement_ext.filter2
-#         Select Fiscal Timeframe: navigation_income_statement_ext.filter3
-#         Global Currency: navigation_income_statement_ext.filter4
-#         Company: navigation_income_statement_ext.filter5
-#         Ledger Name: navigation_income_statement_ext.filter6
-#         Top Hierarchy Level to Display: navigation_income_statement_ext.filter7
-#         Combine Selected Timeframes?: navigation_income_statement_ext.filter8
+#         Hierarchy: profit_and_loss_navigation_ext.filter1
+#         Display Timeframe: profit_and_loss_navigation_ext.filter2
+#         Select Fiscal Timeframe: profit_and_loss_navigation_ext.filter3
+#         Global Currency: profit_and_loss_navigation_ext.filter4
+#         Company: profit_and_loss_navigation_ext.filter5
+#         Ledger Name: profit_and_loss_navigation_ext.filter6
+#         Top Hierarchy Level to Display: profit_and_loss_navigation_ext.filter7
+#         Combine Selected Timeframes?: profit_and_loss_navigation_ext.filter8
 #########################################################}
 
 
 include: "/views/base/navigation_template.view"
 
-view: navigation_income_statement_ext {
+view: profit_and_loss_navigation_ext {
   extends: [navigation_template]
 
   dimension: dash_bindings {
@@ -97,7 +97,7 @@ view: navigation_income_statement_ext {
     hidden: yes
     type: string
     # sql: 'filter1|Display+Timeframe' ;;
-    sql: 'filter1|Hierarchy||filter2|Display+Timeframe||filter3|Select+Fiscal+Timeframe||filter4|Global+Currency||filter5|Company||filter6|Ledger+Name||filter7|Top+Hierarchy+Level+to+Display||filter8|Combine+Selected+Timeframes%3F' ;;
+    sql: 'filter1|Hierarchy||filter2|Display+Timeframe||filter3|Select+Fiscal+Timeframe||filter4|Global+Currency||filter5|Company||filter6|Ledger+Name||filter7|Top+Hierarchy+Level||filter8|Combine+Selected+Timeframes%3F' ;;
   }
 
   parameter: navigation_focus_page {
@@ -153,7 +153,7 @@ view: navigation_income_statement_ext {
   filter: filter7 {
     hidden: yes
     type: string
-    label: "Top Hierarchy Level to Display"
+    label: "Top Hierarchy Level"
   }
 
   filter: filter8 {

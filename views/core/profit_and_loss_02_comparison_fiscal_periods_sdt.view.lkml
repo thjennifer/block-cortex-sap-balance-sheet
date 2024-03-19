@@ -1,38 +1,38 @@
 #########################################################{
-# Step 2 of 3 in deriving Current and Comparison Reporting Groups
-# Step 2 - Derive Comparison periods based on Current selection
+# Step 2 of 3 in deriving Reporting and Comparison Groups of fiscal periods
+# Step 2 - Derive Comparison periods based on Reporting selection
 # This SQL Derived Table (sdt) uses these views:
 #     profit_and_loss_fiscal_periods_sdt (aliased below as comp)
-#     profit_and_loss_01_current_fiscal_periods_sdt (aliased below as cur)
+#     profit_and_loss_01_reporting_fiscal_periods_sdt (aliased below as rep)
 #
 # Purpose:
 #   1) Takes user inputs from parameters and filters:
 #         profit_and_loss.parameter_display_time_dimension - use either Year, Quarter or Period for timeframes in report
 #         profit_and_loss.parameter_compare_to - - compare timeframes selected to either same period(s) last year, most recent period(s) prior or no comparison
-#         profit_and_loss.parameter_aggregate - if yes, all timeframes selected will be aggregated into Current/Comparison Period else each timeframe selected will be displayed in report
+#         profit_and_loss.parameter_aggregate - if yes, all timeframes selected will be aggregated into Reporting/Comparison Period else each timeframe selected will be displayed in report
 #         profit_and_loss.filter_fiscal_timeframe - select one or more fiscal periods to include in Income Statement report
 #
 #   2) Using Liquid, builds SQL statement on the fly based on values selected for above parameters
 #      and filters to return the "Comparison" timeframes
 #
-#      Uses a JOIN between profit_and_loss_01_current_fiscal_periods_sdt and profit_and_loss_fiscal_periods_sdt to derive the comparison period
+#      Uses a JOIN between profit_and_loss_01_reporting_fiscal_periods_sdt and profit_and_loss_fiscal_periods_sdt to derive the comparison period
 #      using either yoy or prior fiscal year/fiscal year quarter/fiscal year period
 #      For example, if user selects to display Fiscal Period and compare to last year,
 #      the derived join statement will be:
-#           FROM profit_and_loss_01_current_fiscal_periods_sdt cur
+#           FROM profit_and_loss_01_reporting_fiscal_periods_sdt rep
 #           JOIN profit_and_loss_fiscal_periods_sdt comp
-#                       ON cur.glhierarchy = comp.glhierarchy
-#                       AND cur.company_code = comp.company_code
-#                       AND cur.yoy_fiscal_year_period = comp.fiscal_year_period
+#                       ON rep.glhierarchy = comp.glhierarchy
+#                       AND rep.company_code = comp.company_code
+#                       AND rep.yoy_fiscal_year_period = comp.fiscal_year_period
 #
 #      Another example, if user selects to display Fiscal Quarter, compare to Prior Quarter, and Aggregate results
 #      the derived join statement will be:
-#           FROM profit_and_loss_01_current_fiscal_periods_sdt cur
+#           FROM profit_and_loss_01_reporting_fiscal_periods_sdt rep
 #           JOIN profit_and_loss_fiscal_periods_sdt comp
-#                       ON cur.glhierarchy = comp.glhierarchy
-#                       AND cur.company_code = comp.company_code
-#                       AND cur.prior_fiscal_quater_rank = comp.fiscal_year_quarter_rank
-#                       AND cur.period_order_in_quarter = comp.period_order_in_quarter
+#                       ON rep.glhierarchy = comp.glhierarchy
+#                       AND rep.company_code = comp.company_code
+#                       AND rep.prior_fiscal_quater_rank = comp.fiscal_year_quarter_rank
+#                       AND rep.period_order_in_quarter = comp.period_order_in_quarter
 #
 #      NOTE, If the user selects a partial year or quarter, the comparison period will also be a partial year or quarter
 #
@@ -54,7 +54,7 @@
 #########################################################}
 
 include: "/views/core/profit_and_loss_fiscal_periods_sdt.view"
-include: "/views/core/profit_and_loss_01_current_fiscal_periods_sdt.view"
+include: "/views/core/profit_and_loss_01_reporting_fiscal_periods_sdt.view"
 
 
 view: profit_and_loss_02_comparison_fiscal_periods_sdt {
@@ -72,10 +72,10 @@ view: profit_and_loss_02_comparison_fiscal_periods_sdt {
           {% assign join2_sql = "" %}
       {% elsif time_level == 'qtr' %}
           {% assign timeframe_field = "fiscal_year_quarter" %}
-          {% assign join2_sql = "AND cur.period_order_in_quarter = comp.period_order_in_quarter" %}
+          {% assign join2_sql = "AND rep.period_order_in_quarter = comp.period_order_in_quarter" %}
       {% elsif time_level == 'yr' %}
           {% assign timeframe_field = "fiscal_year" %}
-          {% assign join2_sql = "AND cur.fiscal_period = comp.fiscal_period" %}
+          {% assign join2_sql = "AND rep.fiscal_period = comp.fiscal_period" %}
     {% endif %}
     {% assign rank_field = timeframe_field | append: "_rank" %}
 
@@ -89,7 +89,7 @@ view: profit_and_loss_02_comparison_fiscal_periods_sdt {
       {% else %}{% assign timeframe_join_sql = "" %}
     {% endif %}
 
-    {% assign join1_sql = "AND cur.prior_timeframe_join = comp." | append: timeframe_join_sql %}
+    {% assign join1_sql = "AND rep.prior_timeframe_join = comp." | append: timeframe_join_sql %}
 
 
       SELECT  comp.glhierarchy,
@@ -100,12 +100,12 @@ view: profit_and_loss_02_comparison_fiscal_periods_sdt {
               comp.fiscal_period,
               {{alignment_group_sql}} AS alignment_group,
               comp.{{timeframe_field}} AS selected_timeframe,
-              cur.is_partial_timeframe,
+              rep.is_partial_timeframe,
               'Comparison' AS fiscal_reporting_group
-      FROM ${profit_and_loss_01_current_fiscal_periods_sdt.SQL_TABLE_NAME} cur
+      FROM ${profit_and_loss_01_reporting_fiscal_periods_sdt.SQL_TABLE_NAME} rep
       JOIN ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} comp
-      ON cur.glhierarchy = comp.glhierarchy
-      AND cur.company_code = comp.company_code
+      ON rep.glhierarchy = comp.glhierarchy
+      AND rep.company_code = comp.company_code
       {{join1_sql}}
       {{join2_sql}}
       WINDOW window_pk AS {{window_partition}}

@@ -1,18 +1,18 @@
 #########################################################{
-# Step 1 of 3 in deriving Current and Comparison Reporting Groups
-# Step 1 - Derive Current selection
+# Step 1 of 3 in deriving Reporting and Comparison Groups of timeframes
+# Step 1 - Derive Reporting selection
 # This SQL Derived Table (sdt) uses view profit_and_loss_fiscal_periods_sdt as source and:
 #   1)  Takes user inputs from parameters and filters:
 #         profit_and_loss.parameter_display_time_dimension - use either Year, Quarter or Period for timeframes in report
 #         profit_and_loss.parameter_compare_to - - compare timeframes selected to either same period(s) last year, most recent period(s) prior or no comparison
-#         profit_and_loss.parameter_aggregate - if yes, all timeframes selected will be aggregated into Current/Comparison Period else each timeframe selected will be displayed in report
+#         profit_and_loss.parameter_aggregate - if yes, all timeframes selected will be aggregated into Reporting/Comparison Group else each timeframe selected will be displayed in report
 #         profit_and_loss.filter_fiscal_timeframe - select one or more fiscal periods to include in Income Statement report
 #
 #   2)  Using Liquid, builds SQL statement on the fly based on values selected for above parameters
-#       and filters to return the "Current" timeframe selected
+#       and filters to return the "Reporting" timeframe selected
 #
 #   3) Derives new dimensions:
-#         fiscal_reporting_group -- value of Current
+#         fiscal_reporting_group -- value of Reporting
 #         alignment_group -- if parameter_aggregate = 'Yes' assign 1 else
 #                            derive with DENSE_RANK() based on Order of fiscal year, quarter or period. If multiple timeframes selected, each set of comparisons will be given a unique group number
 #
@@ -26,12 +26,12 @@
 #                            alignment group 1 = 2024.001 + 2024.002 compared to 2023.001 + 2023.002
 #
 #        selected_timeframe -- returns either fiscal_year, fiscal_year_quarter or fiscal_year_period based on parameter_display_time_dimension
-#        timeframe_join -- added if parameter_compare_to != 'none'; used in Step 2 to join between current and profit_and_loss_fiscal_periods_sdt to derive comparison periods
+#        timeframe_join -- added if parameter_compare_to != 'none'; used in Step 2 to join between reporting and profit_and_loss_fiscal_periods_sdt to derive comparison periods
 #                       -- if parameter_compare_to = 'yoy' then fiscal_year_period
 #                             else if parameter_compare_to = 'prior' and parameter_aggregate = 'Yes' then use the [timeframe]_rank for the selected timeframe
 #                             else if parameter_compare_to = 'prior' and parameter_aggregate = 'No' then use the selected timeframe field (fiscal_year_period, fiscal_year_quarter or fiscal_year)
 #
-#        prior_timeframe_join -- added if parameter_compare_to != 'none'; used in Step 2 to join between current and profit_and_loss_fiscal_periods_sdt to derive comparison periods
+#        prior_timeframe_join -- added if parameter_compare_to != 'none'; used in Step 2 to join between reporting and profit_and_loss_fiscal_periods_sdt to derive comparison periods
 #                             -- if parameter_compare_to = 'yoy' then yoy_fiscal_year_period
 #                             --    else if parameter_compare_to = 'prior' and parameter_aggregate = 'Yes' then derive as:
 #                                     [timeframe]_rank + (
@@ -43,7 +43,7 @@
 
 include: "/views/core/profit_and_loss_fiscal_periods_sdt.view"
 
-view: profit_and_loss_01_current_fiscal_periods_sdt {
+view: profit_and_loss_01_reporting_fiscal_periods_sdt {
   extends: [profit_and_loss_fiscal_periods_sdt]
 
   fields_hidden_by_default: no
@@ -94,7 +94,7 @@ view: profit_and_loss_01_current_fiscal_periods_sdt {
             {{prior_timeframe_join_sql}} as prior_timeframe_join,
          {% endif %}
             {{is_partial_sql}} as is_partial_timeframe,
-            'Current' AS fiscal_reporting_group
+            'Reporting' AS fiscal_reporting_group
      FROM ${profit_and_loss_fiscal_periods_sdt.SQL_TABLE_NAME} fp
      WHERE {% condition profit_and_loss.filter_fiscal_timeframe %}{{timeframe_field}}{% endcondition %}
      WINDOW window_pk AS {{window_partition}}

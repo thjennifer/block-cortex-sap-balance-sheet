@@ -1,3 +1,12 @@
+#########################################################{
+# Income Statement financial report using Table visualization with Subtotals
+# EXTENDS filters and title summary from income_statement_template
+# customizations:
+#   - Income Statement table based on looker_grid visualization type
+#   - filter Select Comparison Type options set to yoy and prior with yoy as default
+#   - Navigation viz filter focus_page set to '1' and filter which_dashboard_style set to 'subtotal'
+#########################################################}
+
 - dashboard: income_statement_subtotal_table
   title: Financial Income Statement
   layout: newspaper
@@ -7,12 +16,12 @@
   extends: income_statement_template
 
   elements:
-  - title: profit and loss table
-    name: profit and loss table
+  - title: income statement table
+    name: income statement table
     explore: profit_and_loss
     type: looker_grid
     fields: [profit_and_loss_hierarchy_selection_sdt.hier1_node_text, profit_and_loss_hierarchy_selection_sdt.hier2_node_text,
-      profit_and_loss_hierarchy_selection_sdt.hier3_node_text, profit_and_loss_03_selected_fiscal_periods_sdt.current_amount,
+      profit_and_loss_hierarchy_selection_sdt.hier3_node_text, profit_and_loss_03_selected_fiscal_periods_sdt.reporting_amount,
       profit_and_loss_03_selected_fiscal_periods_sdt.comparison_amount, profit_and_loss_03_selected_fiscal_periods_sdt.difference_value,
       profit_and_loss_03_selected_fiscal_periods_sdt.difference_percent, profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator]
     pivots: [profit_and_loss_03_selected_fiscal_periods_sdt.alignment_group_name_with_partial_indicator]
@@ -59,7 +68,7 @@
       Ledger Name: universal_ledgers_md.ledger_id_name
       Company: profit_and_loss.company_text
       Hierarchy: profit_and_loss.glhierarchy
-      Top Hierarchy Level to Display: profit_and_loss_hierarchy_selection_sdt.parameter_pick_start_level
+      Top Hierarchy Level: profit_and_loss_hierarchy_selection_sdt.parameter_pick_start_level
     row: 3
     col: 0
     width: 24
@@ -68,8 +77,8 @@
   - title: navigation
     name: navigation
     filters:
-      navigation_income_statement_ext.navigation_focus_page: '1'
-      navigation_income_statement_ext.navigation_which_dashboard_style: 'subtotal'
+      profit_and_loss_navigation_ext.navigation_focus_page: '1'
+      profit_and_loss_navigation_ext.navigation_which_dashboard_style: 'subtotal'
 
   filters:
   - name: Select Comparison Type

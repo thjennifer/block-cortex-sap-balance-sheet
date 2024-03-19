@@ -1,12 +1,12 @@
 #########################################################{
-# Step 3 of 3 in deriving Current and Comparison Reporting Groups
-# Step 3 - Combine Current and Comparison Groups
+# Step 3 of 3 in deriving Reporting and Comparison Groups
+# Step 3 - Combine Reporting and Comparison Groups
 # This SQL Derived Table (sdt) uses these views:
-#     profit_and_loss_01_current_fiscal_periods_sdt (aliased below as cur)
+#     profit_and_loss_01_reporting_fiscal_periods_sdt (aliased below as rep)
 #     profit_and_loss_02_comparison_fiscal_periods_sdt (aliased below as comp)
 #
 # Keys to using this view:
-#   - View label is "Current vs. Comparison Period"
+#   - View label is "Reporting vs. Comparison Period"
 #   - Fields are hidden by default so must change hidden: property to no to include in an explore
 #   - includes references to fields from view profit_and_loss so always join this view to profit_and_loss using an inner join on:
 #         glhierarchy, company_code, fiscal_year, fiscal_period
@@ -16,11 +16,11 @@
 #   1) Takes user inputs from parameters and filters:
 #         profit_and_loss.parameter_display_time_dimension - use either Year, Quarter or Period for timeframes in report
 #         profit_and_loss.parameter_compare_to - - compare timeframes selected to either same period(s) last year, most recent period(s) prior or no comparison
-#         profit_and_loss.parameter_aggregate - if yes, all timeframes selected will be aggregated into Current/Comparison Period else each timeframe selected will be displayed in report
+#         profit_and_loss.parameter_aggregate - if yes, all timeframes selected will be aggregated into Reporting/Comparison Period else each timeframe selected will be displayed in report
 #         profit_and_loss.filter_fiscal_timeframe - select one or more fiscal periods to include in Income Statement report
 #
 #   2) Using Liquid, builds SQL statement on the fly based on values selected for above parameters
-#      and combines "Current" and "Comparison" rows using UNION ALL
+#      and combines "Reporting" and "Comparison" rows using UNION ALL
 #
 #   3) Derives new dimensions:
 #         alignment_group_name -- if parameter_aggregate = 'Yes' assign list of timeframes selected else
@@ -36,12 +36,12 @@
 #                            alignment group 1 = 2024.001 + 2024.002 compared to 2023.001 + 2023.002
 #                            and alignment_group_name = 2024.001, 2024.002
 #
-#        current_timeframes_list -- captures the values selected in filter_fiscal_timeframe as a string (e.g., 2024.001, 2024.002, 2024.003)
+#        reporting_timeframes_list -- captures the values selected in filter_fiscal_timeframe as a string (e.g., 2024.001, 2024.002, 2024.003)
 #        is_partial_timeframe -- Value of true if selected_timeframe (fiscal_year/fiscal_year_quarter) is incomplete else false. Note does not check if fiscal_year_period is incomplete
 #        is_partial_timeframe_in_alignment_group -- If any of the timeframes in the alignment_group are incomplete then true else false
 #
 #   4) Defines reporting measures:
-#         current_amount
+#         reporting_amount
 #         comparison_amount
 #         difference_value
 #         difference_percent
@@ -51,7 +51,7 @@
 include: "/views/core/profit_and_loss_0*.view"
 
 view: profit_and_loss_03_selected_fiscal_periods_sdt {
-label: "Current vs. Comparison Period"
+label: "Reporting vs. Comparison Period"
 fields_hidden_by_default: yes
 
 derived_table: {
@@ -81,7 +81,7 @@ derived_table: {
           '{{time_level_sql}}' as selected_time_level,
           MAX(is_partial_timeframe) OVER (window_alignment) AS is_partial_timeframe_in_alignment_group,
           MAX(fiscal_year_period) OVER (PARTITION BY glhierarchy, company_code, selected_timeframe) AS max_fiscal_year_period_selected_timeframe,
-          '{{tp_list}}' as current_timeframes_list
+          '{{tp_list}}' as reporting_timeframes_list
   FROM (
         SELECT
                 glhierarchy,
@@ -94,7 +94,7 @@ derived_table: {
                 alignment_group,
                 selected_timeframe,
                 is_partial_timeframe
-        FROM ${profit_and_loss_01_current_fiscal_periods_sdt.SQL_TABLE_NAME} cur
+        FROM ${profit_and_loss_01_reporting_fiscal_periods_sdt.SQL_TABLE_NAME} cur
     {% if comparison_type != 'none'  %}
         UNION ALL
         SELECT
@@ -126,7 +126,7 @@ derived_table: {
       CAST(NULL AS STRING) AS selected_timeframe,
       CAST(NULL AS BOOLEAN) AS is_partial_timeframe,
       CAST(NULL AS BOOLEAN) AS is_partial_timeframe_in_alignment_group,
-      CAST(NULL AS STRING) AS current_timeframes_list
+      CAST(NULL AS STRING) AS reporting_timeframes_list
 {% endif %}
   ;;
 }
@@ -181,24 +181,24 @@ derived_table: {
     sql: ${TABLE}.max_fiscal_year_period_selected_timeframe ;;
   }
 
-  dimension: current_timeframes_list {
+  dimension: reporting_timeframes_list {
     type: string
     hidden: no
     description: "List of fiscal timeframes selected by user with filter Select Fiscal Timeframes. Example lists include 2024.001, 2024.002 or 2023.Q3, 2023.Q4, 2024.Q1"
-    sql: ${TABLE}.current_timeframes_list ;;
+    sql: ${TABLE}.reporting_timeframes_list ;;
   }
 
-  dimension: current_timeframes_list_with_partial_indicator {
+  dimension: reporting_timeframes_list_with_partial_indicator {
     type: string
     hidden: yes
     description: "List of fiscal timeframes selected by user with filter Select Fiscal Timeframes. Example lists include 2024.001, 2024.002 or 2023.Q3, 2023.Q4, 2024.Q1. An '*' is appended to end if one of the timeframes is incomplete."
-    sql: CASE WHEN ${is_partial_timeframe_in_alignment_group} THEN CONCAT(${TABLE}.current_timeframes_list,'*') ELSE ${TABLE}.current_timeframes_list END ;;
+    sql: CASE WHEN ${is_partial_timeframe_in_alignment_group} THEN CONCAT(${TABLE}.reporting_timeframes_list,'*') ELSE ${TABLE}.reporting_timeframes_list END ;;
   }
 
   dimension: fiscal_reporting_group {
     type: string
     hidden: no
-    description: "Identifies the Current or Comparison reporting group. In fiscal reporting, the Current group is determined by the values selected in the Select Fiscal Timeframes filter, while the Comparison group is defined by the Compare To parameter, which can be set to either Year Ago or Prior Timeframe."
+    description: "Identifies the Reporting or Comparison reporting group. In fiscal reporting, the Reporting group is determined by the values selected in the Select Fiscal Timeframes filter, while the Comparison group is defined by the Compare To parameter, which can be set to either Year Ago or Prior Timeframe."
     sql:  ${TABLE}.fiscal_reporting_group;;
   }
 
@@ -211,7 +211,7 @@ derived_table: {
   dimension: alignment_group_name {
     type: string
     hidden: no
-    description: "Name for Grouped Timeframes Included in the same Current vs. Comparison set. For example, if Period 2024.001 is to be compared to a Year Ago, the periods 2024.001 and 2023.001 are assigned to same alignment group and given the label 2024.001."
+    description: "Name for Grouped Timeframes Included in the same Reporting vs. Comparison set. For example, if Period 2024.001 is to be compared to a Year Ago, the periods 2024.001 and 2023.001 are assigned to same alignment group and given the label 2024.001."
     sql: ${TABLE}.alignment_group_name ;;
     order_by_field: alignment_group
   }
@@ -219,7 +219,7 @@ derived_table: {
   dimension: alignment_group_name_with_partial_indicator {
     type: string
     hidden: no
-    description: "Name for Grouped Timeframes Included in the same Current vs. Comparison set. For example, if Period 2024.001 is to be compared to a Year Ago, the periods 2024.001 and 2023.001 are assigned to same alignment group and given the label 2024.001. If a partial Year or Quarter is selected, then an '*' is appended to name"
+    description: "Name for Grouped Timeframes Included in the same Reporting vs. Comparison set. For example, if Period 2024.001 is to be compared to a Year Ago, the periods 2024.001 and 2023.001 are assigned to same alignment group and given the label 2024.001. If a partial Year or Quarter is selected, then an '*' is appended to name"
     # sql: ${TABLE}.alignment_group_name ;;
     sql: CASE WHEN ${is_partial_timeframe_in_alignment_group} THEN CONCAT(${TABLE}.alignment_group_name,'*') ELSE ${TABLE}.alignment_group_name END ;;
     order_by_field: alignment_group
@@ -243,7 +243,7 @@ derived_table: {
     type: string
     hidden: yes
     description: "If the timeframe reflects a partial period then an '*' is appended to the timeframe description."
-    group_label: "Current vs. Comparison Period"
+    group_label: "Reporting vs. Comparison Period"
     sql: CASE WHEN ${is_partial_timeframe} THEN CONCAT(${selected_timeframe},"*") ELSE ${selected_timeframe} END ;;
   }
 
@@ -253,10 +253,10 @@ derived_table: {
     sql: case when ${fiscal_reporting_group} = "Comparison" then ${selected_timeframe_label} end ;;
   }
 
-  dimension: selected_timeframe_current {
+  dimension: selected_timeframe_reporting {
     type: string
     hidden: yes
-    sql: case when ${fiscal_reporting_group} = "Current" then ${selected_timeframe_label} end ;;
+    sql: case when ${fiscal_reporting_group} = "Reporting" then ${selected_timeframe_label} end ;;
   }
 
   dimension: fiscal_year_period_comparison {
@@ -265,21 +265,21 @@ derived_table: {
     sql: case when ${fiscal_reporting_group} = "Comparison" then ${fiscal_year_period} end ;;
   }
 
-  dimension: fiscal_year_period_current {
+  dimension: fiscal_year_period_reporting {
     type: string
     hidden: yes
-    sql: case when ${fiscal_reporting_group} = "Current" then ${fiscal_year_period} end ;;
+    sql: case when ${fiscal_reporting_group} = "Reporting" then ${fiscal_year_period} end ;;
   }
 
-  measure: current_amount {
+  measure: reporting_amount {
     type: sum_distinct
     hidden: no
-    # Label is Current Amount by default. If filter_fiscal_timeframe in query and parameter_compare_to = 'none' then leave label blank"
-    label: "{% assign compare = profit_and_loss.parameter_compare_to._parameter_value %}{% if profit_and_loss.filter_fiscal_timeframe._in_query and compare == 'none'%} {% else %}Current Amount{% endif %}"
-    description: "Amount in Global Currency for the Current fiscal reporting group."
+    # Label is Reporting Amount by default. If filter_fiscal_timeframe in query and parameter_compare_to = 'none' then leave label blank"
+    label: "{% assign compare = profit_and_loss.parameter_compare_to._parameter_value %}{% if profit_and_loss.filter_fiscal_timeframe._in_query and compare == 'none'%} {% else %}Reporting Amount{% endif %}"
+    description: "Amount in Global Currency for the Reporting fiscal reporting group."
     sql_distinct_key: ${profit_and_loss.key} ;;
     sql: ${profit_and_loss.amount_in_target_currency} ;;
-    filters: [fiscal_reporting_group: "Current"]
+    filters: [fiscal_reporting_group: "Reporting"]
     value_format_name: decimal_0
     html: @{negative_format} ;;
   }
@@ -301,8 +301,8 @@ derived_table: {
     type: number
     hidden: no
     label: "Variance Amount"
-    description: "Current Amount - Comparison Amount"
-    sql: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}${current_amount} - ${comparison_amount}{%else%}NULL{%endif%} ;;
+    description: "Reporting Amount - Comparison Amount"
+    sql: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}${reporting_amount} - ${comparison_amount}{%else%}NULL{%endif%} ;;
     value_format_name: decimal_0
     html: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}@{negative_format}{%else%} {%endif%} ;;
   }
@@ -311,8 +311,8 @@ derived_table: {
     type: number
     hidden: no
     label: "Variance %"
-    description: "Percent difference between Current Amount and Comparison Amount."
-    sql: SAFE_DIVIDE( (${current_amount} - ${comparison_amount}),ABS(${comparison_amount})) ;;
+    description: "Percent difference between Reporting Amount and Comparison Amount."
+    sql: SAFE_DIVIDE( (${reporting_amount} - ${comparison_amount}),ABS(${comparison_amount})) ;;
     value_format_name: percent_1
     html: {% if profit_and_loss.parameter_compare_to._parameter_value != 'none' %}@{negative_format}{%else%} {%endif%} ;;
   }
@@ -323,9 +323,9 @@ derived_table: {
     sql: MAX(${is_partial_timeframe});;
   }
 
-  measure: max_partial_timeframe_current {
+  measure: max_partial_timeframe_reporting {
     type: string
-    sql: MAX(CASE WHEN ${fiscal_reporting_group} = 'Current' AND ${is_partial_timeframe} THEN ${selected_timeframe} END) ;;
+    sql: MAX(CASE WHEN ${fiscal_reporting_group} = 'Reporting' AND ${is_partial_timeframe} THEN ${selected_timeframe} END) ;;
   }
 
   measure: max_partial_timeframe_comparison {
@@ -333,9 +333,9 @@ derived_table: {
     sql: MAX(CASE WHEN ${fiscal_reporting_group} = 'Comparison' AND ${is_partial_timeframe} THEN ${selected_timeframe} END) ;;
   }
 
-  measure: max_fiscal_period_in_partial_timeframe_current {
+  measure: max_fiscal_period_in_partial_timeframe_reporting {
     type: string
-    sql: MAX(CASE WHEN ${fiscal_reporting_group} = 'Current' AND ${is_partial_timeframe} THEN ${fiscal_period} END) ;;
+    sql: MAX(CASE WHEN ${fiscal_reporting_group} = 'Reporting' AND ${is_partial_timeframe} THEN ${fiscal_period} END) ;;
   }
 
   measure: max_fiscal_period_in_partial_timeframe_comparison {
@@ -346,14 +346,14 @@ derived_table: {
 # used in Income Statement dashboard; add to a single-value visualization
   measure: title_income_statement {
     type: number
-    description: "Add this measure to a single-value visualization. Returns a Summary visualization with Company, Global Currency, Current Fiscal Timeframes and Total Net Income."
+    description: "Add this measure to a single-value visualization. Returns a Summary visualization with Company, Global Currency, Reporting Fiscal Timeframes and Total Net Income."
     hidden: no
     sql: 1 ;;
     html:
       <div  style="font-size:100pct; background-color:rgb((169,169,169,.5); text-align:center;  line-height: .8; font-family:'verdana'; font-color: #808080">
           <a style="font-size:100%;font-family:'verdana';color: black"><b>Income Statement</b></a><br>
           <a style= "font-size:80%;font-family:'verdana';color: black">{{profit_and_loss.company_text._value}}</a><br>
-          <a style= "font-size:80%;font-family:'verdana';color: black">Current Fiscal Timeframe:   {{current_timeframes_list_with_partial_indicator._value}}&nbsp;&nbsp;&nbsp; Net Income: {{profit_and_loss.net_income._rendered_value}}M</a>
+          <a style= "font-size:80%;font-family:'verdana';color: black">Reporting Fiscal Timeframe:   {{reporting_timeframes_list_with_partial_indicator._value}}&nbsp;&nbsp;&nbsp; Net Income: {{profit_and_loss.net_income._rendered_value}}M</a>
           <br>
           <a style= "font-size: 70%; text-align:center;font-family:'verdana';color: black"> Amounts in {{profit_and_loss.target_currency_tcurr}} </a>
        </div>
@@ -367,16 +367,16 @@ derived_table: {
     description: "Add this measure to a single-value visualization. Returns a footnote indicating if a partial timeframe is included in the report and if so, it's max fiscal period. Should be added to a single value visualization."
     sql: MAX('1') ;;
     html: {% if any_timeframe_is_partial._value == 'Yes' %}{% assign time_level = selected_time_level._value %}{% assign compare_to = profit_and_loss.parameter_compare_to._parameter_value %}
-          {% assign note = '*' | append: time_level | append: ' To Date:' %}{% assign current_time = max_partial_timeframe_current._value %}{% assign current_max = ' through period ' | append: max_fiscal_period_in_partial_timeframe_current._value %}
+          {% assign note = '*' | append: time_level | append: ' To Date:' %}{% assign reporting_time = max_partial_timeframe_reporting._value %}{% assign reporting_max = ' through period ' | append: max_fiscal_period_in_partial_timeframe_reporting._value %}
           {% assign compare_max = ' through period ' | append: max_fiscal_period_in_partial_timeframe_comparison._value %}
-          {% assign current_note = ' Current ' | append: current_time %}
-          {% if compare_to == 'none' %}{% assign comparison_note = current_max %}
-            {% elsif compare_to == 'yoy' or time_level == 'Fiscal Year' %}{% assign comparison_note = ' & Year Ago comparison through period ' | append: current_max %}
-            {% elsif compare_to == 'prior' and time_level != 'Fiscal Year' %}{% assign comparison_note = current_max | append: ' & Comparison ' | append: max_partial_timeframe_comparison._value | append: ' through period ' | append: compare_max %}
+          {% assign reporting_note = ' Reporting ' | append: reporting_time %}
+          {% if compare_to == 'none' %}{% assign comparison_note = reporting_max %}
+            {% elsif compare_to == 'yoy' or time_level == 'Fiscal Year' %}{% assign comparison_note = ' & Year Ago comparison through period ' | append: reporting_max %}
+            {% elsif compare_to == 'prior' and time_level != 'Fiscal Year' %}{% assign comparison_note = reporting_max | append: ' & Comparison ' | append: max_partial_timeframe_comparison._value | append: ' through period ' | append: compare_max %}
             {% else %}{% assign comparison_note = ' '%}
           {% endif %}
             <div style="font-size:11px; text-align:left; font-family:'verdana'; line-height: 2; font-color: #808080">
-            <a>{{note}}{{current_note}}{{comparison_note}}</a><br>
+            <a>{{note}}{{reporting_note}}{{comparison_note}}</a><br>
           {% else %} {%endif%}
           ;;
     }

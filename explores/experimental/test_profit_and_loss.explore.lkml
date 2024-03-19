@@ -4,7 +4,7 @@ include: "/views/core/language_map_sdt.view"
 include: "/views/experimental/new_profit_and_loss_fiscal_periods_selected_sdt.view"
 include: "/views/core/profit_and_loss_03_selected_fiscal_periods_sdt.view"
 include: "/views/core/profit_and_loss_hierarchy_selection_sdt.view"
-include: "/views/core/navigation_income_statement_ext.view"
+include: "/views/core/profit_and_loss_navigation_ext.view"
 
 explore: profit_and_loss {
   always_join: [language_map_sdt]
@@ -59,7 +59,7 @@ explore: profit_and_loss {
 
   }
 
-  join: navigation_income_statement_ext {
+  join: profit_and_loss_navigation_ext {
     view_label: "🔍 Filters & 🛠 Tools"
     relationship: one_to_one
     sql:  ;;
