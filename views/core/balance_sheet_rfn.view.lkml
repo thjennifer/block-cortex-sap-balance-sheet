@@ -32,7 +32,7 @@
 #
 # EXTENDED FIELDS:
 # Extends common dimensions found in both balance sheet and profit and loss using view common_fields_finance_ext
-#   client_mandt, language_key_spras, currency_key, target_currency_tcurr, ledger_in_general_ledger_accounting, ledger_name, company_code, company_text, chart_of_accounts, business_area,
+#   client_mandt, language_key_spras, currency_key, target_currency_tcurr, ledger_in_general_ledger_accounting, company_code, company_text, chart_of_accounts, business_area,
 #   fiscal_period, fiscal_quarter, fiscal_year and related fields
 # Changes to these dimensions can be made in view common_fields_finance_ext if the changes are for both balance sheet and profit and loss;
 # or customize these dimensions specifically for Balance Sheet in this view as needed
@@ -110,7 +110,7 @@ view: +balance_sheet {
 #{
 
   dimension: hierarchy_name {
-    description: "Hierarchy Name is same as Financial Statement Version (FSV)"
+    description: "Hierarchy Name or Financial Statement Version (FSV)"
   }
 
   dimension: parent {

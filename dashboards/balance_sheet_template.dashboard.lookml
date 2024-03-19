@@ -23,7 +23,7 @@
       Company: balance_sheet.company_text
       Fiscal Period: balance_sheet.select_fiscal_period
       Hierarchy: balance_sheet.hierarchy_name
-      Ledger Name: balance_sheet.ledger_name
+      Ledger Name: universal_ledgers_md.ledger_id_name
     row: 0
     col: 0
     width: 24
@@ -118,14 +118,14 @@
   - name: Ledger Name
     title: Ledger Name
     type: field_filter
-    default_value: "0L - Leading Ledger"
+    default_value: "%0L%"
     allow_multiple_values: true
     required: false
     ui_config:
       type: tag_list
       display: inline
     explore: balance_sheet
-    field: balance_sheet.ledger_name
+    field: universal_ledgers_md.ledger_id_name
 
   - name: Top Hierarchy Level
     title: Top Hierarchy Level

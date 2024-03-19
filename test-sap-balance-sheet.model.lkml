@@ -14,3 +14,7 @@ explore: balance_sheet_3_4 {}
 include: "/views/core/profit_and_loss_fiscal_periods_sdt.view"
 
 explore: profit_and_loss_fiscal_periods_sdt {}
+
+
+include: "/views/core/universal_ledgers_md_rfn.view"
+explore: universal_ledgers_md {}

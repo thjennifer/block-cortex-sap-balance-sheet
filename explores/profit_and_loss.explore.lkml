@@ -1,5 +1,6 @@
 include: "/views/core/profit_and_loss_rfn.view"
 include: "/views/core/language_map_sdt.view"
+include: "/views/core/universal_ledgers_md_rfn.view"
 include: "/views/core/profit_and_loss_03_selected_fiscal_periods_sdt.view"
 include: "/views/core/profit_and_loss_hierarchy_selection_sdt.view"
 include: "/views/core/navigation_income_statement_ext.view"
@@ -20,6 +21,15 @@ explore: profit_and_loss {
     relationship: many_to_one
     sql_on: ${profit_and_loss.language_key_spras} = ${language_map_sdt.language_spras} ;;
     fields: []
+  }
+
+  join: universal_ledgers_md {
+    view_label: "Income Statement"
+    type: left_outer
+    relationship: many_to_one
+    sql_on: ${profit_and_loss.client_mandt} = ${universal_ledgers_md.client_mandt} AND
+            ${profit_and_loss.ledger_in_general_ledger_accounting} = ${universal_ledgers_md.ledger_rldnr} AND
+            ${profit_and_loss.language_key_spras} = ${universal_ledgers_md.language_langu};;
   }
 
   join: profit_and_loss_03_selected_fiscal_periods_sdt  {

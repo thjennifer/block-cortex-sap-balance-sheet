@@ -26,14 +26,14 @@
       profit_and_loss_03_selected_fiscal_periods_sdt.current_amount: " "
     limit: 500
     column_limit: 50
-    total: false
+    total: true
     show_view_names: false
     show_row_numbers: true
     transpose: false
     truncate_text: true
     hide_totals: false
     hide_row_totals: false
-    size_to_fit: true
+    size_to_fit: false
     table_theme: white
     limit_displayed_rows: false
     enable_conditional_formatting: false
@@ -55,7 +55,7 @@
       Global Currency: profit_and_loss.target_currency_tcurr
       Select Fiscal Timeframe: profit_and_loss.filter_fiscal_timeframe
       Display Timeframe: profit_and_loss.parameter_display_time_dimension
-      Ledger Name: profit_and_loss.ledger_name
+      Ledger Name: universal_ledgers_md.ledger_id_name
       Select Comparison Type: profit_and_loss.parameter_compare_to
       Company: profit_and_loss.company_text
       Hierarchy: profit_and_loss.glhierarchy

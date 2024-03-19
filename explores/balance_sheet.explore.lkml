@@ -1,5 +1,6 @@
 include: "/views/core/balance_sheet_rfn.view"
 include: "/views/core/language_map_sdt.view"
+include: "/views/core/universal_ledgers_md_rfn.view"
 include: "/views/core/balance_sheet_fiscal_periods_selected_sdt.view"
 include: "/views/core/balance_sheet_hierarchy_selection_sdt.view"
 include: "/views/core/balance_sheet_navigation_ext.view"
@@ -18,6 +19,15 @@ explore: balance_sheet {
     relationship: many_to_one
     sql_on: ${balance_sheet.language_key_spras} = ${language_map_sdt.language_spras} ;;
     fields: []
+  }
+
+  join: universal_ledgers_md {
+    view_label: "Balance Sheet"
+    type: left_outer
+    relationship: many_to_one
+    sql_on: ${balance_sheet.client_mandt} = ${universal_ledgers_md.client_mandt} AND
+            ${balance_sheet.ledger_in_general_ledger_accounting} = ${universal_ledgers_md.ledger_rldnr} AND
+            ${balance_sheet.language_key_spras} = ${universal_ledgers_md.language_langu};;
   }
 
   join: balance_sheet_fiscal_periods_selected_sdt {

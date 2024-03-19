@@ -21,7 +21,7 @@
       Select Fiscal Timeframe: profit_and_loss.filter_fiscal_timeframe
       Display Timeframe: profit_and_loss.parameter_display_time_dimension
       Select Comparison Type: profit_and_loss.parameter_compare_to
-      Ledger Name: profit_and_loss.ledger_name
+      Ledger Name: universal_ledgers_md.ledger_id_name
       Company: profit_and_loss.company_text
       Hierarchy: profit_and_loss.glhierarchy
     row: 2
@@ -40,7 +40,7 @@
       Select Fiscal Timeframe: profit_and_loss.filter_fiscal_timeframe
       Display Timeframe: profit_and_loss.parameter_display_time_dimension
       Select Comparison Type: profit_and_loss.parameter_compare_to
-      Ledger Name: profit_and_loss.ledger_name
+      Ledger Name: universal_ledgers_md.ledger_id_name
       Company: profit_and_loss.company_text
       Hierarchy: profit_and_loss.glhierarchy
       Combine Selected Timeframes?: profit_and_loss.parameter_aggregate
@@ -170,7 +170,7 @@
   - name: Ledger Name
     title: Ledger Name
     type: field_filter
-    default_value: '0L - Leading Ledger'
+    default_value: '%0L%'
     allow_multiple_values: true
     required: false
     ui_config:
@@ -178,7 +178,7 @@
       display: popover
     explore: profit_and_loss
     listens_to_filters: [Hierarchy]
-    field: profit_and_loss.ledger_name
+    field: universal_ledgers_md.ledger_id_name
 
   - name: Top Hierarchy Level to Display
     title: Top Hierarchy Level to Display

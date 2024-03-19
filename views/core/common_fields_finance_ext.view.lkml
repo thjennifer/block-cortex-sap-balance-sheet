@@ -12,7 +12,6 @@
 #   currency_key
 #   target_currency_tcurr
 #   ledger_in_general_ledger_accounting
-#   ledger_name
 #   company_code
 #   company_text
 #   business_area
@@ -55,17 +54,6 @@ view: common_fields_finance_ext {
     label: "Ledger"
     description: "Ledger in General Ledger Accounting as ID or Code"
     sql: COALESCE(${TABLE}.LedgerInGeneralLedgerAccounting,'0L') ;;
-  }
-
-  dimension: ledger_name {
-    description: "Ledger in General Ledger Accounting Name. Currently defined as assigned name values for 0L (Leading Ledger), 2L (IFRS Non-leading Ledger), 0E (Extension Ledger) else ledger value is used."
-    sql:  CASE ${ledger_in_general_ledger_accounting}
-          WHEN '0L' THEN '0L - Leading Ledger'
-          WHEN '2L' THEN '2L - IFRS Non-leading Ledger'
-          WHEN '0E' THEN '0E - Extension Ledger'
-          ELSE ${ledger_in_general_ledger_accounting}
-          END;;
-    order_by_field: ledger_in_general_ledger_accounting
   }
 
   dimension: company_code {

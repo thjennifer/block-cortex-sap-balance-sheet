@@ -50,7 +50,7 @@
       Global Currency: profit_and_loss.target_currency_tcurr
       Select Fiscal Timeframe: profit_and_loss.filter_fiscal_timeframe
       Display Timeframe: profit_and_loss.parameter_display_time_dimension
-      Ledger Name: profit_and_loss.ledger_name
+      Ledger Name: universal_ledgers_md.ledger_id_name
       Select Comparison Type: profit_and_loss.parameter_compare_to
       Company: profit_and_loss.company_text
       Hierarchy: profit_and_loss.glhierarchy
